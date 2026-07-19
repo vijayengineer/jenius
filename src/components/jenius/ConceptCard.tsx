@@ -135,9 +135,12 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
               onSave={onSave}
               onGotIt={onGotIt}
               onExplainMore={onExplainMore}
+              explainDisabled={explainDisabled}
+              explainHint={explainHint}
             />
           </div>
         </div>
+
 
         {showSwipeCue ? (
           <div
