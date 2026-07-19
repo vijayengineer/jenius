@@ -159,7 +159,7 @@ function DevPreview() {
       id: "saved-populated",
       group: "Saved",
       label: "Populated",
-      render: () => <SavedScreen items={SAMPLE_SAVED} />,
+      render: () => <SavedScreen items={MOCK_SAVED_ITEMS} />,
     },
 
     {
@@ -179,7 +179,7 @@ function DevPreview() {
       id: "create-idle",
       group: "Create",
       label: "Idle",
-      render: () => <CreateScreen generationStatus="idle" />,
+      render: () => <CreateScreen generationStatus="disabled" />,
     },
     {
       id: "create-generating",
@@ -194,7 +194,7 @@ function DevPreview() {
       render: () => (
         <CreateScreen
           generationStatus="success"
-          generatedPack={SAMPLE_GENERATED_PACK}
+          generatedPack={SAMPLE_BLACK_HOLES_PACK}
         />
       ),
     },
