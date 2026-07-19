@@ -390,6 +390,19 @@ export function DiscoverFeed({
           onErrorRetry={submitChallenge}
         />
       ) : null}
+
+      <CompletionOverlay
+        open={!!completionConceptId}
+        message="Another idea understood."
+        saved={completionConceptId ? saved.has(completionConceptId) : false}
+        onKeepSwiping={() => setCompletionConceptId(null)}
+        onSave={
+          completionConceptId
+            ? () => toggleSave(completionConceptId)
+            : undefined
+        }
+        onDismiss={() => setCompletionConceptId(null)}
+      />
     </AppShell>
   );
 }
