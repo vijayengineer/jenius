@@ -234,3 +234,40 @@
 @utility transition-swift {
   transition: all var(--transition-swift);
 }
+
+@utility safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Focus ring — visible, brand-tinted, respects keyboard-only */
+@layer base {
+  :focus-visible {
+    outline: none;
+  }
+  *:focus-visible {
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+    border-radius: 8px;
+  }
+}
+
+/* Reduced-motion: honour the OS setting globally */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
