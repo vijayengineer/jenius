@@ -1,5 +1,9 @@
 import * as React from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { CompletionOverlay } from "./CompletionOverlay";
+import { DailyDiscoveryBadge } from "./DailyDiscoveryBadge";
+import { MOCK_PROGRESS_ACTIVE } from "@/lib/jenius/progress";
 import { AppShell } from "./AppShell";
 import { BottomNavigation, type BottomNavItem, type BottomNavKey } from "./BottomNavigation";
 import { FeedTopBar, type FeedMode } from "./FeedTopBar";
