@@ -7,7 +7,14 @@ import { OfflineBanner } from "./OfflineBanner";
 import { ConceptCard } from "./ConceptCard";
 import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";
+import { ChallengeSheet } from "./ChallengeSheet";
 import { MOCK_CONCEPTS, type Concept } from "@/lib/jenius/mockConcepts";
+import {
+  CHALLENGES,
+  resolveChallenge,
+  type ResolvedOptionState,
+  type SubmissionState,
+} from "@/lib/jenius/challenges";
 import { Bookmark, Home, Plus, User } from "lucide-react";
 
 const FEED_NAV_ITEMS: BottomNavItem[] = [
