@@ -337,7 +337,7 @@ export function DiscoverFeed({
               target={MOCK_PROGRESS_ACTIVE.dailyTarget}
             />
           </div>
-          {offline ? <OfflineBanner /> : null}
+          {isOffline ? <OfflineBanner /> : null}
           {totalStops > 1 ? <FeedDots total={totalStops} active={activeIndex} /> : null}
         </div>
       }
@@ -362,19 +362,30 @@ export function DiscoverFeed({
           )}
           style={{ scrollSnapType: "y mandatory" }}
         >
-          {concepts.map((concept, i) => (
-            <ConceptCard
-              key={concept.id}
-              ref={(el) => {
-                cardRefs.current[i] = el;
-              }}
-              concept={concept}
-              saved={saved.has(concept.id)}
-              onSave={() => toggleSave(concept.id)}
-              onGotIt={() => openChallenge(concept.id)}
-              showSwipeCue={i === 0}
-            />
-          ))}
+          {concepts.map((concept, i) => {
+            const explainCached = !!EXPLAIN_PACKS[concept.id];
+            const explainDisabled = isOffline && !explainCached;
+            return (
+              <ConceptCard
+                key={concept.id}
+                ref={(el) => {
+                  cardRefs.current[i] = el;
+                }}
+                concept={concept}
+                saved={saved.has(concept.id)}
+                onSave={() => toggleSave(concept.id)}
+                onGotIt={() => openChallenge(concept.id)}
+                onExplainMore={() => openExplain(concept.id)}
+                explainDisabled={explainDisabled}
+                explainHint={
+                  explainDisabled ? "Not saved for offline yet." : undefined
+                }
+                muted={muted}
+                showSwipeCue={i === 0}
+              />
+            );
+          })}
+
 
           {loading ? (
             <section
