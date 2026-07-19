@@ -12,6 +12,7 @@ import { ConceptCard } from "./ConceptCard";
 import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";
 import { ChallengeSheet, type ChallengeStage } from "./ChallengeSheet";
+import { ExplainMoreSheet } from "./ExplainMoreSheet";
 import { MOCK_CONCEPTS, type Concept } from "@/lib/jenius/mockConcepts";
 import {
   CHALLENGES,
@@ -22,7 +23,15 @@ import {
   type ResolvedOptionState,
   type SubmissionState,
 } from "@/lib/jenius/challenges";
+import {
+  EXPLAIN_PACKS,
+  mockFreshExplainPack,
+  type ExplainPack,
+  type ExplainStatus,
+} from "@/lib/jenius/explainMore";
+import { useOffline } from "@/lib/jenius/offline";
 import { Bookmark, Home, Plus, User } from "lucide-react";
+
 
 const FEED_NAV_ITEMS: BottomNavItem[] = [
   { key: "feed", label: "Feed", icon: Home },
