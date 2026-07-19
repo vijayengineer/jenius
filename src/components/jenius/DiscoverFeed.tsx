@@ -64,6 +64,7 @@ export function DiscoverFeed({
   initialSaved,
   activeTab = "feed",
   onTabChange,
+  challengeStateOverride,
 }: DiscoverFeedProps) {
   const [mode, setMode] = React.useState<FeedMode>("discover");
   const [muted, setMuted] = React.useState(true);
