@@ -82,6 +82,15 @@ export function DiscoverFeed({
     () => new Set(initialSaved ?? concepts.filter((c) => c.saved).map((c) => c.id)),
   );
   const [activeIndex, setActiveIndex] = React.useState(0);
+  const [completionConceptId, setCompletionConceptId] = React.useState<string | null>(null);
+  const navigate = useNavigate();
+  const handleTabChange = (key: BottomNavKey) => {
+    if (onTabChange) return onTabChange(key);
+    if (key === "feed") navigate({ to: "/" });
+    else if (key === "saved") navigate({ to: "/saved" });
+    else if (key === "explore") navigate({ to: "/create" });
+    else if (key === "profile") navigate({ to: "/me" });
+  };
 
   const scrollerRef = React.useRef<HTMLDivElement>(null);
   const cardRefs = React.useRef<Array<HTMLElement | null>>([]);
@@ -232,11 +241,19 @@ export function DiscoverFeed({
     const currentIdx = activeChallengeConcept
       ? concepts.findIndex((c) => c.id === activeChallengeConcept.id)
       : -1;
+    const completedId = activeChallengeConcept?.id ?? null;
     closeChallenge();
+    if (completedId) {
+      setCompletionConceptId(completedId);
+      window.setTimeout(() => {
+        setCompletionConceptId((cur) => (cur === completedId ? null : cur));
+      }, 4200);
+    }
     if (currentIdx >= 0 && currentIdx < concepts.length - 1) {
       window.setTimeout(() => scrollToIndex(currentIdx + 1), 220);
     }
   };
+
 
   const totalStops = empty ? 0 : concepts.length + 1;
 
