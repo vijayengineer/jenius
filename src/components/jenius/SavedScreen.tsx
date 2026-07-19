@@ -127,14 +127,13 @@ export function SavedScreen({
               key={s}
               subject={s}
               size="sm"
+              label={SUBJECTS[s].label}
               onClick={() => setSubjectFilter(s)}
               className={cn(
                 "cursor-pointer whitespace-nowrap",
                 subjectFilter !== s && "opacity-60",
               )}
-            >
-              {SUBJECTS[s].label}
-            </SubjectChip>
+            />
           ))}
         </div>
       ) : null}

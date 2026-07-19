@@ -39,9 +39,7 @@ export function SavedCard({
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <SubjectChip subject={subject} size="sm">
-          {category}
-        </SubjectChip>
+        <SubjectChip subject={subject} size="sm" label={category} />
         <span className="text-[11px] text-foreground/50">{savedAtLabel}</span>
       </div>
 
