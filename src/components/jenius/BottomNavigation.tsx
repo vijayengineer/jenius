@@ -17,7 +17,7 @@ export const DEFAULT_NAV_ITEMS: BottomNavItem[] = [
   { key: "profile", label: "You", icon: User },
 ];
 
-export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement> {
+export interface BottomNavigationProps extends Omit<React.HTMLAttributes<HTMLElement>, "onSelect"> {
   active: BottomNavKey;
   items?: BottomNavItem[];
   onSelect?: (key: BottomNavKey) => void;
