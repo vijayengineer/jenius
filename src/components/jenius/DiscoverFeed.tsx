@@ -251,6 +251,45 @@ export function DiscoverFeed({
     }, 500);
   };
 
+  // ---------------- Explain more sheet state ----------------
+  const [explainConceptId, setExplainConceptId] = React.useState<string | null>(null);
+  const [explainStatus, setExplainStatus] = React.useState<ExplainStatus>("available");
+  const [explainPack, setExplainPack] = React.useState<ExplainPack | undefined>();
+
+  const explainConcept = explainConceptId
+    ? concepts.find((c) => c.id === explainConceptId) ?? null
+    : null;
+
+  const openExplain = (conceptId: string) => {
+    const cached = EXPLAIN_PACKS[conceptId];
+    setExplainConceptId(conceptId);
+    if (isOffline) {
+      if (cached) {
+        setExplainStatus("cached");
+        setExplainPack(cached);
+      } else {
+        setExplainStatus("offline-unavailable");
+        setExplainPack(undefined);
+      }
+      return;
+    }
+    setExplainStatus("available");
+    setExplainPack(undefined);
+  };
+
+  const fetchExplain = () => {
+    if (!explainConcept) return;
+    setExplainStatus("loading");
+    window.setTimeout(() => {
+      setExplainPack(mockFreshExplainPack(explainConcept.id, explainConcept.hook));
+      setExplainStatus("success");
+    }, 700);
+  };
+
+  const closeExplain = () => setExplainConceptId(null);
+
+
+
   const advanceToNextConcept = () => {
     const currentIdx = activeChallengeConcept
       ? concepts.findIndex((c) => c.id === activeChallengeConcept.id)
