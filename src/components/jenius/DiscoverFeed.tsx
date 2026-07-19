@@ -12,6 +12,7 @@ import { ConceptCard } from "./ConceptCard";
 import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";
 import { ChallengeSheet, type ChallengeStage } from "./ChallengeSheet";
+import { ExplainMoreSheet } from "./ExplainMoreSheet";
 import { MOCK_CONCEPTS, type Concept } from "@/lib/jenius/mockConcepts";
 import {
   CHALLENGES,
@@ -22,7 +23,15 @@ import {
   type ResolvedOptionState,
   type SubmissionState,
 } from "@/lib/jenius/challenges";
+import {
+  EXPLAIN_PACKS,
+  mockFreshExplainPack,
+  type ExplainPack,
+  type ExplainStatus,
+} from "@/lib/jenius/explainMore";
+import { useOffline } from "@/lib/jenius/offline";
 import { Bookmark, Home, Plus, User } from "lucide-react";
+
 
 const FEED_NAV_ITEMS: BottomNavItem[] = [
   { key: "feed", label: "Feed", icon: Home },
@@ -66,7 +75,7 @@ export interface DiscoverFeedProps {
  */
 export function DiscoverFeed({
   concepts = MOCK_CONCEPTS,
-  offline = false,
+  offline,
   loading = false,
   empty = false,
   initialSaved,
@@ -76,6 +85,10 @@ export function DiscoverFeed({
   stageOverride,
   previewConceptId,
 }: DiscoverFeedProps) {
+  const ctx = useOffline();
+  // Prop wins when explicitly passed (state-preview harness); otherwise fall
+  // back to the app-wide mock offline context.
+  const isOffline = offline ?? !ctx.online;
   const [mode, setMode] = React.useState<FeedMode>("discover");
   const [muted, setMuted] = React.useState(true);
   const [saved, setSaved] = React.useState<Set<string>>(
@@ -83,6 +96,7 @@ export function DiscoverFeed({
   );
   const [activeIndex, setActiveIndex] = React.useState(0);
   const [completionConceptId, setCompletionConceptId] = React.useState<string | null>(null);
+
   const navigate = useNavigate();
   const handleTabChange = (key: BottomNavKey) => {
     if (onTabChange) return onTabChange(key);
@@ -237,6 +251,45 @@ export function DiscoverFeed({
     }, 500);
   };
 
+  // ---------------- Explain more sheet state ----------------
+  const [explainConceptId, setExplainConceptId] = React.useState<string | null>(null);
+  const [explainStatus, setExplainStatus] = React.useState<ExplainStatus>("available");
+  const [explainPack, setExplainPack] = React.useState<ExplainPack | undefined>();
+
+  const explainConcept = explainConceptId
+    ? concepts.find((c) => c.id === explainConceptId) ?? null
+    : null;
+
+  const openExplain = (conceptId: string) => {
+    const cached = EXPLAIN_PACKS[conceptId];
+    setExplainConceptId(conceptId);
+    if (isOffline) {
+      if (cached) {
+        setExplainStatus("cached");
+        setExplainPack(cached);
+      } else {
+        setExplainStatus("offline-unavailable");
+        setExplainPack(undefined);
+      }
+      return;
+    }
+    setExplainStatus("available");
+    setExplainPack(undefined);
+  };
+
+  const fetchExplain = () => {
+    if (!explainConcept) return;
+    setExplainStatus("loading");
+    window.setTimeout(() => {
+      setExplainPack(mockFreshExplainPack(explainConcept.id, explainConcept.hook));
+      setExplainStatus("success");
+    }, 700);
+  };
+
+  const closeExplain = () => setExplainConceptId(null);
+
+
+
   const advanceToNextConcept = () => {
     const currentIdx = activeChallengeConcept
       ? concepts.findIndex((c) => c.id === activeChallengeConcept.id)
@@ -284,7 +337,7 @@ export function DiscoverFeed({
               target={MOCK_PROGRESS_ACTIVE.dailyTarget}
             />
           </div>
-          {offline ? <OfflineBanner /> : null}
+          {isOffline ? <OfflineBanner /> : null}
           {totalStops > 1 ? <FeedDots total={totalStops} active={activeIndex} /> : null}
         </div>
       }
@@ -309,19 +362,30 @@ export function DiscoverFeed({
           )}
           style={{ scrollSnapType: "y mandatory" }}
         >
-          {concepts.map((concept, i) => (
-            <ConceptCard
-              key={concept.id}
-              ref={(el) => {
-                cardRefs.current[i] = el;
-              }}
-              concept={concept}
-              saved={saved.has(concept.id)}
-              onSave={() => toggleSave(concept.id)}
-              onGotIt={() => openChallenge(concept.id)}
-              showSwipeCue={i === 0}
-            />
-          ))}
+          {concepts.map((concept, i) => {
+            const explainCached = !!EXPLAIN_PACKS[concept.id];
+            const explainDisabled = isOffline && !explainCached;
+            return (
+              <ConceptCard
+                key={concept.id}
+                ref={(el) => {
+                  cardRefs.current[i] = el;
+                }}
+                concept={concept}
+                saved={saved.has(concept.id)}
+                onSave={() => toggleSave(concept.id)}
+                onGotIt={() => openChallenge(concept.id)}
+                onExplainMore={() => openExplain(concept.id)}
+                explainDisabled={explainDisabled}
+                explainHint={
+                  explainDisabled ? "Not saved for offline yet." : undefined
+                }
+                muted={muted}
+                showSwipeCue={i === 0}
+              />
+            );
+          })}
+
 
           {loading ? (
             <section
@@ -403,7 +467,23 @@ export function DiscoverFeed({
         }
         onDismiss={() => setCompletionConceptId(null)}
       />
+
+      {explainConcept ? (
+        <ExplainMoreSheet
+          open={!!explainConceptId}
+          onOpenChange={(o) => {
+            if (!o) closeExplain();
+          }}
+          subject={explainConcept.subject}
+          conceptHook={explainConcept.hook}
+          status={explainStatus}
+          pack={explainPack}
+          onRetry={fetchExplain}
+          onClose={closeExplain}
+        />
+      ) : null}
     </AppShell>
+
   );
 }
 

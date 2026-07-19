@@ -61,6 +61,7 @@ export {
   type GenerationProgressProps,
   type GeneratedDraftPreviewProps,
 } from "./CreateScreen";
+export { ExplainMoreSheet, type ExplainMoreSheetProps } from "./ExplainMoreSheet";
 export { TabShell, useActiveTab, type TabShellProps } from "./TabShell";
 export * from "@/lib/jenius/types";
 export * from "@/lib/jenius/mockConcepts";
@@ -68,6 +69,12 @@ export * from "@/lib/jenius/challenges";
 export * from "@/lib/jenius/savedCollections";
 export * from "@/lib/jenius/progress";
 export * from "@/lib/jenius/generatedPack";
-export * from "@/lib/jenius/types";
-export * from "@/lib/jenius/mockConcepts";
-export * from "@/lib/jenius/challenges";
+export * from "@/lib/jenius/explainMore";
+export {
+  OfflineProvider,
+  useOffline,
+  OFFLINE_MESSAGE,
+  type OfflineContextValue,
+  type OfflineProviderProps,
+} from "@/lib/jenius/offline";
+

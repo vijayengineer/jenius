@@ -31,18 +31,52 @@ export const SUBJECTS: Record<SubjectId, Subject> = {
   life: { id: "life", label: "Life", colorToken: "subject-life" },
 };
 
-export type MediaMode = "video" | "diagram" | "image" | "text";
+/**
+ * Media modes.
+ *
+ *  - `video`    — future short webm/mp4 clip (Stage 1 renders the poster UI).
+ *  - `svg`      — inline vector diagram (data-only, no remote assets).
+ *  - `image`    — raster still (future asset).
+ *  - `text`     — no media area; the card renders text only.
+ *  - `none`     — explicitly no media; useful for opting out of the media slot.
+ */
+export type MediaMode = "video" | "svg" | "image" | "text" | "none" | "diagram";
 
+/**
+ * MediaSlotData — the resolved media contract passed into <MediaSlot>. The
+ * component never fetches anything; hosts pass fully-resolved paths and
+ * fallbacks.
+ */
 export interface MediaSlotData {
   mode: MediaMode;
-  /** Placeholder-only for Stage 1. No remote URLs. */
+  /** Future file path (e.g. "/media/seasons.webm"). Not required to exist. */
   src?: string;
+  /** Poster image path (future asset). */
+  poster?: string;
+  /** Short human caption shown under the media. */
+  caption?: string;
+  /** Alt/description for assistive tech — always required for real media. */
   alt?: string;
+  /**
+   * Text fallback used when the mode is `video`/`image` but a fallback is
+   * requested (reduced motion, load failure, offline with no cache).
+   */
+  textFallback?: string;
   /** Optional aspect ratio hint (width / height). Defaults to 4/5. */
   aspectRatio?: number;
-  /** Optional accent color token for text-only cards. */
+  /** Optional accent color token. */
   accent?: string;
+  /** True when the future clip will ship captions/subtitles. */
+  hasCaptions?: boolean;
 }
+
+/** Playback state for the video-ready MediaSlot UI. */
+export type MediaPlaybackState =
+  | "poster"
+  | "loading"
+  | "playing"
+  | "paused"
+  | "failed";
 
 export interface AnswerOptionData {
   id: string;
