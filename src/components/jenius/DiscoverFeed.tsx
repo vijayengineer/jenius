@@ -1,5 +1,9 @@
 import * as React from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { CompletionOverlay } from "./CompletionOverlay";
+import { DailyDiscoveryBadge } from "./DailyDiscoveryBadge";
+import { MOCK_PROGRESS_ACTIVE } from "@/lib/jenius/progress";
 import { AppShell } from "./AppShell";
 import { BottomNavigation, type BottomNavItem, type BottomNavKey } from "./BottomNavigation";
 import { FeedTopBar, type FeedMode } from "./FeedTopBar";
@@ -78,6 +82,15 @@ export function DiscoverFeed({
     () => new Set(initialSaved ?? concepts.filter((c) => c.saved).map((c) => c.id)),
   );
   const [activeIndex, setActiveIndex] = React.useState(0);
+  const [completionConceptId, setCompletionConceptId] = React.useState<string | null>(null);
+  const navigate = useNavigate();
+  const handleTabChange = (key: BottomNavKey) => {
+    if (onTabChange) return onTabChange(key);
+    if (key === "feed") navigate({ to: "/" });
+    else if (key === "saved") navigate({ to: "/saved" });
+    else if (key === "explore") navigate({ to: "/create" });
+    else if (key === "profile") navigate({ to: "/me" });
+  };
 
   const scrollerRef = React.useRef<HTMLDivElement>(null);
   const cardRefs = React.useRef<Array<HTMLElement | null>>([]);
@@ -228,11 +241,19 @@ export function DiscoverFeed({
     const currentIdx = activeChallengeConcept
       ? concepts.findIndex((c) => c.id === activeChallengeConcept.id)
       : -1;
+    const completedId = activeChallengeConcept?.id ?? null;
     closeChallenge();
+    if (completedId) {
+      setCompletionConceptId(completedId);
+      window.setTimeout(() => {
+        setCompletionConceptId((cur) => (cur === completedId ? null : cur));
+      }, 4200);
+    }
     if (currentIdx >= 0 && currentIdx < concepts.length - 1) {
       window.setTimeout(() => scrollToIndex(currentIdx + 1), 220);
     }
   };
+
 
   const totalStops = empty ? 0 : concepts.length + 1;
 
@@ -257,12 +278,18 @@ export function DiscoverFeed({
             muted={muted}
             onToggleMuted={() => setMuted((m) => !m)}
           />
+          <div className="pointer-events-none absolute right-4 top-3 z-10">
+            <DailyDiscoveryBadge
+              progress={MOCK_PROGRESS_ACTIVE.dailyProgress}
+              target={MOCK_PROGRESS_ACTIVE.dailyTarget}
+            />
+          </div>
           {offline ? <OfflineBanner /> : null}
           {totalStops > 1 ? <FeedDots total={totalStops} active={activeIndex} /> : null}
         </div>
       }
       footer={
-        <BottomNavigation items={FEED_NAV_ITEMS} active={activeTab} onSelect={onTabChange} />
+        <BottomNavigation items={FEED_NAV_ITEMS} active={activeTab} onSelect={handleTabChange} />
       }
     >
       {empty ? (
@@ -363,6 +390,19 @@ export function DiscoverFeed({
           onErrorRetry={submitChallenge}
         />
       ) : null}
+
+      <CompletionOverlay
+        open={!!completionConceptId}
+        message="Another idea understood."
+        saved={completionConceptId ? saved.has(completionConceptId) : false}
+        onKeepSwiping={() => setCompletionConceptId(null)}
+        onSave={
+          completionConceptId
+            ? () => toggleSave(completionConceptId)
+            : undefined
+        }
+        onDismiss={() => setCompletionConceptId(null)}
+      />
     </AppShell>
   );
 }
