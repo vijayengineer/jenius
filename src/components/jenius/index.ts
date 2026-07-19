@@ -39,6 +39,35 @@ export { CorrectFeedback, type CorrectFeedbackProps } from "./CorrectFeedback";
 export { IncorrectFeedback, type IncorrectFeedbackProps } from "./IncorrectFeedback";
 export { CorrectiveExplanation, type CorrectiveExplanationProps } from "./CorrectiveExplanation";
 export { RetryQuestion, type RetryQuestionProps } from "./RetryQuestion";
+export { SavedCard, type SavedCardProps } from "./SavedCard";
+export { SavedScreen, type SavedScreenProps } from "./SavedScreen";
+export {
+  MeScreen,
+  StatCard,
+  WeeklyHeatmap,
+  type MeScreenProps,
+  type StatCardProps,
+  type WeeklyHeatmapProps,
+} from "./MeScreen";
+export { DailyDiscoveryBadge, type DailyDiscoveryBadgeProps } from "./DailyDiscoveryBadge";
+export { CompletionOverlay, type CompletionOverlayProps } from "./CompletionOverlay";
+export {
+  CreateScreen,
+  CreateForm,
+  GenerationProgress,
+  GeneratedDraftPreview,
+  type CreateScreenProps,
+  type CreateFormProps,
+  type GenerationProgressProps,
+  type GeneratedDraftPreviewProps,
+} from "./CreateScreen";
+export { TabShell, useActiveTab, type TabShellProps } from "./TabShell";
+export * from "@/lib/jenius/types";
+export * from "@/lib/jenius/mockConcepts";
+export * from "@/lib/jenius/challenges";
+export * from "@/lib/jenius/savedCollections";
+export * from "@/lib/jenius/progress";
+export * from "@/lib/jenius/generatedPack";
 export * from "@/lib/jenius/types";
 export * from "@/lib/jenius/mockConcepts";
 export * from "@/lib/jenius/challenges";
