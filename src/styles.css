@@ -49,6 +49,18 @@
   --color-brand-blue: var(--brand-blue);
   --color-brand-purple: var(--brand-purple);
   --color-brand-violet: var(--brand-violet);
+  --color-mind-blown: var(--mind-blown);
+  --color-mind-blown-foreground: var(--mind-blown-foreground);
+  --color-misconception: var(--misconception);
+  --color-misconception-foreground: var(--misconception-foreground);
+  --color-subject-math: var(--subject-math);
+  --color-subject-science: var(--subject-science);
+  --color-subject-history: var(--subject-history);
+  --color-subject-language: var(--subject-language);
+  --color-subject-tech: var(--subject-tech);
+  --color-subject-arts: var(--subject-arts);
+  --color-subject-mind: var(--subject-mind);
+  --color-subject-life: var(--subject-life);
 }
 
 :root, .dark {
