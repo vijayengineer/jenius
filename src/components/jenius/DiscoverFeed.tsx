@@ -278,12 +278,18 @@ export function DiscoverFeed({
             muted={muted}
             onToggleMuted={() => setMuted((m) => !m)}
           />
+          <div className="pointer-events-none absolute right-4 top-3 z-10">
+            <DailyDiscoveryBadge
+              progress={MOCK_PROGRESS_ACTIVE.dailyProgress}
+              target={MOCK_PROGRESS_ACTIVE.dailyTarget}
+            />
+          </div>
           {offline ? <OfflineBanner /> : null}
           {totalStops > 1 ? <FeedDots total={totalStops} active={activeIndex} /> : null}
         </div>
       }
       footer={
-        <BottomNavigation items={FEED_NAV_ITEMS} active={activeTab} onSelect={onTabChange} />
+        <BottomNavigation items={FEED_NAV_ITEMS} active={activeTab} onSelect={handleTabChange} />
       }
     >
       {empty ? (
