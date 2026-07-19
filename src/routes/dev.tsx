@@ -13,8 +13,9 @@ import { LoadingState } from "@/components/jenius/LoadingState";
 import { MOCK_CONCEPTS } from "@/lib/jenius/mockConcepts";
 import { EXPLAIN_PACKS } from "@/lib/jenius/explainMore";
 import { MOCK_PROGRESS_ACTIVE, MOCK_PROGRESS_NEW } from "@/lib/jenius/progress";
-import { SAMPLE_SAVED } from "@/lib/jenius/savedCollections";
-import { SAMPLE_GENERATED_PACK } from "@/lib/jenius/generatedPack";
+import { MOCK_SAVED_ITEMS } from "@/lib/jenius/savedCollections";
+import { SAMPLE_BLACK_HOLES_PACK } from "@/lib/jenius/generatedPack";
+
 import { useOffline } from "@/lib/jenius/offline";
 import { cn } from "@/lib/utils";
 
