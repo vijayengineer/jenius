@@ -58,7 +58,7 @@ const SegmentedProgress = React.forwardRef<HTMLDivElement, SegmentedProgressProp
 SegmentedProgress.displayName = "SegmentedProgress";
 
 /** Circular ring progress — for XP, streaks, category mastery */
-export interface RingProgressProps extends React.SVGAttributes<SVGSVGElement> {
+export interface RingProgressProps extends Omit<React.SVGAttributes<SVGSVGElement>, "stroke"> {
   value: number; // 0-100
   size?: number;
   stroke?: number;
