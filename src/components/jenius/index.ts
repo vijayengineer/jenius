@@ -34,5 +34,7 @@ export { FeedTopBar, type FeedTopBarProps, type FeedMode } from "./FeedTopBar";
 export { ConceptActions, type ConceptActionsProps } from "./ConceptActions";
 export { ConceptCard, type ConceptCardProps } from "./ConceptCard";
 export { DiscoverFeed, type DiscoverFeedProps } from "./DiscoverFeed";
+export { ChallengeSheet, type ChallengeSheetProps } from "./ChallengeSheet";
 export * from "@/lib/jenius/types";
 export * from "@/lib/jenius/mockConcepts";
+export * from "@/lib/jenius/challenges";

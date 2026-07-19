@@ -7,7 +7,14 @@ import { OfflineBanner } from "./OfflineBanner";
 import { ConceptCard } from "./ConceptCard";
 import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";
+import { ChallengeSheet } from "./ChallengeSheet";
 import { MOCK_CONCEPTS, type Concept } from "@/lib/jenius/mockConcepts";
+import {
+  CHALLENGES,
+  resolveChallenge,
+  type ResolvedOptionState,
+  type SubmissionState,
+} from "@/lib/jenius/challenges";
 import { Bookmark, Home, Plus, User } from "lucide-react";
 
 const FEED_NAV_ITEMS: BottomNavItem[] = [
@@ -30,6 +37,11 @@ export interface DiscoverFeedProps {
   /** Currently active bottom-nav tab. Defaults to "feed". */
   activeTab?: BottomNavKey;
   onTabChange?: (key: BottomNavKey) => void;
+  /**
+   * Forces the challenge submission state for previewing. When omitted the
+   * feed manages its own state and uses `resolveChallenge` as a mock resolver.
+   */
+  challengeStateOverride?: SubmissionState;
 }
 
 /**
@@ -52,6 +64,7 @@ export function DiscoverFeed({
   initialSaved,
   activeTab = "feed",
   onTabChange,
+  challengeStateOverride,
 }: DiscoverFeedProps) {
   const [mode, setMode] = React.useState<FeedMode>("discover");
   const [muted, setMuted] = React.useState(true);
@@ -96,6 +109,48 @@ export function DiscoverFeed({
     if (el && scrollerRef.current) {
       scrollerRef.current.scrollTo({ top: el.offsetTop, behavior: "smooth" });
     }
+  };
+
+  // ---------------- Challenge sheet state ----------------
+  const [challengeConceptId, setChallengeConceptId] = React.useState<string | null>(null);
+  const [selectedOptionId, setSelectedOptionId] = React.useState<string | null>(null);
+  const [submissionState, setSubmissionState] = React.useState<SubmissionState>("idle");
+  const [resolvedOptionStates, setResolvedOptionStates] =
+    React.useState<Record<string, ResolvedOptionState> | undefined>();
+
+  const effectiveSubmissionState = challengeStateOverride ?? submissionState;
+
+  const activeChallengeConcept = challengeConceptId
+    ? concepts.find((c) => c.id === challengeConceptId) ?? null
+    : null;
+  const activeChallenge = challengeConceptId ? CHALLENGES[challengeConceptId] : undefined;
+
+  const openChallenge = (conceptId: string) => {
+    setChallengeConceptId(conceptId);
+    setSelectedOptionId(null);
+    setSubmissionState("idle");
+    setResolvedOptionStates(undefined);
+  };
+
+  const closeChallenge = () => {
+    setChallengeConceptId(null);
+    setSelectedOptionId(null);
+    setSubmissionState("idle");
+    setResolvedOptionStates(undefined);
+  };
+
+  const submitChallenge = () => {
+    if (!activeChallenge || !selectedOptionId) return;
+    if (submissionState === "submitted") {
+      closeChallenge();
+      return;
+    }
+    setSubmissionState("submitting");
+    // Demo-only resolver — real backend would return this payload.
+    window.setTimeout(() => {
+      setResolvedOptionStates(resolveChallenge(activeChallenge, selectedOptionId));
+      setSubmissionState("submitted");
+    }, 650);
   };
 
   const totalStops = empty ? 0 : concepts.length + 1; // +1 = end-of-feed card
@@ -153,6 +208,7 @@ export function DiscoverFeed({
               concept={concept}
               saved={saved.has(concept.id)}
               onSave={() => toggleSave(concept.id)}
+              onGotIt={() => openChallenge(concept.id)}
               showSwipeCue={i === 0}
             />
           ))}
@@ -176,6 +232,25 @@ export function DiscoverFeed({
           )}
         </div>
       )}
+
+      {activeChallenge && activeChallengeConcept ? (
+        <ChallengeSheet
+          open={!!challengeConceptId}
+          onOpenChange={(o) => {
+            if (!o) closeChallenge();
+          }}
+          subject={activeChallengeConcept.subject}
+          conceptReminder={activeChallengeConcept.hook}
+          question={activeChallenge}
+          selectedOptionId={selectedOptionId}
+          submissionState={effectiveSubmissionState}
+          resolvedOptionStates={resolvedOptionStates}
+          onSelect={setSelectedOptionId}
+          onSubmit={submitChallenge}
+          onClose={closeChallenge}
+          onRetry={submitChallenge}
+        />
+      ) : null}
     </AppShell>
   );
 }
