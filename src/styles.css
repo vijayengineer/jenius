@@ -49,6 +49,18 @@
   --color-brand-blue: var(--brand-blue);
   --color-brand-purple: var(--brand-purple);
   --color-brand-violet: var(--brand-violet);
+  --color-mind-blown: var(--mind-blown);
+  --color-mind-blown-foreground: var(--mind-blown-foreground);
+  --color-misconception: var(--misconception);
+  --color-misconception-foreground: var(--misconception-foreground);
+  --color-subject-math: var(--subject-math);
+  --color-subject-science: var(--subject-science);
+  --color-subject-history: var(--subject-history);
+  --color-subject-language: var(--subject-language);
+  --color-subject-tech: var(--subject-tech);
+  --color-subject-arts: var(--subject-arts);
+  --color-subject-mind: var(--subject-mind);
+  --color-subject-life: var(--subject-life);
 }
 
 :root, .dark {
@@ -88,12 +100,36 @@
   --success: oklch(0.72 0.16 160);
   --success-foreground: oklch(0.15 0.02 160);
 
+  /* Semantic — pedagogy */
+  --mind-blown: oklch(0.82 0.16 78);           /* amber for "Mind Blown" */
+  --mind-blown-foreground: oklch(0.18 0.04 78);
+  --misconception: oklch(0.72 0.16 30);        /* warm coral for gentle correction */
+  --misconception-foreground: oklch(0.15 0.03 30);
+
+  /* Subject palette — calm, distinct, harmonised with the dark base */
+  --subject-math: oklch(0.70 0.16 240);       /* cool blue */
+  --subject-science: oklch(0.74 0.16 175);    /* teal */
+  --subject-history: oklch(0.75 0.14 55);     /* warm ochre */
+  --subject-language: oklch(0.72 0.18 335);   /* magenta */
+  --subject-tech: oklch(0.70 0.19 280);       /* violet */
+  --subject-arts: oklch(0.74 0.16 15);        /* coral */
+  --subject-mind: oklch(0.72 0.14 155);       /* sage */
+  --subject-life: oklch(0.78 0.14 105);       /* lime */
+
   --border: oklch(1 0 0 / 8%);
   --border-strong: oklch(1 0 0 / 16%);
   --input: oklch(1 0 0 / 10%);
   --ring: oklch(0.66 0.20 275);
 
   --radius: 24px;
+
+  /* Motion durations */
+  --duration-instant: 100ms;
+  --duration-fast: 180ms;
+  --duration-base: 260ms;
+  --duration-slow: 420ms;
+  --duration-slower: 640ms;
+
 
   /* Gradients */
   --gradient-brand: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-violet) 50%, var(--brand-purple) 100%);
@@ -198,3 +234,40 @@
 @utility transition-swift {
   transition: all var(--transition-swift);
 }
+
+@utility safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Focus ring — visible, brand-tinted, respects keyboard-only */
+@layer base {
+  :focus-visible {
+    outline: none;
+  }
+  *:focus-visible {
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+    border-radius: 8px;
+  }
+}
+
+/* Reduced-motion: honour the OS setting globally */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
