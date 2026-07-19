@@ -208,6 +208,7 @@ export function DiscoverFeed({
               concept={concept}
               saved={saved.has(concept.id)}
               onSave={() => toggleSave(concept.id)}
+              onGotIt={() => openChallenge(concept.id)}
               showSwipeCue={i === 0}
             />
           ))}
