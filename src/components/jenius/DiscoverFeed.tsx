@@ -37,6 +37,11 @@ export interface DiscoverFeedProps {
   /** Currently active bottom-nav tab. Defaults to "feed". */
   activeTab?: BottomNavKey;
   onTabChange?: (key: BottomNavKey) => void;
+  /**
+   * Forces the challenge submission state for previewing. When omitted the
+   * feed manages its own state and uses `resolveChallenge` as a mock resolver.
+   */
+  challengeStateOverride?: SubmissionState;
 }
 
 /**
