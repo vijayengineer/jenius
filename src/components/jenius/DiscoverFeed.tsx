@@ -75,7 +75,7 @@ export interface DiscoverFeedProps {
  */
 export function DiscoverFeed({
   concepts = MOCK_CONCEPTS,
-  offline = false,
+  offline,
   loading = false,
   empty = false,
   initialSaved,
@@ -85,6 +85,10 @@ export function DiscoverFeed({
   stageOverride,
   previewConceptId,
 }: DiscoverFeedProps) {
+  const ctx = useOffline();
+  // Prop wins when explicitly passed (state-preview harness); otherwise fall
+  // back to the app-wide mock offline context.
+  const isOffline = offline ?? !ctx.online;
   const [mode, setMode] = React.useState<FeedMode>("discover");
   const [muted, setMuted] = React.useState(true);
   const [saved, setSaved] = React.useState<Set<string>>(
@@ -92,6 +96,7 @@ export function DiscoverFeed({
   );
   const [activeIndex, setActiveIndex] = React.useState(0);
   const [completionConceptId, setCompletionConceptId] = React.useState<string | null>(null);
+
   const navigate = useNavigate();
   const handleTabChange = (key: BottomNavKey) => {
     if (onTabChange) return onTabChange(key);
