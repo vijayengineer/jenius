@@ -111,6 +111,48 @@ export function DiscoverFeed({
     }
   };
 
+  // ---------------- Challenge sheet state ----------------
+  const [challengeConceptId, setChallengeConceptId] = React.useState<string | null>(null);
+  const [selectedOptionId, setSelectedOptionId] = React.useState<string | null>(null);
+  const [submissionState, setSubmissionState] = React.useState<SubmissionState>("idle");
+  const [resolvedOptionStates, setResolvedOptionStates] =
+    React.useState<Record<string, ResolvedOptionState> | undefined>();
+
+  const effectiveSubmissionState = challengeStateOverride ?? submissionState;
+
+  const activeChallengeConcept = challengeConceptId
+    ? concepts.find((c) => c.id === challengeConceptId) ?? null
+    : null;
+  const activeChallenge = challengeConceptId ? CHALLENGES[challengeConceptId] : undefined;
+
+  const openChallenge = (conceptId: string) => {
+    setChallengeConceptId(conceptId);
+    setSelectedOptionId(null);
+    setSubmissionState("idle");
+    setResolvedOptionStates(undefined);
+  };
+
+  const closeChallenge = () => {
+    setChallengeConceptId(null);
+    setSelectedOptionId(null);
+    setSubmissionState("idle");
+    setResolvedOptionStates(undefined);
+  };
+
+  const submitChallenge = () => {
+    if (!activeChallenge || !selectedOptionId) return;
+    if (submissionState === "submitted") {
+      closeChallenge();
+      return;
+    }
+    setSubmissionState("submitting");
+    // Demo-only resolver — real backend would return this payload.
+    window.setTimeout(() => {
+      setResolvedOptionStates(resolveChallenge(activeChallenge, selectedOptionId));
+      setSubmissionState("submitted");
+    }, 650);
+  };
+
   const totalStops = empty ? 0 : concepts.length + 1; // +1 = end-of-feed card
 
   return (
