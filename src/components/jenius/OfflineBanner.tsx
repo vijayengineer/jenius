@@ -15,7 +15,7 @@ export interface OfflineBannerProps extends React.HTMLAttributes<HTMLDivElement>
 export const OfflineBanner = React.forwardRef<HTMLDivElement, OfflineBannerProps>(
   (
     {
-      message = "You're offline. Cards you've already seen still work.",
+      message = "You're offline. Downloaded Jenius concepts still work.",
       visible = true,
       className,
       ...props

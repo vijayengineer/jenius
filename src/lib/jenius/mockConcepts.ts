@@ -38,6 +38,17 @@ export const MOCK_CONCEPTS: Concept[] = [
     takeaway: "Tilt changes sunlight.",
     readingSeconds: 25,
     animationReady: true,
+    media: {
+      mode: "video",
+      src: "/media/seasons.webm",
+      poster: "/media/seasons-poster.jpg",
+      caption: "Earth's tilt sweeping through one orbit.",
+      alt: "Animation of Earth orbiting the Sun with its axis tilted, alternating summer and winter between hemispheres.",
+      textFallback:
+        "Earth leans 23.5°. As it orbits, each hemisphere takes turns tilting toward the Sun.",
+      hasCaptions: true,
+      aspectRatio: 16 / 10,
+    },
   },
   {
     id: "volcanoes",
@@ -49,7 +60,19 @@ export const MOCK_CONCEPTS: Concept[] = [
     takeaway: "Pressure forces magma up.",
     readingSeconds: 25,
     animationReady: true,
+    media: {
+      mode: "video",
+      src: "/media/volcanoes.webm",
+      poster: "/media/volcanoes-poster.jpg",
+      caption: "Magma rising to a pressure release.",
+      alt: "Cross-section of a volcano with magma rising through the crust until trapped gas erupts at the surface.",
+      textFallback:
+        "Magma rises through weak crust. Trapped gases expand — the mountain vents lava, ash and steam.",
+      hasCaptions: true,
+      aspectRatio: 16 / 10,
+    },
   },
+
   {
     id: "deserts",
     subject: "science",
@@ -70,6 +93,17 @@ export const MOCK_CONCEPTS: Concept[] = [
     takeaway: "Wings push air down.",
     readingSeconds: 28,
     animationReady: true,
+    media: {
+      mode: "video",
+      src: "/media/planes.webm",
+      poster: "/media/planes-poster.jpg",
+      caption: "Airflow around a wing generating lift.",
+      alt: "Cross-section of a wing with air deflecting downward and lift arrow pushing the wing up.",
+      textFallback:
+        "Wings deflect air downward. Newton's third law does the rest: air pushes the wing up.",
+      hasCaptions: true,
+      aspectRatio: 16 / 10,
+    },
   },
   {
     id: "falling",
@@ -81,7 +115,19 @@ export const MOCK_CONCEPTS: Concept[] = [
     takeaway: "Gravity treats mass equally.",
     readingSeconds: 26,
     animationReady: true,
+    media: {
+      mode: "video",
+      src: "/media/free-fall.webm",
+      poster: "/media/free-fall-poster.jpg",
+      caption: "Feather and hammer dropped in a vacuum.",
+      alt: "A feather and a hammer released together in a vacuum chamber, landing at the same instant.",
+      textFallback:
+        "Without air, a feather and a hammer land together. Gravity accelerates every mass the same.",
+      hasCaptions: true,
+      aspectRatio: 16 / 10,
+    },
   },
+
   {
     id: "sky-blue",
     subject: "science",
@@ -102,7 +148,19 @@ export const MOCK_CONCEPTS: Concept[] = [
     takeaway: "DNA is your body's code.",
     readingSeconds: 28,
     animationReady: true,
+    media: {
+      mode: "video",
+      src: "/media/dna.webm",
+      poster: "/media/dna-poster.jpg",
+      caption: "The double helix zooming into base pairs.",
+      alt: "A DNA double helix rotating, then zooming into the paired A-T and C-G rungs.",
+      textFallback:
+        "DNA is a twisted ladder. Its rungs — A-T and C-G — spell four-letter instructions cells read.",
+      hasCaptions: true,
+      aspectRatio: 16 / 10,
+    },
   },
+
   {
     id: "leaves",
     subject: "life",
