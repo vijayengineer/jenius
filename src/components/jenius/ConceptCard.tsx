@@ -2,8 +2,10 @@ import * as React from "react";
 import { ChevronUp, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Concept } from "@/lib/jenius/mockConcepts";
+import type { MediaPlaybackState } from "@/lib/jenius/types";
 import { SubjectChip } from "./SubjectChip";
 import { ConceptActions } from "./ConceptActions";
+import { MediaSlot } from "./MediaSlot";
 
 export interface ConceptCardProps extends React.HTMLAttributes<HTMLElement> {
   concept: Concept;
@@ -11,9 +13,20 @@ export interface ConceptCardProps extends React.HTMLAttributes<HTMLElement> {
   onSave?: () => void;
   onGotIt?: () => void;
   onExplainMore?: () => void;
+  /** Disable the Explain action (offline + no cache). */
+  explainDisabled?: boolean;
+  /** Hint text explaining why Explain is disabled. */
+  explainHint?: string;
+  /** Playback state for the concept's video media, if any. */
+  playbackState?: MediaPlaybackState;
+  /** True when the OS reduced-motion setting should force the text fallback. */
+  reducedMotion?: boolean;
+  /** True when the muted-sound indicator is on. */
+  muted?: boolean;
   /** Show the "Swipe to discover" cue at the bottom. */
   showSwipeCue?: boolean;
 }
+
 
 /**
  * ConceptCard — one concept, one viewport. Used as a snap child inside the
@@ -30,7 +43,21 @@ export interface ConceptCardProps extends React.HTMLAttributes<HTMLElement> {
  */
 export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
   (
-    { concept, saved, onSave, onGotIt, onExplainMore, showSwipeCue, className, ...props },
+    {
+      concept,
+      saved,
+      onSave,
+      onGotIt,
+      onExplainMore,
+      explainDisabled,
+      explainHint,
+      playbackState = "poster",
+      reducedMotion = false,
+      muted = true,
+      showSwipeCue,
+      className,
+      ...props
+    },
     ref,
   ) => {
     const readingLabel = `${Math.max(1, Math.round(concept.readingSeconds / 5) * 5)}s read`;
@@ -56,11 +83,21 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
           style={{ background: "var(--gradient-brand-soft)" }}
         />
 
-        {concept.animationReady ? (
+        {concept.media ? (
+          <div className="mb-5">
+            <MediaSlot
+              media={concept.media}
+              playbackState={playbackState}
+              reducedMotion={reducedMotion}
+              muted={muted}
+            />
+          </div>
+        ) : concept.animationReady ? (
           <div className="mb-5">
             <AnimationSlot />
           </div>
         ) : null}
+
 
         <div className="flex flex-wrap items-center gap-2">
           <SubjectChip subject={concept.subject} size="sm" />
