@@ -467,7 +467,23 @@ export function DiscoverFeed({
         }
         onDismiss={() => setCompletionConceptId(null)}
       />
+
+      {explainConcept ? (
+        <ExplainMoreSheet
+          open={!!explainConceptId}
+          onOpenChange={(o) => {
+            if (!o) closeExplain();
+          }}
+          subject={explainConcept.subject}
+          conceptHook={explainConcept.hook}
+          status={explainStatus}
+          pack={explainPack}
+          onRetry={fetchExplain}
+          onClose={closeExplain}
+        />
+      ) : null}
     </AppShell>
+
   );
 }
 
