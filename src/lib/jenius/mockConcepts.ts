@@ -1,4 +1,4 @@
-import type { SubjectId } from "./types";
+import type { MediaSlotData, SubjectId } from "./types";
 
 export interface Concept {
   id: string;
@@ -16,9 +16,16 @@ export interface Concept {
   readingSeconds: number;
   /** True when a Jenius animation slot should render above the copy. */
   animationReady?: boolean;
+  /**
+   * Optional resolved media payload — replaces the generic animation slot.
+   * Codex will populate this from the CMS/media store; Stage 1 uses local
+   * placeholders that point at future file paths.
+   */
+  media?: MediaSlotData;
   /** Default saved state for preview purposes. */
   saved?: boolean;
 }
+
 
 export const MOCK_CONCEPTS: Concept[] = [
   {
