@@ -7,11 +7,14 @@ import { OfflineBanner } from "./OfflineBanner";
 import { ConceptCard } from "./ConceptCard";
 import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";
-import { ChallengeSheet } from "./ChallengeSheet";
+import { ChallengeSheet, type ChallengeStage } from "./ChallengeSheet";
 import { MOCK_CONCEPTS, type Concept } from "@/lib/jenius/mockConcepts";
 import {
   CHALLENGES,
+  CHALLENGE_FEEDBACK,
+  getOptionLabel,
   resolveChallenge,
+  resolveFeedback,
   type ResolvedOptionState,
   type SubmissionState,
 } from "@/lib/jenius/challenges";
@@ -26,35 +29,36 @@ const FEED_NAV_ITEMS: BottomNavItem[] = [
 
 export interface DiscoverFeedProps {
   concepts?: Concept[];
-  /** Simulate the offline pill. */
   offline?: boolean;
-  /** Simulate a loading spinner at the tail of the feed. */
   loading?: boolean;
-  /** Force the empty state instead of concept cards. */
   empty?: boolean;
-  /** Pre-saved concept ids for the preview. */
   initialSaved?: string[];
-  /** Currently active bottom-nav tab. Defaults to "feed". */
   activeTab?: BottomNavKey;
   onTabChange?: (key: BottomNavKey) => void;
   /**
-   * Forces the challenge submission state for previewing. When omitted the
-   * feed manages its own state and uses `resolveChallenge` as a mock resolver.
+   * Force the challenge submission state for preview screens. When set, the
+   * feed stays on the question stage with the given state (useful for
+   * showcasing loading/error states).
    */
   challengeStateOverride?: SubmissionState;
+  /**
+   * Force the challenge sheet to a specific stage for preview screens.
+   * When set, the feed uses fixture selections so the stage renders with
+   * meaningful data.
+   */
+  stageOverride?: ChallengeStage;
+  /** Concept id to preview stageOverride against. Defaults to first concept. */
+  previewConceptId?: string;
 }
 
 /**
- * DiscoverFeed — mobile-first vertical snap feed.
+ * DiscoverFeed — mobile-first vertical snap feed with an attached
+ * challenge → feedback → retry → mind-blown sheet flow.
  *
- * Behaviour notes:
- *  - One concept per viewport, CSS scroll snap on the Y axis.
- *  - Horizontal overflow is clipped to prevent accidental sideways scroll.
- *  - Top bar (Jenius mark, mode selector, sound placeholder, offline pill)
- *    floats over the feed as a light glass strip.
- *  - Bottom navigation floats above the safe area as a floating pill.
- *  - The last item is an "end of sample feed" card that offers to loop back
- *    to the start.
+ * The sheet flow is a small state machine driven by `stage`. All
+ * correctness decisions happen here (via the mock `resolve*` helpers) and
+ * are passed into the sheet as resolved data — the sheet stays a pure
+ * presenter.
  */
 export function DiscoverFeed({
   concepts = MOCK_CONCEPTS,
@@ -65,6 +69,8 @@ export function DiscoverFeed({
   activeTab = "feed",
   onTabChange,
   challengeStateOverride,
+  stageOverride,
+  previewConceptId,
 }: DiscoverFeedProps) {
   const [mode, setMode] = React.useState<FeedMode>("discover");
   const [muted, setMuted] = React.useState(true);
@@ -76,8 +82,6 @@ export function DiscoverFeed({
   const scrollerRef = React.useRef<HTMLDivElement>(null);
   const cardRefs = React.useRef<Array<HTMLElement | null>>([]);
 
-  // Track the active card via IntersectionObserver so the progress dots stay
-  // in sync with the snapped card, without listening to noisy scroll events.
   React.useEffect(() => {
     const scroller = scrollerRef.current;
     if (!scroller) return;
@@ -111,49 +115,136 @@ export function DiscoverFeed({
     }
   };
 
-  // ---------------- Challenge sheet state ----------------
+  // ---------------- Challenge sheet state machine ----------------
   const [challengeConceptId, setChallengeConceptId] = React.useState<string | null>(null);
+  const [stage, setStage] = React.useState<ChallengeStage>("question");
+
+  // Initial question state
   const [selectedOptionId, setSelectedOptionId] = React.useState<string | null>(null);
   const [submissionState, setSubmissionState] = React.useState<SubmissionState>("idle");
   const [resolvedOptionStates, setResolvedOptionStates] =
     React.useState<Record<string, ResolvedOptionState> | undefined>();
 
+  // Retry state
+  const [retrySelectedId, setRetrySelectedId] = React.useState<string | null>(null);
+  const [retrySubmission, setRetrySubmission] = React.useState<SubmissionState>("idle");
+  const [retryResolved, setRetryResolved] =
+    React.useState<Record<string, ResolvedOptionState> | undefined>();
+
   const effectiveSubmissionState = challengeStateOverride ?? submissionState;
+
+  // Handle preview overrides — inject fixture selections so previewed stages have data.
+  React.useEffect(() => {
+    if (!stageOverride) return;
+    const conceptId = previewConceptId ?? concepts[0]?.id;
+    if (!conceptId) return;
+    const challenge = CHALLENGES[conceptId];
+    if (!challenge) return;
+    setChallengeConceptId(conceptId);
+    setStage(stageOverride);
+    if (stageOverride === "feedback-correct" || stageOverride === "mind-blown") {
+      setSelectedOptionId(challenge.correctOptionId);
+      setResolvedOptionStates(resolveChallenge(challenge, challenge.correctOptionId));
+      setSubmissionState("submitted");
+    } else if (stageOverride === "feedback-incorrect") {
+      const wrong = challenge.options.find((o) => o.id !== challenge.correctOptionId);
+      if (wrong) {
+        setSelectedOptionId(wrong.id);
+        setResolvedOptionStates(resolveChallenge(challenge, wrong.id));
+        setSubmissionState("submitted");
+      }
+    } else if (stageOverride === "retry") {
+      const wrong = challenge.options.find((o) => o.id !== challenge.correctOptionId);
+      if (wrong) {
+        setSelectedOptionId(wrong.id);
+        setResolvedOptionStates(resolveChallenge(challenge, wrong.id));
+        setSubmissionState("submitted");
+      }
+      setRetrySelectedId(null);
+      setRetrySubmission("idle");
+      setRetryResolved(undefined);
+    }
+  }, [stageOverride, previewConceptId, concepts]);
 
   const activeChallengeConcept = challengeConceptId
     ? concepts.find((c) => c.id === challengeConceptId) ?? null
     : null;
   const activeChallenge = challengeConceptId ? CHALLENGES[challengeConceptId] : undefined;
+  const activeFeedback = challengeConceptId ? CHALLENGE_FEEDBACK[challengeConceptId] : undefined;
 
   const openChallenge = (conceptId: string) => {
     setChallengeConceptId(conceptId);
+    setStage("question");
     setSelectedOptionId(null);
     setSubmissionState("idle");
     setResolvedOptionStates(undefined);
+    setRetrySelectedId(null);
+    setRetrySubmission("idle");
+    setRetryResolved(undefined);
   };
 
   const closeChallenge = () => {
+    if (stageOverride) return; // stay pinned in preview mode
     setChallengeConceptId(null);
+    setStage("question");
     setSelectedOptionId(null);
     setSubmissionState("idle");
     setResolvedOptionStates(undefined);
+    setRetrySelectedId(null);
+    setRetrySubmission("idle");
+    setRetryResolved(undefined);
   };
 
   const submitChallenge = () => {
-    if (!activeChallenge || !selectedOptionId) return;
-    if (submissionState === "submitted") {
-      closeChallenge();
-      return;
-    }
+    if (!activeChallenge || !activeFeedback || !selectedOptionId) return;
     setSubmissionState("submitting");
-    // Demo-only resolver — real backend would return this payload.
     window.setTimeout(() => {
-      setResolvedOptionStates(resolveChallenge(activeChallenge, selectedOptionId));
+      const resolved = resolveChallenge(activeChallenge, selectedOptionId);
+      setResolvedOptionStates(resolved);
       setSubmissionState("submitted");
+      // Advance stage based on correctness.
+      const fb = resolveFeedback(activeChallenge, activeFeedback, selectedOptionId);
+      setStage(fb.kind === "correct" ? "feedback-correct" : "feedback-incorrect");
     }, 650);
   };
 
-  const totalStops = empty ? 0 : concepts.length + 1; // +1 = end-of-feed card
+  const submitRetry = () => {
+    if (!activeFeedback || !retrySelectedId) return;
+    setRetrySubmission("submitting");
+    window.setTimeout(() => {
+      const retry = activeFeedback.retry;
+      const out: Record<string, ResolvedOptionState> = {};
+      for (const opt of retry.options) {
+        if (opt.id === retry.correctOptionId) out[opt.id] = "correct";
+        else if (opt.id === retrySelectedId) out[opt.id] = "incorrect";
+        else out[opt.id] = "locked";
+      }
+      setRetryResolved(out);
+      setRetrySubmission("submitted");
+    }, 500);
+  };
+
+  const advanceToNextConcept = () => {
+    const currentIdx = activeChallengeConcept
+      ? concepts.findIndex((c) => c.id === activeChallengeConcept.id)
+      : -1;
+    closeChallenge();
+    if (currentIdx >= 0 && currentIdx < concepts.length - 1) {
+      window.setTimeout(() => scrollToIndex(currentIdx + 1), 220);
+    }
+  };
+
+  const totalStops = empty ? 0 : concepts.length + 1;
+
+  const selectedOptionLabel =
+    activeChallenge && selectedOptionId
+      ? getOptionLabel(activeChallenge, selectedOptionId)
+      : "";
+
+  const incorrectFeedbackForSelection =
+    activeChallenge && activeFeedback && selectedOptionId
+      ? activeFeedback.incorrect[selectedOptionId]
+      : undefined;
 
   return (
     <AppShell
@@ -167,17 +258,11 @@ export function DiscoverFeed({
             onToggleMuted={() => setMuted((m) => !m)}
           />
           {offline ? <OfflineBanner /> : null}
-          {totalStops > 1 ? (
-            <FeedDots total={totalStops} active={activeIndex} />
-          ) : null}
+          {totalStops > 1 ? <FeedDots total={totalStops} active={activeIndex} /> : null}
         </div>
       }
       footer={
-        <BottomNavigation
-          items={FEED_NAV_ITEMS}
-          active={activeTab}
-          onSelect={onTabChange}
-        />
+        <BottomNavigation items={FEED_NAV_ITEMS} active={activeTab} onSelect={onTabChange} />
       }
     >
       {empty ? (
@@ -193,8 +278,6 @@ export function DiscoverFeed({
           className={cn(
             "h-[100dvh] w-full snap-y snap-mandatory overflow-y-auto overflow-x-hidden",
             "scroll-smooth no-scrollbar overscroll-y-contain",
-            // The header/footer float over the feed via the sticky AppShell,
-            // so the scroller itself owns the full viewport height.
             "-mt-[calc(env(safe-area-inset-top)+0px)]",
           )}
           style={{ scrollSnapType: "y mandatory" }}
@@ -233,7 +316,7 @@ export function DiscoverFeed({
         </div>
       )}
 
-      {activeChallenge && activeChallengeConcept ? (
+      {activeChallenge && activeChallengeConcept && activeFeedback ? (
         <ChallengeSheet
           open={!!challengeConceptId}
           onOpenChange={(o) => {
@@ -241,14 +324,43 @@ export function DiscoverFeed({
           }}
           subject={activeChallengeConcept.subject}
           conceptReminder={activeChallengeConcept.hook}
+          stage={stage}
           question={activeChallenge}
           selectedOptionId={selectedOptionId}
           submissionState={effectiveSubmissionState}
           resolvedOptionStates={resolvedOptionStates}
           onSelect={setSelectedOptionId}
           onSubmit={submitChallenge}
+          correctFeedback={activeFeedback.correct}
+          incorrectFeedback={incorrectFeedbackForSelection}
+          selectedOptionLabel={selectedOptionLabel}
+          onRetry={() => {
+            setStage("retry");
+            setRetrySelectedId(null);
+            setRetrySubmission("idle");
+            setRetryResolved(undefined);
+          }}
+          onSkipRetry={() => setStage("mind-blown")}
+          retryChallenge={activeFeedback.retry}
+          retrySelectedOptionId={retrySelectedId}
+          retrySubmissionState={retrySubmission}
+          retryResolvedOptionStates={retryResolved}
+          onRetrySelect={setRetrySelectedId}
+          onRetrySubmit={submitRetry}
+          mindBlown={activeFeedback.mindBlown}
+          saved={activeChallengeConcept ? saved.has(activeChallengeConcept.id) : false}
+          onToggleSave={() =>
+            activeChallengeConcept && toggleSave(activeChallengeConcept.id)
+          }
+          onShare={() => {
+            // Real sharing wired up in a later prompt.
+          }}
+          onContinue={() => {
+            if (stage === "mind-blown") advanceToNextConcept();
+            else setStage("mind-blown");
+          }}
           onClose={closeChallenge}
-          onRetry={submitChallenge}
+          onErrorRetry={submitChallenge}
         />
       ) : null}
     </AppShell>
