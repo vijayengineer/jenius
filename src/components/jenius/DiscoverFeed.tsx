@@ -232,6 +232,25 @@ export function DiscoverFeed({
           )}
         </div>
       )}
+
+      {activeChallenge && activeChallengeConcept ? (
+        <ChallengeSheet
+          open={!!challengeConceptId}
+          onOpenChange={(o) => {
+            if (!o) closeChallenge();
+          }}
+          subject={activeChallengeConcept.subject}
+          conceptReminder={activeChallengeConcept.hook}
+          question={activeChallenge}
+          selectedOptionId={selectedOptionId}
+          submissionState={effectiveSubmissionState}
+          resolvedOptionStates={resolvedOptionStates}
+          onSelect={setSelectedOptionId}
+          onSubmit={submitChallenge}
+          onClose={closeChallenge}
+          onRetry={submitChallenge}
+        />
+      ) : null}
     </AppShell>
   );
 }
