@@ -26,8 +26,11 @@ cp .env.example .env
 npm run dev
 ```
 
-The committed example contains placeholders only. With credentials absent, `/health` reports a
-degraded configuration and AI routes return a controlled `not_configured` error.
+The committed example contains placeholders only. In development and test, credentials may remain
+absent: `/health` reports a degraded configuration and AI routes return a controlled
+`not_configured` error. Production deliberately fails startup with variable names (never values)
+when `FRONTEND_ORIGINS`, `OPENAI_API_KEY`, `OPENAI_MODEL`, or `USAGE_HASH_SALT` is missing. The
+production usage salt must contain at least 32 characters.
 
 On Linux and other systems that reserve ports below 1024, use an unprivileged local override such
 as `PORT=3001` and point the frontend to `http://localhost:3001`. Production keeps the requested
@@ -64,6 +67,11 @@ This value is public routing configuration, never a credential.
 `USAGE_HASH_SALT` must be stable across restarts. Changing it resets effective anonymous usage
 identity. Fingerprints combine the salt, request IP, and user agent and never store the raw IP.
 This is lightweight abuse resistance, not an account or identity system.
+
+Firebase credentials are intentionally not part of the production startup assertion because
+Application Default Credentials may be supplied by the host. If neither ADC nor
+`FIREBASE_SERVICE_ACCOUNT_FILE` works, the HTTP server keeps `/health` available with
+`firestore.ready=false` and both AI routes fail safely.
 
 ## Structured model behavior
 

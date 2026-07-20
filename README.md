@@ -65,9 +65,10 @@ cp .env.example .env
 npm run dev
 ```
 
-The backend starts without usable model credentials in a degraded state so `/health` can report
-readiness. AI routes fail closed until OpenAI, Firestore, and the usage salt are configured. Never
-commit the copied environment files.
+In development and test, the backend can start without usable model credentials so `/health` can
+report degraded readiness and AI routes can fail closed. Production startup rejects missing
+`FRONTEND_ORIGINS`, `OPENAI_API_KEY`, `OPENAI_MODEL`, or `USAGE_HASH_SALT`; the usage salt must be
+at least 32 characters. Never commit the copied environment files.
 
 ## Quality scripts
 
@@ -78,6 +79,7 @@ npm run typecheck
 npm run lint
 npm run test
 npm run build
+npm run preview
 npm run server:test
 npm run server:typecheck
 npm run server:build

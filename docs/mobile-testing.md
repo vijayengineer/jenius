@@ -17,7 +17,8 @@ Android Chrome device. Browser installation is optional; the URL must work direc
 6. Open Explain another way, change styles, and close/retry it. The verified explanation behind
    the optional coach card must remain unchanged.
 7. Use Share. Verify the platform share sheet; on browsers without Web Share, verify clipboard
-   fallback where supported.
+   fallback where supported. Also exercise a non-cancelled share failure and confirm it falls back
+   to clipboard without interrupting the lesson.
 8. Enable reduced motion at OS level and confirm transitions no longer depend on motion.
 9. Pinch zoom. The app must not globally disable browser zoom.
 
@@ -28,6 +29,8 @@ reduced-motion overrides.
 ## Offline pass
 
 1. Load the app once online and complete/save at least one bundled concept.
+   Wait for `navigator.serviceWorker.ready` (or an activated worker in browser developer tools)
+   before disabling the network; installation discovers and caches the first-load hashed bundle.
 2. Disable the backend while leaving the network connected. Reload and confirm all ten bundled
    lessons, Saved, Me, and stored progress still work.
 3. Disable Firestore or use invalid test credentials. Confirm `/health` degrades and model routes
@@ -38,7 +41,8 @@ reduced-motion overrides.
    bundled catalogue, saved progress, and generated lessons already stored in IndexedDB remain
    available.
 6. Submit a Create request while offline. Confirm it is retained with a retry message and no fake
-   generated lesson appears.
+   generated lesson appears. Reconnect, use the visible Retry action, and confirm the retained
+   request is reused rather than duplicated.
 7. Confirm the message explains that the core lesson still works.
 
 The service worker caches only same-origin navigation and static shell assets. It excludes `/api/`

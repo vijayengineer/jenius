@@ -42,6 +42,18 @@ This log is factual and should be updated only after a capability is working and
 - [x] Run the complete verification and credential audit, commit logical phases, and leave the
       branch clean without pushing.
 
+### Final production and mobile audit
+
+- [x] Fail production startup clearly when required AI, usage, or CORS configuration is missing.
+- [x] Format malformed JSON, unsupported content types, and oversized bodies as safe typed errors.
+- [x] Precache the first-load application bundle needed for a reliable offline reload.
+- [x] Fall back from Web Share failures to clipboard copying where the platform permits it.
+- [x] Bring remaining primary mobile controls up to the 44px touch-target baseline.
+- [x] Surface retained failed topic requests with an explicit retry action.
+- [x] Add direct regression coverage for the final security, offline, retry, and validation fixes.
+- [x] Re-run every required gate, inspect bundles and secrets, commit fixes, and leave the branch
+      clean without pushing.
+
 ## Implemented
 
 - Zod validates the ten-concept catalogue and rejects duplicate IDs, malformed questions, missing
@@ -93,8 +105,25 @@ This log is factual and should be updated only after a capability is working and
   challenge preview adapter. Failed requests remain stored for retry; no fake success is shown.
 - Nitro now emits Vercel Build Output API artifacts, while Ubuntu/systemd/Nginx deployment
   examples keep the backend on `127.0.0.1:301`.
-- Automated non-live coverage now has 26 frontend/domain tests and 20 backend tests. OpenAI and
+- Automated non-live coverage now has 33 frontend/domain tests and 26 backend tests. OpenAI and
   Firestore are mocked through injected interfaces; no live credential test was run.
+
+## Final production and mobile audit implemented
+
+- Production now rejects incomplete CORS, OpenAI, or usage-fingerprint configuration before
+  listening, while development and tests retain credential-free degraded startup behavior.
+- Parser, media-type, body-limit, Firestore, and unexpected server failures return typed responses
+  without stack traces or internal values.
+- The service worker atomically precaches the initial HTML and its same-origin hashed application
+  bundle; API and cross-origin responses remain outside its runtime cache.
+- Mobile sharing falls back to clipboard after a non-cancelled Web Share failure. Remaining
+  primary controls meet the 44px touch baseline, sheets are dynamic-viewport bounded, and failed
+  Create requests have a visible same-request retry action.
+- The Vercel output pins its server function to Node.js 22, matching the repository engine and
+  deployment configuration.
+- The local production preview returned HTTP 200 for `/`, `/saved`, `/create`, `/me`, the manifest,
+  service worker, and offline fallback. Physical iPhone Safari and Android Chrome verification is
+  intentionally left as a deployment-time device check.
 
 ## Demo outline
 

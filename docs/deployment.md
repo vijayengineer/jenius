@@ -5,35 +5,93 @@ DNS records, push Git commits, or deploy automatically.
 
 ## 1. Firebase and Firestore
 
-1. Create or select the production Firebase/Google Cloud project in the provider console.
-2. Create a Firestore database in Native mode. Record its database ID; use `(default)` unless a
-   named database was intentionally created.
-3. Create a dedicated server service account with only the Firestore data access needed for
-   `explanation_cache`, `generated_concepts`, and `usage_limits`.
-4. Prefer Application Default Credentials on a managed Google environment. On Ubuntu, if a JSON
-   key is required, place it outside the repository, for example
-   `/etc/jenius/firebase-service-account.json`, owned by the service user and mode `0600`.
-5. Set either `FIREBASE_SERVICE_ACCOUNT_FILE=/etc/jenius/firebase-service-account.json`, or leave
-   it empty and set `GOOGLE_APPLICATION_CREDENTIALS` for Application Default Credentials.
-6. Set `FIRESTORE_DATABASE_ID=(default)` or the exact named database ID.
+Create or select the production Firebase/Google Cloud project, enable billing if the selected
+plan requires it, and replace the angle-bracket placeholders below. In Google Cloud Shell:
+
+```bash
+gcloud config set project <PROJECT_ID>
+gcloud services enable firestore.googleapis.com iam.googleapis.com
+gcloud firestore databases create \
+  --database='(default)' \
+  --location='<FIRESTORE_LOCATION>' \
+  --type=firestore-native
+gcloud iam service-accounts create jenius-api \
+  --display-name='Jenius API'
+gcloud projects add-iam-policy-binding <PROJECT_ID> \
+  --member='serviceAccount:jenius-api@<PROJECT_ID>.iam.gserviceaccount.com' \
+  --role='roles/datastore.user'
+```
+
+Skip the database-create command if `(default)` already exists. `roles/datastore.user` is the
+standard read/write data role; do not grant Owner or Editor. The application itself uses only
+`explanation_cache`, `generated_concepts`, and `usage_limits`.
+
+Prefer keyless Application Default Credentials or Workload Identity Federation when the host
+supports it. If this standalone Ubuntu host must use a JSON key, create it from an administrative
+machine, transfer it over SSH, and remove the transfer copies:
+
+```bash
+umask 077
+gcloud iam service-accounts keys create ./jenius-api-key.json \
+  --iam-account='jenius-api@<PROJECT_ID>.iam.gserviceaccount.com'
+scp ./jenius-api-key.json <UBUNTU_ADMIN>@<BACKEND_IP>:/tmp/jenius-api-key.json
+shred -u ./jenius-api-key.json
+```
+
+On Ubuntu:
+
+```bash
+sudo install -d -m 0750 -o root -g rndm_jenius /etc/jenius
+sudo install -m 0600 -o rndm_jenius -g rndm_jenius \
+  /tmp/jenius-api-key.json /etc/jenius/firebase-service-account.json
+rm -f /tmp/jenius-api-key.json
+```
+
+Set `FIREBASE_SERVICE_ACCOUNT_FILE=/etc/jenius/firebase-service-account.json`. For keyless ADC,
+leave that variable empty and configure the host's ADC mechanism instead. Set
+`FIRESTORE_DATABASE_ID=(default)` unless a named database was intentionally created. No Firebase
+web configuration or permissive Firestore client rules are required.
 
 No client Firebase configuration or Firestore web rules are needed because the browser never
 talks to Firestore.
 
 ## 2. Ubuntu backend
 
-Install Node.js 22 LTS, npm, Git, Nginx, and the host's normal TLS tooling. As a non-root
-application user:
+Install Node.js 22, Git, Nginx, and Certbot tooling on a supported Ubuntu host:
 
 ```bash
-cd /home/rndm_jenius/jenius/server
-npm ci
-npm run test
-npm run typecheck
-npm run build
+sudo apt update
+sudo apt install -y ca-certificates curl git nginx snapd
+curl -fsSL https://deb.nodesource.com/setup_22.x -o /tmp/nodesource_setup.sh
+sudo -E bash /tmp/nodesource_setup.sh
+rm -f /tmp/nodesource_setup.sh
+sudo apt install -y nodejs
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/local/bin/certbot
+node --version
+npm --version
+```
+
+Deploy a reviewed release commit without rewriting history, then install and verify the server as
+the non-root application user:
+
+```bash
+sudo adduser --disabled-password --gecos '' rndm_jenius
+sudo -u rndm_jenius git clone <CANONICAL_REPOSITORY_URL> /home/rndm_jenius/jenius
+sudo -u rndm_jenius git -C /home/rndm_jenius/jenius fetch origin
+sudo -u rndm_jenius git -C /home/rndm_jenius/jenius checkout --detach <RELEASE_COMMIT>
+sudo -u rndm_jenius npm --prefix /home/rndm_jenius/jenius/server ci
+sudo -u rndm_jenius npm --prefix /home/rndm_jenius/jenius/server run test
+sudo -u rndm_jenius npm --prefix /home/rndm_jenius/jenius/server run typecheck
+sudo -u rndm_jenius npm --prefix /home/rndm_jenius/jenius/server run build
 ```
 
 Create `/etc/jenius/jenius-api.env` outside Git, readable only by the service user:
+
+```bash
+sudo install -m 0600 -o rndm_jenius -g rndm_jenius /dev/null /etc/jenius/jenius-api.env
+sudoedit /etc/jenius/jenius-api.env
+```
 
 ```dotenv
 NODE_ENV=production
@@ -42,12 +100,12 @@ PORT=301
 FRONTEND_ORIGINS=https://jenius.vercel.app,https://jns.fun
 TRUST_PROXY=true
 OPENAI_API_KEY=replace-at-deploy-time
-OPENAI_MODEL=replace-with-approved-model-id
+OPENAI_MODEL=gpt-5.6
 OPENAI_TIMEOUT_MS=30000
 OPENAI_MAX_RETRIES=1
 FIREBASE_SERVICE_ACCOUNT_FILE=/etc/jenius/firebase-service-account.json
 FIRESTORE_DATABASE_ID=(default)
-USAGE_HASH_SALT=replace-with-a-long-random-value
+USAGE_HASH_SALT=replace-with-at-least-32-random-characters
 DAILY_EXPLAIN_LIMIT=20
 DAILY_GENERATE_LIMIT=5
 EXPLANATION_PROMPT_VERSION=v1
@@ -64,8 +122,8 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=jenius
-Group=jenius
+User=rndm_jenius
+Group=rndm_jenius
 WorkingDirectory=/home/rndm_jenius/jenius/server
 Environment=NODE_ENV=production
 EnvironmentFile=/etc/jenius/jenius-api.env
@@ -88,6 +146,7 @@ both the service and Nginx to an unprivileged port such as 3001, remove those ca
 After reviewing paths and ownership, an operator can run:
 
 ```bash
+sudo systemd-analyze verify /etc/systemd/system/jenius-api.service
 sudo systemctl daemon-reload
 sudo systemctl enable --now jenius-api
 sudo systemctl status jenius-api
@@ -98,23 +157,14 @@ The repository itself does not run these commands.
 
 ## 3. Nginx and HTTPS
 
-Create an operator-reviewed server block for `api.jns.fun`:
+Create an operator-reviewed HTTP server block for `api.jns.fun`. It must be reachable on port 80
+for the initial ACME HTTP challenge:
 
 ```nginx
 server {
     listen 80;
     listen [::]:80;
     server_name api.jns.fun;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
-    server_name api.jns.fun;
-
-    ssl_certificate /etc/letsencrypt/live/api.jns.fun/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/api.jns.fun/privkey.pem;
 
     client_max_body_size 16k;
 
@@ -132,9 +182,31 @@ server {
 }
 ```
 
-Create an `A`/`AAAA` record for `api.jns.fun` pointing to the Ubuntu host, wait for DNS, validate
-with `nginx -t`, obtain a certificate using the host's approved ACME/Certbot flow, then reload
-Nginx. Do not expose port 301 publicly; firewall access should be through 80/443 only.
+Save it as `/etc/nginx/sites-available/jenius-api`, enable it, and validate it:
+
+```bash
+sudo ln -s /etc/nginx/sites-available/jenius-api /etc/nginx/sites-enabled/jenius-api
+sudo nginx -t
+sudo systemctl reload nginx
+sudo ufw allow 'Nginx Full'
+```
+
+At the authoritative DNS provider, create `api.jns.fun A <BACKEND_IPV4>` and add an `AAAA` record
+only when the host has working public IPv6. Do not publish a record for port 301. Verify
+propagation, issue the certificate, force the redirect to HTTPS, and test renewal:
+
+```bash
+dig +short api.jns.fun A
+curl --fail http://api.jns.fun/health
+sudo certbot --nginx --redirect -d api.jns.fun
+sudo certbot renew --dry-run
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+Certbot adds the reviewed TLS listener and certificate paths to this server block. Keep ports
+80/443 public for HTTP redirect and HTTPS; keep 301 blocked externally because Fastify binds only
+to `127.0.0.1`.
 
 Check:
 
@@ -164,6 +236,23 @@ details.
 
 TanStack/Nitro handles application routing; no blanket SPA rewrite is added. The manifest, service
 worker, icons, and API base URL are all part of the production build.
+
+Before uploading, `npm run build && npm run preview` serves the generated `.vercel/output` locally
+through Nitro for route and PWA-asset smoke checks.
+
+For a CLI-assisted domain check after the project is linked:
+
+```bash
+vercel domains add jns.fun <VERCEL_PROJECT_NAME>
+vercel domains inspect jns.fun
+vercel certs ls
+```
+
+If DNS is hosted outside Vercel, create exactly the `A`, `CNAME`, and verification records printed
+by `vercel domains inspect`; do not copy generic record values from another project. Vercel
+provisions the frontend certificate after DNS verification. Finally update backend
+`FRONTEND_ORIGINS` with both `https://<VERCEL_PROJECT>.vercel.app` and `https://jns.fun`, then
+restart `jenius-api`.
 
 ## Operations and rollback
 
