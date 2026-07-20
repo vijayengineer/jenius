@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SavedScreen } from "@/components/jenius/SavedScreen";
 import { TabShell, useActiveTab } from "@/components/jenius/TabShell";
+import { useOffline } from "@/lib/jenius/offline";
+import { useLearning } from "@/state/LearningProvider";
+import { selectSavedItems } from "@/state/selectors";
 
 export const Route = createFileRoute("/saved")({
   head: () => ({
@@ -22,9 +25,15 @@ export const Route = createFileRoute("/saved")({
 
 function SavedRoute() {
   const active = useActiveTab();
+  const { state, toggleSaved } = useLearning();
+  const { online } = useOffline();
   return (
     <TabShell active={active}>
-      <SavedScreen />
+      <SavedScreen
+        items={selectSavedItems(state)}
+        offline={!online}
+        onRemove={(conceptId) => toggleSaved(conceptId)}
+      />
     </TabShell>
   );
 }

@@ -6,6 +6,8 @@ import type { SubjectId } from "./types";
  * mock data during Stage 1.
  */
 export interface ProgressStats {
+  /** Total locally awarded experience points. */
+  xp?: number;
   /** Current curiosity streak in days. */
   streakDays: number;
   conceptsExplored: number;

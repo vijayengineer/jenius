@@ -3,10 +3,7 @@ import { cn } from "@/lib/utils";
 import { SUBJECTS, type SubjectId } from "@/lib/jenius/types";
 import { JeniusMark } from "./JeniusMark";
 import { SubjectChip } from "./SubjectChip";
-import {
-  MOCK_PROGRESS_ACTIVE,
-  type ProgressStats,
-} from "@/lib/jenius/progress";
+import { MOCK_PROGRESS_ACTIVE, type ProgressStats } from "@/lib/jenius/progress";
 import { Flame, Sparkles } from "lucide-react";
 
 export interface MeScreenProps {
@@ -20,9 +17,7 @@ export interface MeScreenProps {
  * discovery, never around accuracy shame. Reuses design tokens throughout.
  */
 export function MeScreen({ stats = MOCK_PROGRESS_ACTIVE, name = "You" }: MeScreenProps) {
-  const dailyPct = stats.dailyTarget
-    ? Math.min(1, stats.dailyProgress / stats.dailyTarget)
-    : 0;
+  const dailyPct = stats.dailyTarget ? Math.min(1, stats.dailyProgress / stats.dailyTarget) : 0;
   const understandingPct = stats.conceptsExplored
     ? Math.round((stats.conceptsUnderstood / stats.conceptsExplored) * 100)
     : 0;
@@ -78,22 +73,14 @@ export function MeScreen({ stats = MOCK_PROGRESS_ACTIVE, name = "You" }: MeScree
       </section>
 
       {/* Core stats grid */}
-      <section
-        aria-label="Discovery snapshot"
-        className="grid grid-cols-2 gap-3"
-      >
-        <StatCard
-          label="Discoveries"
-          value={stats.conceptsExplored}
-          hint="Concepts explored"
-        />
+      <section aria-label="Discovery snapshot" className="grid grid-cols-2 gap-3">
+        <StatCard label="XP" value={stats.xp ?? 0} hint="Earned once per concept" />
+        <StatCard label="Completed" value={stats.conceptsUnderstood} hint="Concepts understood" />
         <StatCard
           label="Understanding"
           value={stats.conceptsUnderstood}
           hint={
-            stats.conceptsExplored
-              ? `${understandingPct}% of explored`
-              : "Let's explore some ideas"
+            stats.conceptsExplored ? `${understandingPct}% of explored` : "Let's explore some ideas"
           }
         />
         <StatCard
@@ -212,9 +199,7 @@ export function StatCard({ label, value, hint }: StatCardProps) {
       <div className="mt-2 font-display text-[26px] font-semibold leading-none tracking-tight text-foreground">
         {value}
       </div>
-      {hint ? (
-        <div className="mt-1.5 text-[12px] text-foreground/55">{hint}</div>
-      ) : null}
+      {hint ? <div className="mt-1.5 text-[12px] text-foreground/55">{hint}</div> : null}
     </div>
   );
 }
@@ -239,10 +224,7 @@ export function WeeklyHeatmap({
           <div key={i} className="flex flex-1 flex-col items-center gap-1.5">
             <div
               aria-label={`${labels[i]}: ${v} discoveries`}
-              className={cn(
-                "w-full rounded-lg transition-swift",
-                v === 0 && "bg-white/6",
-              )}
+              className={cn("w-full rounded-lg transition-swift", v === 0 && "bg-white/6")}
               style={{
                 height: `${28 + intensity * 44}px`,
                 background:

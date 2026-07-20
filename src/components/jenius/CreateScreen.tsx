@@ -1,19 +1,11 @@
 import * as React from "react";
-import {
-  AlertCircle,
-  Check,
-  ChevronDown,
-  Loader2,
-  Sparkles,
-  Trash2,
-  WifiOff,
-} from "lucide-react";
+import { AlertCircle, Check, ChevronDown, Loader2, Sparkles, Trash2, WifiOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JeniusMark } from "./JeniusMark";
 import { SubjectChip } from "./SubjectChip";
 import { MisconceptionCard } from "./MisconceptionCard";
 import { MindBlownCard } from "./MindBlownCard";
-import { AnswerOption } from "./AnswerOption";
+import { AnswerOption, type AnswerState } from "./AnswerOption";
 import {
   EMPTY_CREATE_FORM,
   GENERATION_STEPS,
@@ -42,6 +34,9 @@ export interface CreateScreenProps {
   error?: string;
   /** For preview screens: fixture form values. */
   initialValues?: CreateFormValues;
+  /** Local-only mode stores a request and never pretends a pack was generated. */
+  localOnly?: boolean;
+  requestStored?: boolean;
 }
 
 /**
@@ -57,17 +52,15 @@ export function CreateScreen({
   online = true,
   error,
   initialValues,
+  localOnly = false,
+  requestStored = false,
 }: CreateScreenProps) {
-  const [values, setValues] = React.useState<CreateFormValues>(
-    initialValues ?? EMPTY_CREATE_FORM,
-  );
+  const [values, setValues] = React.useState<CreateFormValues>(initialValues ?? EMPTY_CREATE_FORM);
   const [internalStatus, setInternalStatus] = React.useState<GenerationStatus>(
     isFormReady(initialValues ?? EMPTY_CREATE_FORM) ? "ready" : "disabled",
   );
-  const [internalPack, setInternalPack] =
-    React.useState<GeneratedConceptPack | null>(null);
-  const [selectedChallengeOption, setSelectedChallengeOption] =
-    React.useState<string | null>(null);
+  const [internalPack, setInternalPack] = React.useState<GeneratedConceptPack | null>(null);
+  const [selectedChallengeOption, setSelectedChallengeOption] = React.useState<string | null>(null);
   const [showChallengeResult, setShowChallengeResult] = React.useState(false);
 
   const status = externalStatus ?? internalStatus;
@@ -80,10 +73,8 @@ export function CreateScreen({
     setInternalStatus(isFormReady(values) ? "ready" : "disabled");
   }, [values, externalStatus, internalStatus]);
 
-  const update = <K extends keyof CreateFormValues>(
-    key: K,
-    v: CreateFormValues[K],
-  ) => setValues((prev) => ({ ...prev, [key]: v }));
+  const update = <K extends keyof CreateFormValues>(key: K, v: CreateFormValues[K]) =>
+    setValues((prev) => ({ ...prev, [key]: v }));
 
   const handleGenerate = () => {
     if (onGenerate) {
@@ -95,7 +86,10 @@ export function CreateScreen({
     window.setTimeout(() => {
       setInternalStatus("generating");
       window.setTimeout(() => {
-        setInternalPack({ ...SAMPLE_BLACK_HOLES_PACK, topic: values.topic || SAMPLE_BLACK_HOLES_PACK.topic });
+        setInternalPack({
+          ...SAMPLE_BLACK_HOLES_PACK,
+          topic: values.topic || SAMPLE_BLACK_HOLES_PACK.topic,
+        });
         setInternalStatus("success");
       }, 2600);
     }, 400);
@@ -154,15 +148,22 @@ export function CreateScreen({
         <>
           <CreateForm values={values} onChange={update} disabled={isGenerating} />
 
-          <Notice />
+          <Notice localOnly={localOnly} />
 
-          {(status === "rate-limit" ||
-            status === "network-error" ||
-            status === "offline") && (
+          {requestStored ? (
+            <div
+              role="status"
+              className="rounded-2xl border border-success/30 bg-success/10 px-3.5 py-3 text-[13px] text-foreground/90"
+            >
+              Topic saved on this device. Remote generation is not enabled yet.
+            </div>
+          ) : null}
+
+          {(status === "rate-limit" || status === "network-error" || status === "offline") && (
             <ErrorNotice status={status} message={error} />
           )}
 
-          <GenerateButton status={status} onClick={handleGenerate} />
+          <GenerateButton status={status} onClick={handleGenerate} localOnly={localOnly} />
         </>
       )}
     </div>
@@ -171,13 +172,14 @@ export function CreateScreen({
 
 /* --------------------------- Notice ------------------------------ */
 
-function Notice() {
+function Notice({ localOnly }: { localOnly: boolean }) {
   return (
     <div className="flex items-start gap-2 rounded-2xl border border-brand-blue/25 bg-brand-blue/10 px-3.5 py-3 text-[12px] leading-relaxed text-foreground/85">
       <Sparkles className="mt-0.5 size-3.5 shrink-0 text-brand-blue" aria-hidden />
       <p>
-        Personal concepts are AI-generated drafts and remain separate from
-        Jenius's verified feed.
+        {localOnly
+          ? "This release stores your topic request locally. It does not generate or claim a completed lesson."
+          : "Personal concepts are AI-generated drafts and remain separate from Jenius's verified feed."}
       </p>
     </div>
   );
@@ -187,10 +189,7 @@ function Notice() {
 
 export interface CreateFormProps {
   values: CreateFormValues;
-  onChange: <K extends keyof CreateFormValues>(
-    key: K,
-    v: CreateFormValues[K],
-  ) => void;
+  onChange: <K extends keyof CreateFormValues>(key: K, v: CreateFormValues[K]) => void;
   disabled?: boolean;
 }
 
@@ -368,9 +367,11 @@ function SegmentedControl<T extends string>({
 function GenerateButton({
   status,
   onClick,
+  localOnly,
 }: {
   status: GenerationStatus;
   onClick: () => void;
+  localOnly: boolean;
 }) {
   const disabled =
     status === "disabled" ||
@@ -381,10 +382,12 @@ function GenerateButton({
     status === "submitting"
       ? "Sending…"
       : status === "generating"
-      ? "Generating…"
-      : status === "success"
-      ? "Regenerate"
-      : "Generate concept";
+        ? "Generating…"
+        : status === "success"
+          ? "Regenerate"
+          : localOnly
+            ? "Save topic request"
+            : "Generate concept";
   return (
     <button
       type="button"
@@ -407,19 +410,11 @@ function GenerateButton({
 
 /* ------------------------ Error notice ---------------------------- */
 
-function ErrorNotice({
-  status,
-  message,
-}: {
-  status: GenerationStatus;
-  message?: string;
-}) {
+function ErrorNotice({ status, message }: { status: GenerationStatus; message?: string }) {
   const copy = {
     "rate-limit": {
       title: "Slow down a moment",
-      body:
-        message ??
-        "You've generated a few drafts recently. Try again in a minute.",
+      body: message ?? "You've generated a few drafts recently. Try again in a minute.",
     },
     "network-error": {
       title: "Couldn't reach the generator",
@@ -453,10 +448,7 @@ export interface GenerationProgressProps {
   activeStepIndex?: number;
 }
 
-export function GenerationProgress({
-  status,
-  activeStepIndex,
-}: GenerationProgressProps) {
+export function GenerationProgress({ status, activeStepIndex }: GenerationProgressProps) {
   const [step, setStep] = React.useState(0);
 
   React.useEffect(() => {
@@ -539,7 +531,7 @@ export function GeneratedDraftPreview({
   onSave,
   onDelete,
 }: GeneratedDraftPreviewProps) {
-  const optionState = (id: string) => {
+  const optionState = (id: string): AnswerState => {
     if (!showResult) return selectedOptionId === id ? "selected" : "idle";
     if (id === pack.challenge.correctOptionId) return "correct";
     if (id === selectedOptionId) return "incorrect";
@@ -562,9 +554,7 @@ export function GeneratedDraftPreview({
         <h2 className="font-display text-[24px] font-semibold leading-tight tracking-tight text-foreground">
           {pack.hook}
         </h2>
-        <p className="text-[15px] leading-relaxed text-foreground/85">
-          {pack.explanation}
-        </p>
+        <p className="text-[15px] leading-relaxed text-foreground/85">{pack.explanation}</p>
       </section>
 
       <section
@@ -583,7 +573,7 @@ export function GeneratedDraftPreview({
               key={opt.id}
               marker={["A", "B", "C", "D"][i]}
               label={opt.label}
-              state={optionState(opt.id) as any}
+              state={optionState(opt.id)}
               onClick={() => !showResult && onSelect(opt.id)}
               disabled={showResult}
             />

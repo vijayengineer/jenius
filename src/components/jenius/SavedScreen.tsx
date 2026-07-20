@@ -18,6 +18,7 @@ export interface SavedScreenProps {
   /** When true, shows an offline notice above the list. */
   offline?: boolean;
   onReplay?: (conceptId: string) => void;
+  onRemove?: (conceptId: string) => void;
 }
 
 /**
@@ -29,6 +30,7 @@ export function SavedScreen({
   items = MOCK_SAVED_ITEMS,
   offline = false,
   onReplay,
+  onRemove,
 }: SavedScreenProps) {
   const [collection, setCollection] = React.useState<SavedCollectionId>("mind-blown");
   const [query, setQuery] = React.useState("");
@@ -55,8 +57,10 @@ export function SavedScreen({
     return true;
   });
 
-  const remove = (id: string) =>
+  const remove = (id: string) => {
     setLocalItems((prev) => prev.filter((i) => i.conceptId !== id));
+    onRemove?.(id);
+  };
 
   return (
     <div className="flex flex-col gap-5 px-5 pb-24 pt-4">
@@ -66,11 +70,7 @@ export function SavedScreen({
       </header>
 
       {/* Collection tabs */}
-      <div
-        role="tablist"
-        aria-label="Saved collections"
-        className="glass flex rounded-full p-1"
-      >
+      <div role="tablist" aria-label="Saved collections" className="glass flex rounded-full p-1">
         {SAVED_COLLECTIONS.map((c) => {
           const active = c.id === collection;
           return (
@@ -148,11 +148,7 @@ export function SavedScreen({
       {/* List */}
       {filtered.length === 0 ? (
         <EmptyState
-          title={
-            inCollection.length === 0
-              ? "Nothing saved here yet"
-              : "No matches"
-          }
+          title={inCollection.length === 0 ? "Nothing saved here yet" : "No matches"}
           description={
             inCollection.length === 0
               ? collection === "mind-blown"
@@ -165,11 +161,7 @@ export function SavedScreen({
         <ul className="flex flex-col gap-3">
           {filtered.map((item) => (
             <li key={item.conceptId}>
-              <SavedCard
-                {...item}
-                onReplay={onReplay}
-                onRemove={remove}
-              />
+              <SavedCard {...item} onReplay={onReplay} onRemove={remove} />
             </li>
           ))}
         </ul>

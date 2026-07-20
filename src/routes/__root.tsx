@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { OfflineProvider } from "@/lib/jenius/offline";
-
+import { LearningProvider } from "@/state/LearningProvider";
 
 function NotFoundComponent() {
   return (
@@ -135,11 +135,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <OfflineProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-      </OfflineProvider>
+      <LearningProvider>
+        <OfflineProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </OfflineProvider>
+      </LearningProvider>
     </QueryClientProvider>
   );
 }
-

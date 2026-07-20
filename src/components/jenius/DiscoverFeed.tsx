@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { CompletionOverlay } from "./CompletionOverlay";
 import { DailyDiscoveryBadge } from "./DailyDiscoveryBadge";
-import { MOCK_PROGRESS_ACTIVE } from "@/lib/jenius/progress";
 import { AppShell } from "./AppShell";
 import { BottomNavigation, type BottomNavItem, type BottomNavKey } from "./BottomNavigation";
 import { FeedTopBar, type FeedMode } from "./FeedTopBar";
@@ -13,16 +12,19 @@ import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";
 import { ChallengeSheet, type ChallengeStage } from "./ChallengeSheet";
 import { ExplainMoreSheet } from "./ExplainMoreSheet";
-import { MOCK_CONCEPTS, type Concept } from "@/lib/jenius/mockConcepts";
+import type { Concept } from "@/lib/jenius/mockConcepts";
 import {
-  CHALLENGES,
-  CHALLENGE_FEEDBACK,
   getOptionLabel,
   resolveChallenge,
   resolveFeedback,
   type ResolvedOptionState,
   type SubmissionState,
 } from "@/lib/jenius/challenges";
+import { FEED_CONCEPTS, getVerifiedConcept } from "@/content/catalog";
+import { CONTENT_CHALLENGES, CONTENT_FEEDBACK } from "@/content/presenter";
+import { initialLearningState, learningReducer, toLearningOutcome } from "@/learning/engine";
+import { useLearning } from "@/state/LearningProvider";
+import { selectProgressStats } from "@/state/selectors";
 import {
   EXPLAIN_PACKS,
   mockFreshExplainPack,
@@ -31,7 +33,6 @@ import {
 } from "@/lib/jenius/explainMore";
 import { useOffline } from "@/lib/jenius/offline";
 import { Bookmark, Home, Plus, User } from "lucide-react";
-
 
 const FEED_NAV_ITEMS: BottomNavItem[] = [
   { key: "feed", label: "Feed", icon: Home },
@@ -74,7 +75,7 @@ export interface DiscoverFeedProps {
  * presenter.
  */
 export function DiscoverFeed({
-  concepts = MOCK_CONCEPTS,
+  concepts = FEED_CONCEPTS,
   offline,
   loading = false,
   empty = false,
@@ -86,6 +87,9 @@ export function DiscoverFeed({
   previewConceptId,
 }: DiscoverFeedProps) {
   const ctx = useOffline();
+  const learningStore = useLearning();
+  const progress = selectProgressStats(learningStore.state);
+  const [learning, dispatchLearning] = React.useReducer(learningReducer, initialLearningState);
   // Prop wins when explicitly passed (state-preview harness); otherwise fall
   // back to the app-wide mock offline context.
   const isOffline = offline ?? !ctx.online;
@@ -94,6 +98,10 @@ export function DiscoverFeed({
   const [saved, setSaved] = React.useState<Set<string>>(
     () => new Set(initialSaved ?? concepts.filter((c) => c.saved).map((c) => c.id)),
   );
+  React.useEffect(() => {
+    if (!learningStore.hydrated || initialSaved) return;
+    setSaved(new Set(Object.keys(learningStore.state.savedConcepts)));
+  }, [initialSaved, learningStore.hydrated, learningStore.state.savedConcepts]);
   const [activeIndex, setActiveIndex] = React.useState(0);
   const [completionConceptId, setCompletionConceptId] = React.useState<string | null>(null);
 
@@ -130,9 +138,11 @@ export function DiscoverFeed({
   const toggleSave = (id: string) => {
     setSaved((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
+    learningStore.toggleSaved(id);
   };
 
   const scrollToIndex = (idx: number) => {
@@ -149,14 +159,16 @@ export function DiscoverFeed({
   // Initial question state
   const [selectedOptionId, setSelectedOptionId] = React.useState<string | null>(null);
   const [submissionState, setSubmissionState] = React.useState<SubmissionState>("idle");
-  const [resolvedOptionStates, setResolvedOptionStates] =
-    React.useState<Record<string, ResolvedOptionState> | undefined>();
+  const [resolvedOptionStates, setResolvedOptionStates] = React.useState<
+    Record<string, ResolvedOptionState> | undefined
+  >();
 
   // Retry state
   const [retrySelectedId, setRetrySelectedId] = React.useState<string | null>(null);
   const [retrySubmission, setRetrySubmission] = React.useState<SubmissionState>("idle");
-  const [retryResolved, setRetryResolved] =
-    React.useState<Record<string, ResolvedOptionState> | undefined>();
+  const [retryResolved, setRetryResolved] = React.useState<
+    Record<string, ResolvedOptionState> | undefined
+  >();
 
   const effectiveSubmissionState = challengeStateOverride ?? submissionState;
 
@@ -165,7 +177,7 @@ export function DiscoverFeed({
     if (!stageOverride) return;
     const conceptId = previewConceptId ?? concepts[0]?.id;
     if (!conceptId) return;
-    const challenge = CHALLENGES[conceptId];
+    const challenge = CONTENT_CHALLENGES[conceptId];
     if (!challenge) return;
     setChallengeConceptId(conceptId);
     setStage(stageOverride);
@@ -194,13 +206,23 @@ export function DiscoverFeed({
   }, [stageOverride, previewConceptId, concepts]);
 
   const activeChallengeConcept = challengeConceptId
-    ? concepts.find((c) => c.id === challengeConceptId) ?? null
+    ? (concepts.find((c) => c.id === challengeConceptId) ?? null)
     : null;
-  const activeChallenge = challengeConceptId ? CHALLENGES[challengeConceptId] : undefined;
-  const activeFeedback = challengeConceptId ? CHALLENGE_FEEDBACK[challengeConceptId] : undefined;
+  const activeChallenge = challengeConceptId ? CONTENT_CHALLENGES[challengeConceptId] : undefined;
+  const activeFeedback = challengeConceptId ? CONTENT_FEEDBACK[challengeConceptId] : undefined;
 
   const openChallenge = (conceptId: string) => {
+    if (
+      learning.conceptId === conceptId &&
+      learning.phase !== "viewing" &&
+      learning.phase !== "completed"
+    ) {
+      setChallengeConceptId(conceptId);
+      dispatchLearning({ type: "REOPEN_PANEL" });
+      return;
+    }
     setChallengeConceptId(conceptId);
+    dispatchLearning({ type: "OPEN_CONCEPT", conceptId });
     setStage("question");
     setSelectedOptionId(null);
     setSubmissionState("idle");
@@ -213,13 +235,7 @@ export function DiscoverFeed({
   const closeChallenge = () => {
     if (stageOverride) return; // stay pinned in preview mode
     setChallengeConceptId(null);
-    setStage("question");
-    setSelectedOptionId(null);
-    setSubmissionState("idle");
-    setResolvedOptionStates(undefined);
-    setRetrySelectedId(null);
-    setRetrySubmission("idle");
-    setRetryResolved(undefined);
+    dispatchLearning({ type: "CLOSE_PANEL" });
   };
 
   const submitChallenge = () => {
@@ -232,6 +248,16 @@ export function DiscoverFeed({
       // Advance stage based on correctness.
       const fb = resolveFeedback(activeChallenge, activeFeedback, selectedOptionId);
       setStage(fb.kind === "correct" ? "feedback-correct" : "feedback-incorrect");
+      const concept = getVerifiedConcept(activeChallenge.conceptId);
+      if (concept) {
+        dispatchLearning({ type: "SUBMIT_ANSWER", concept });
+        learningStore.recordAttempt({
+          conceptId: concept.id,
+          kind: "primary",
+          optionId: selectedOptionId,
+          correct: fb.kind === "correct",
+        });
+      }
     }, 650);
   };
 
@@ -248,6 +274,16 @@ export function DiscoverFeed({
       }
       setRetryResolved(out);
       setRetrySubmission("submitted");
+      const concept = challengeConceptId ? getVerifiedConcept(challengeConceptId) : undefined;
+      if (concept) {
+        dispatchLearning({ type: "SUBMIT_RETRY", concept });
+        learningStore.recordAttempt({
+          conceptId: concept.id,
+          kind: "retry",
+          optionId: retrySelectedId,
+          correct: retrySelectedId === retry.correctOptionId,
+        });
+      }
     }, 500);
   };
 
@@ -257,7 +293,7 @@ export function DiscoverFeed({
   const [explainPack, setExplainPack] = React.useState<ExplainPack | undefined>();
 
   const explainConcept = explainConceptId
-    ? concepts.find((c) => c.id === explainConceptId) ?? null
+    ? (concepts.find((c) => c.id === explainConceptId) ?? null)
     : null;
 
   const openExplain = (conceptId: string) => {
@@ -288,13 +324,40 @@ export function DiscoverFeed({
 
   const closeExplain = () => setExplainConceptId(null);
 
-
-
   const advanceToNextConcept = () => {
     const currentIdx = activeChallengeConcept
       ? concepts.findIndex((c) => c.id === activeChallengeConcept.id)
       : -1;
     const completedId = activeChallengeConcept?.id ?? null;
+    if (completedId) {
+      const concept = getVerifiedConcept(completedId);
+      if (concept) {
+        const primaryCorrect = selectedOptionId === activeChallenge?.correctOptionId;
+        const retryCorrect =
+          retrySelectedId === activeFeedback?.retry.correctOptionId
+            ? true
+            : retrySelectedId
+              ? false
+              : null;
+        const misconceptionId =
+          concept.primaryQuestion.options.find((option) => option.id === selectedOptionId)
+            ?.misconceptionId ?? null;
+        const completionState = learningReducer(
+          {
+            ...learning,
+            conceptId: completedId,
+            phase: "mind-blown",
+            primaryCorrect,
+            retryCorrect,
+            selectedMisconceptionId: misconceptionId,
+          },
+          { type: "COMPLETE" },
+        );
+        const outcome = toLearningOutcome(completionState);
+        if (outcome) learningStore.complete(outcome);
+        dispatchLearning({ type: "COMPLETE" });
+      }
+    }
     closeChallenge();
     if (completedId) {
       setCompletionConceptId(completedId);
@@ -307,13 +370,10 @@ export function DiscoverFeed({
     }
   };
 
-
   const totalStops = empty ? 0 : concepts.length + 1;
 
   const selectedOptionLabel =
-    activeChallenge && selectedOptionId
-      ? getOptionLabel(activeChallenge, selectedOptionId)
-      : "";
+    activeChallenge && selectedOptionId ? getOptionLabel(activeChallenge, selectedOptionId) : "";
 
   const incorrectFeedbackForSelection =
     activeChallenge && activeFeedback && selectedOptionId
@@ -332,10 +392,7 @@ export function DiscoverFeed({
             onToggleMuted={() => setMuted((m) => !m)}
           />
           <div className="pointer-events-none absolute right-4 top-3 z-10">
-            <DailyDiscoveryBadge
-              progress={MOCK_PROGRESS_ACTIVE.dailyProgress}
-              target={MOCK_PROGRESS_ACTIVE.dailyTarget}
-            />
+            <DailyDiscoveryBadge progress={progress.dailyProgress} target={progress.dailyTarget} />
           </div>
           {isOffline ? <OfflineBanner /> : null}
           {totalStops > 1 ? <FeedDots total={totalStops} active={activeIndex} /> : null}
@@ -377,15 +434,12 @@ export function DiscoverFeed({
                 onGotIt={() => openChallenge(concept.id)}
                 onExplainMore={() => openExplain(concept.id)}
                 explainDisabled={explainDisabled}
-                explainHint={
-                  explainDisabled ? "Not saved for offline yet." : undefined
-                }
+                explainHint={explainDisabled ? "Not saved for offline yet." : undefined}
                 muted={muted}
                 showSwipeCue={i === 0}
               />
             );
           })}
-
 
           {loading ? (
             <section
@@ -420,35 +474,46 @@ export function DiscoverFeed({
           selectedOptionId={selectedOptionId}
           submissionState={effectiveSubmissionState}
           resolvedOptionStates={resolvedOptionStates}
-          onSelect={setSelectedOptionId}
+          onSelect={(optionId) => {
+            setSelectedOptionId(optionId);
+            dispatchLearning({ type: "SELECT_ANSWER", optionId });
+          }}
           onSubmit={submitChallenge}
           correctFeedback={activeFeedback.correct}
           incorrectFeedback={incorrectFeedbackForSelection}
           selectedOptionLabel={selectedOptionLabel}
           onRetry={() => {
             setStage("retry");
+            dispatchLearning({ type: "START_RETRY" });
             setRetrySelectedId(null);
             setRetrySubmission("idle");
             setRetryResolved(undefined);
           }}
-          onSkipRetry={() => setStage("mind-blown")}
+          onSkipRetry={() => {
+            setStage("mind-blown");
+            dispatchLearning({ type: "SKIP_RETRY" });
+          }}
           retryChallenge={activeFeedback.retry}
           retrySelectedOptionId={retrySelectedId}
           retrySubmissionState={retrySubmission}
           retryResolvedOptionStates={retryResolved}
-          onRetrySelect={setRetrySelectedId}
+          onRetrySelect={(optionId) => {
+            setRetrySelectedId(optionId);
+            dispatchLearning({ type: "SELECT_RETRY", optionId });
+          }}
           onRetrySubmit={submitRetry}
           mindBlown={activeFeedback.mindBlown}
           saved={activeChallengeConcept ? saved.has(activeChallengeConcept.id) : false}
-          onToggleSave={() =>
-            activeChallengeConcept && toggleSave(activeChallengeConcept.id)
-          }
+          onToggleSave={() => activeChallengeConcept && toggleSave(activeChallengeConcept.id)}
           onShare={() => {
             // Real sharing wired up in a later prompt.
           }}
           onContinue={() => {
             if (stage === "mind-blown") advanceToNextConcept();
-            else setStage("mind-blown");
+            else {
+              setStage("mind-blown");
+              dispatchLearning({ type: "CONTINUE" });
+            }
           }}
           onClose={closeChallenge}
           onErrorRetry={submitChallenge}
@@ -460,11 +525,7 @@ export function DiscoverFeed({
         message="Another idea understood."
         saved={completionConceptId ? saved.has(completionConceptId) : false}
         onKeepSwiping={() => setCompletionConceptId(null)}
-        onSave={
-          completionConceptId
-            ? () => toggleSave(completionConceptId)
-            : undefined
-        }
+        onSave={completionConceptId ? () => toggleSave(completionConceptId) : undefined}
         onDismiss={() => setCompletionConceptId(null)}
       />
 
@@ -483,7 +544,6 @@ export function DiscoverFeed({
         />
       ) : null}
     </AppShell>
-
   );
 }
 
@@ -515,40 +575,37 @@ interface EndOfFeedCardProps {
   onLoop: () => void;
 }
 
-const EndOfFeedCard = React.forwardRef<HTMLElement, EndOfFeedCardProps>(
-  ({ onLoop }, ref) => {
-    return (
-      <section
-        ref={ref}
-        aria-label="End of sample feed"
-        className={cn(
-          "relative flex h-[100dvh] w-full snap-start snap-always flex-col items-center justify-center gap-4 px-8 text-center",
-        )}
+const EndOfFeedCard = React.forwardRef<HTMLElement, EndOfFeedCardProps>(({ onLoop }, ref) => {
+  return (
+    <section
+      ref={ref}
+      aria-label="End of sample feed"
+      className={cn(
+        "relative flex h-[100dvh] w-full snap-start snap-always flex-col items-center justify-center gap-4 px-8 text-center",
+      )}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 opacity-70"
+        style={{ background: "var(--gradient-brand-soft)" }}
+      />
+      <span className="text-xs uppercase tracking-[0.22em] text-foreground/60">
+        You're all caught up
+      </span>
+      <h2 className="gradient-text font-display text-[30px] font-semibold leading-tight">
+        End of the sample feed
+      </h2>
+      <p className="max-w-[28ch] text-[15px] text-foreground/75">
+        In the full app, new concepts arrive here forever. For now, loop back to the start.
+      </p>
+      <button
+        type="button"
+        onClick={onLoop}
+        className="mt-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-medium text-foreground transition-swift hover:bg-white/15 active:scale-[0.98]"
       >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 opacity-70"
-          style={{ background: "var(--gradient-brand-soft)" }}
-        />
-        <span className="text-xs uppercase tracking-[0.22em] text-foreground/60">
-          You're all caught up
-        </span>
-        <h2 className="gradient-text font-display text-[30px] font-semibold leading-tight">
-          End of the sample feed
-        </h2>
-        <p className="max-w-[28ch] text-[15px] text-foreground/75">
-          In the full app, new concepts arrive here forever. For now, loop back to
-          the start.
-        </p>
-        <button
-          type="button"
-          onClick={onLoop}
-          className="mt-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-medium text-foreground transition-swift hover:bg-white/15 active:scale-[0.98]"
-        >
-          Restart feed
-        </button>
-      </section>
-    );
-  },
-);
+        Restart feed
+      </button>
+    </section>
+  );
+});
 EndOfFeedCard.displayName = "EndOfFeedCard";
