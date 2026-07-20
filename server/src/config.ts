@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EXPLANATION_PROMPT_VERSION, GENERATION_PROMPT_VERSION } from "./prompts/constants.js";
 
 const BooleanStringSchema = z
   .enum(["true", "false"])
@@ -21,8 +22,8 @@ const EnvironmentSchema = z
     USAGE_HASH_SALT: z.string().default(""),
     DAILY_EXPLAIN_LIMIT: z.coerce.number().int().min(1).max(1_000).default(20),
     DAILY_GENERATE_LIMIT: z.coerce.number().int().min(1).max(1_000).default(5),
-    EXPLANATION_PROMPT_VERSION: z.string().trim().min(1).default("v1"),
-    GENERATION_PROMPT_VERSION: z.string().trim().min(1).default("v1"),
+    EXPLANATION_PROMPT_VERSION: z.string().trim().min(1).default(EXPLANATION_PROMPT_VERSION),
+    GENERATION_PROMPT_VERSION: z.string().trim().min(1).default(GENERATION_PROMPT_VERSION),
   })
   .passthrough();
 

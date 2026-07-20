@@ -55,4 +55,24 @@ describe("HTTP boundary", () => {
     expect(response.body).not.toContain("stack");
     await app.close();
   });
+
+  it("rejects malformed requests and unknown concept IDs", async () => {
+    const app = await buildApp({ config, repository: new MemoryJeniusRepository() });
+    const malformed = await app.inject({
+      method: "POST",
+      url: "/api/generate",
+      payload: { topic: "" },
+    });
+    expect(malformed.statusCode).toBe(400);
+    expect(malformed.json().error.code).toBe("bad_request");
+
+    const unknown = await app.inject({
+      method: "POST",
+      url: "/api/explain",
+      payload: { conceptId: "not-bundled", explanationStyle: "simpler" },
+    });
+    expect(unknown.statusCode).toBe(404);
+    expect(unknown.json().error.code).toBe("not_found");
+    await app.close();
+  });
 });

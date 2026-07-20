@@ -1,11 +1,16 @@
 import "dotenv/config";
 import { buildApp } from "./app.js";
 import { loadConfig } from "./config.js";
+import { OpenAIStructuredModelGateway } from "./model/openai.js";
 import { createFirestoreRepository } from "./repositories/firestore.js";
+import { UnavailableJeniusRepository } from "./repositories/memory.js";
 
 const config = loadConfig();
-const repository = await createFirestoreRepository(config);
-const app = await buildApp({ config, repository });
+const repository = await createFirestoreRepository(config).catch(
+  () => new UnavailableJeniusRepository(),
+);
+const model = config.openai.apiKey ? new OpenAIStructuredModelGateway(config) : undefined;
+const app = await buildApp({ config, repository, model });
 
 let closing = false;
 async function shutdown(signal: string) {

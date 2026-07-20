@@ -1,15 +1,21 @@
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
-import Fastify, { type FastifyInstance } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import { ZodError } from "zod";
+import { ExplainRequestSchema, GenerateRequestSchema } from "../../shared/contracts.js";
 import type { ServerConfig } from "./config.js";
 import { ApiError, formatSafeError } from "./errors.js";
+import { createRequestFingerprint } from "./fingerprints.js";
+import { ModelUnavailableError, type StructuredModelGateway } from "./model/gateway.js";
 import type { JeniusRepository } from "./repositories/types.js";
+import { ExplanationService } from "./services/explanation.js";
+import { GenerationService } from "./services/generation.js";
 import { APPLICATION_VERSION, SERVICE_NAME } from "./version.js";
 
 export interface AppDependencies {
   config: ServerConfig;
   repository: JeniusRepository;
+  model?: StructuredModelGateway;
 }
 
 async function readinessWithTimeout(repository: JeniusRepository): Promise<boolean> {
@@ -30,12 +36,19 @@ async function readinessWithTimeout(repository: JeniusRepository): Promise<boole
 
 export async function buildApp(dependencies: AppDependencies): Promise<FastifyInstance> {
   const { config, repository } = dependencies;
+  const model: StructuredModelGateway = dependencies.model ?? {
+    async complete() {
+      throw new ModelUnavailableError();
+    },
+  };
+  const explanationService = new ExplanationService(config, repository, model);
+  const generationService = new GenerationService(config, repository, model);
   const app = Fastify({
     logger:
       config.nodeEnv === "test"
         ? false
         : {
-            level: config.nodeEnv === "production" ? "info" : "debug",
+            level: config.nodeEnv === "production" ? "warn" : "debug",
             redact: {
               paths: ["req.headers.authorization", "req.headers.cookie", "req.body", "res.body"],
               censor: "[redacted]",
@@ -46,7 +59,6 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     requestTimeout: config.openai.timeoutMs + 5_000,
     connectionTimeout: 10_000,
     keepAliveTimeout: 30_000,
-    disableRequestLogging: config.nodeEnv === "production",
   });
 
   await app.register(helmet, {
@@ -94,6 +106,39 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     };
   });
 
+  function requestFingerprint(request: FastifyRequest): string {
+    if (!config.usage.hashSalt) return "unconfigured";
+    const userAgent =
+      typeof request.headers["user-agent"] === "string" ? request.headers["user-agent"] : "";
+    return createRequestFingerprint(config.usage.hashSalt, request.ip, userAgent);
+  }
+
+  app.post("/api/explain", async (request, reply) => {
+    const parsed = ExplainRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new ApiError(400, "bad_request", "The explanation request is invalid.");
+    }
+    const response = await explanationService.explain({
+      request: parsed.data,
+      requestId: request.id,
+      requestFingerprint: requestFingerprint(request),
+    });
+    return reply.status(200).send(response);
+  });
+
+  app.post("/api/generate", async (request, reply) => {
+    const parsed = GenerateRequestSchema.safeParse(request.body);
+    if (!parsed.success) {
+      throw new ApiError(400, "bad_request", "The lesson request is invalid.");
+    }
+    const response = await generationService.generate({
+      request: parsed.data,
+      requestId: request.id,
+      requestFingerprint: requestFingerprint(request),
+    });
+    return reply.status(200).send(response);
+  });
+
   app.setNotFoundHandler(async (request, reply) => {
     const formatted = formatSafeError(
       new ApiError(404, "not_found", "The requested Jenius endpoint does not exist."),
@@ -106,7 +151,12 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     const normalized =
       error instanceof ZodError
         ? new ApiError(400, "bad_request", "The request did not match the expected format.")
-        : error;
+        : error &&
+            typeof error === "object" &&
+            "statusCode" in error &&
+            error.statusCode === 413
+          ? new ApiError(413, "bad_request", "The request body is too large.")
+          : error;
     const formatted = formatSafeError(normalized, request.id);
     if (formatted.statusCode >= 500) {
       request.log.error({ err: error, requestId: request.id }, "request failed");

@@ -1,0 +1,2 @@
+export const EXPLANATION_PROMPT_VERSION = "v1";
+export const GENERATION_PROMPT_VERSION = "v1";
