@@ -5,7 +5,7 @@
 > It does not describe the current data, persistence, or offline implementation. Start with
 > `README.md` and `docs/architecture.md` for the canonical application documentation.
 
-> **Prototype status.** This app is a mobile-first Lovable prototype for
+> **Import-time prototype status.** This app was imported as a mobile-first Lovable prototype for
 > _Jenius — Infinite Understanding_. It intentionally ships with no backend
 > and no external service integrations. Everything below documents the
 > shape Codex is expected to preserve when it wires the real system.
@@ -30,7 +30,7 @@ There is no server function, edge function, or `.env` requirement.
 | --------- | ----------------------- | ------------------------------------------------------------------------------------ |
 | `/`       | `src/routes/index.tsx`  | Discover feed.                                                                       |
 | `/saved`  | `src/routes/saved.tsx`  | Saved collections screen.                                                            |
-| `/create` | `src/routes/create.tsx` | AI-generated draft form (mock).                                                      |
+| `/create` | `src/routes/create.tsx` | AI-generated draft form (mock at import).                                            |
 | `/me`     | `src/routes/me.tsx`     | Personal progress overview.                                                          |
 | `/dev`    | `src/routes/dev.tsx`    | **Dev-only** state preview — every UI state on one screen. Marked `robots: noindex`. |
 
@@ -130,7 +130,7 @@ Five concepts pre-declare future paths (**files not required to exist**):
 - `/media/free-fall.webm`
 - `/media/dna.webm`
 
-## 7. Demo controller
+## 7. Demo controller at import
 
 `DiscoverFeed` in `src/components/jenius/DiscoverFeed.tsx` is a **demo
 controller**, not a production data layer. It owns:
@@ -230,7 +230,7 @@ the same context as the real app.
 | Completion overlay auto-dismiss timer      | Real completion telemetry.                           |
 | Placeholder video paths                    | Actual `.webm` assets with captions.                 |
 
-## 13. Restrictions (currently verified)
+## 13. Restrictions at import (historical)
 
 - No Supabase / Firebase / Firestore integration.
 - No authentication or authorization.

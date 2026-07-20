@@ -1,9 +1,4 @@
-/**
- * Mock data + resolvers for the "Explain more" experience.
- *
- * The visual component (ExplainMoreSheet) never decides state; the demo
- * controller (DiscoverFeed) selects a status and passes an ExplainPack in.
- */
+/** Data contract and bundled offline fallbacks for the optional coaching experience. */
 
 export type ExplainStatus =
   | "available"
@@ -24,19 +19,18 @@ export interface ExplainPack {
   conceptId: string;
   /** Alternative explanation — different wording, same idea. */
   alternative: string;
-  /** A concrete analogy learners can picture. */
-  analogy: string;
-  /** One quick self-check question with a hint answer. */
-  check: ExplainCheckQuestion;
-  /** True if this pack is served from the local cache. */
+  /** A concrete analogy learners can picture in bundled packs. */
+  analogy?: string;
+  /** One quick self-check question in bundled packs. */
+  check?: ExplainCheckQuestion;
+  /** Optional structured coach fields returned by the backend. */
+  memoryHook?: string;
+  miniExample?: string;
+  /** True if the server reused an already validated response. */
   fromCache?: boolean;
 }
 
-/**
- * Cached explain-more packs. In production this map is Codex-managed and
- * warmed by the feed loader. Stage 1 ships a couple of packs so the offline
- * cached-response state is demonstrable.
- */
+/** Deterministic packs bundled for two offline coaching examples. */
 export const EXPLAIN_PACKS: Record<string, ExplainPack> = {
   seasons: {
     conceptId: "seasons",
@@ -63,20 +57,3 @@ export const EXPLAIN_PACKS: Record<string, ExplainPack> = {
     fromCache: true,
   },
 };
-
-/** Build a deterministic local explanation when a cached pack is unavailable. */
-export function createLocalExplainPack(conceptId: string, hook: string): ExplainPack {
-  const cached = EXPLAIN_PACKS[conceptId];
-  if (cached) return { ...cached, fromCache: false };
-  return {
-    conceptId,
-    alternative: `Another way to say it: ${hook.replace(/\?$/, "")} comes down to a simple cause-and-effect chain you already know.`,
-    analogy:
-      "Picture a familiar everyday object doing exactly the same job. Same rules, smaller scale.",
-    check: {
-      prompt: "Say this idea back in one sentence, using your own words.",
-      answerHint: "If it feels forced, ask for another angle.",
-    },
-    fromCache: false,
-  };
-}

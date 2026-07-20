@@ -1,9 +1,7 @@
 import type { SubjectId } from "./types";
+import type { GeneratedConcept } from "../../../shared/contracts";
 
-/**
- * Concept-generation states for the Create tab. Frontend-only for now —
- * a future Node API will drive real transitions.
- */
+/** Presenter states driven by the optional Node API and honest local fallbacks. */
 export type GenerationStatus =
   | "disabled" // form incomplete
   | "ready" // form valid, not yet submitted
@@ -95,7 +93,7 @@ export interface GeneratedConceptPack {
   explanation: string;
   challenge: {
     prompt: string;
-    options: Array<{ id: string; label: string }>;
+    options: Array<{ id: string; label: string; misconceptionId?: string }>;
     correctOptionId: string;
   };
   misconception: {
@@ -103,8 +101,59 @@ export interface GeneratedConceptPack {
     whyUnderstandable: string;
     correction: string;
   };
+  misconceptions?: Array<{
+    id: string;
+    label: string;
+    whyUnderstandable: string;
+    correction: string;
+  }>;
   mindBlown: { headline: string; detail?: string };
   createdAtLabel: string;
+  contentLabel?: "AI-generated";
+}
+
+const generatedSubjectToPresenter: Record<GeneratedConcept["subject"], SubjectId> = {
+  geography: "history",
+  "earth-science": "science",
+  physics: "science",
+  biology: "life",
+  general: "mind",
+};
+
+export function toGeneratedConceptPack(concept: GeneratedConcept): GeneratedConceptPack {
+  const correctOption = concept.primaryQuestion.options.find((option) => option.isCorrect);
+  const firstMisconception = concept.misconceptions[0];
+  return {
+    id: concept.id,
+    topic: concept.title,
+    subject: generatedSubjectToPresenter[concept.subject],
+    categoryLabel: concept.category,
+    hook: concept.hook,
+    explanation: concept.explanation,
+    challenge: {
+      prompt: concept.primaryQuestion.prompt,
+      options: concept.primaryQuestion.options.map(({ id, label, misconceptionId }) => ({
+        id,
+        label,
+        misconceptionId,
+      })),
+      correctOptionId: correctOption?.id ?? "",
+    },
+    misconception: {
+      label: firstMisconception.label,
+      whyUnderstandable: firstMisconception.feedback.whyUnderstandable,
+      correction: firstMisconception.feedback.correction,
+    },
+    misconceptions: concept.misconceptions.map((item) => ({
+      id: item.id,
+      label: item.label,
+      whyUnderstandable: item.feedback.whyUnderstandable,
+      correction: item.feedback.correction,
+    })),
+    mindBlown: concept.mindBlown,
+    createdAtLabel: new Date(concept.generatedAt).toLocaleDateString(),
+    contentLabel: "AI-generated",
+  };
 }
 
 export const SAMPLE_BLACK_HOLES_PACK: GeneratedConceptPack = {

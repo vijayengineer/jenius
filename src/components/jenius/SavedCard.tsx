@@ -56,7 +56,7 @@ export function SavedCard({
         <button
           type="button"
           onClick={() => onReplay?.(conceptId)}
-          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-full bg-white/[0.06] text-[13px] font-medium text-foreground/90 transition-swift hover:bg-white/[0.12]"
+          className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-white/[0.06] text-[13px] font-medium text-foreground/90 transition-swift hover:bg-white/[0.12]"
         >
           <Play className="size-3.5" aria-hidden />
           Replay
@@ -65,7 +65,7 @@ export function SavedCard({
           type="button"
           onClick={() => onRemove?.(conceptId)}
           aria-label={`Remove ${hook} from saved`}
-          className="flex h-9 w-11 items-center justify-center rounded-full bg-white/[0.04] text-foreground/60 transition-swift hover:bg-misconception/15 hover:text-misconception"
+          className="flex size-11 items-center justify-center rounded-full bg-white/[0.04] text-foreground/60 transition-swift hover:bg-misconception/15 hover:text-misconception"
         >
           <Trash2 className="size-4" aria-hidden />
         </button>

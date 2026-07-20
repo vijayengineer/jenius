@@ -232,7 +232,7 @@ function QuestionStage({
             <button
               type="button"
               onClick={onErrorRetry}
-              className="rounded-full bg-white/10 px-3 py-1 text-[12px] font-medium text-foreground hover:bg-white/15"
+              className="min-h-11 rounded-full bg-white/10 px-3 text-[12px] font-medium text-foreground hover:bg-white/15"
             >
               Retry
             </button>

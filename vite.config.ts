@@ -6,7 +6,20 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// The Lovable wrapper forwards Nitro options at runtime but intentionally exposes a narrower
+// pre-release type surface. Keep this concrete config separate so Vercel receives the Node 22
+// function metadata required by the repository's engine contract.
+const nitroConfig = {
+  preset: "vercel",
+  vercel: {
+    functions: {
+      runtime: "nodejs22.x",
+    },
+  },
+} as const;
+
 export default defineConfig({
+  nitro: nitroConfig,
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

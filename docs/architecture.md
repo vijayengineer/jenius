@@ -38,11 +38,19 @@ Prettier drift plus two substantive rules; no tests or test script existed.
 
 ## Backend boundary
 
-Future services must implement small interfaces such as `LearningRepository` and
-`TopicGenerationService`. UI components must not import Firestore, an SDK client, or provider
-credentials. Server-generated learning packs must pass the same content validation before use.
-Personalised/sensitive responses require an explicit cache policy and are excluded from the
-general service-worker runtime cache.
+The optional standalone service lives under `server/` and binds to loopback. Fastify owns CORS,
+security headers, body and request limits, request IDs, safe errors, and three routes only:
+`GET /health`, `POST /api/explain`, and `POST /api/generate`. OpenAI and Firebase Admin are
+server-only dependencies.
+
+Shared Zod contracts validate requests and responses on both sides of the HTTP boundary. The
+server resolves explanations against a small tested projection of the verified catalogue.
+Generated concepts use a separate `AI-generated` schema and never acquire verified status.
+Firestore access is isolated behind `JeniusRepository`; the browser imports neither Firebase nor
+provider credentials.
+
+The service worker rejects API and cross-origin requests before runtime caching. Personal model
+responses are persisted deliberately in IndexedDB only after response validation.
 
 ## Implemented application flow
 
@@ -53,9 +61,11 @@ discarding the learner's selection or feedback stage.
 
 `LearningProvider` is the only React-level persistence coordinator. It hydrates a versioned
 learner document from `LearningRepository`, applies pure updates, and writes the resulting
-document back. Saved, Create, and Me consume selectors over that same state. The current
-`LocalTopicGenerationService` stores a validated request and explicitly does not return a
-fabricated pack.
+document back. Saved, Create, and Me consume selectors over that same state. The Create route
+queues each request locally before calling `RemoteTopicGenerationService`. Validated successes are
+stored as personal concepts; failures keep the request with a retryable status. A small adapter
+opens generated content in the existing primary-question preview while verified completion and XP
+remain isolated.
 
 The production-only service-worker registration caches same-origin shell/static requests and
 navigation fallbacks. `/api/` and cross-origin requests are deliberately excluded.
@@ -71,5 +81,5 @@ IndexedDB use a non-throwing memory implementation. Completion IDs make XP award
 - One anonymous local learner exists in the initial release.
 - Bundled verified content is authoritative and does not require network validation.
 - “Understanding” is a lightweight local signal, not a psychometric score.
-- Remote generation, authentication, sync, analytics, and real media are deliberately out of
-  scope.
+- Authentication, cross-device sync, analytics, automated educational verification, and real
+  media are deliberately out of scope.

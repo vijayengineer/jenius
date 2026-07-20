@@ -26,6 +26,10 @@ export interface CreateScreenProps {
   generationStatus?: GenerationStatus;
   /** When present, the draft preview replaces the form. */
   generatedPack?: GeneratedConceptPack | null;
+  personalPacks?: GeneratedConceptPack[];
+  retryableRequests?: RetainedTopicRequest[];
+  onOpenPersonal?: (pack: GeneratedConceptPack) => void;
+  onRetryRequest?: (request: RetainedTopicRequest) => void;
   onSave?: (pack: GeneratedConceptPack) => void;
   onDelete?: (pack: GeneratedConceptPack) => void;
   online?: boolean;
@@ -38,14 +42,23 @@ export interface CreateScreenProps {
   requestStored?: boolean;
 }
 
+export interface RetainedTopicRequest {
+  id: string;
+  values: CreateFormValues;
+}
+
 /**
- * CreateScreen — presenter for local topic requests and future API-driven
- * generation. It never manufactures a successful pack.
+ * CreateScreen — presenter for optional API-driven generation and local request fallbacks.
+ * It never manufactures a successful pack.
  */
 export function CreateScreen({
   onGenerate,
   generationStatus: externalStatus,
   generatedPack: externalPack,
+  personalPacks = [],
+  retryableRequests = [],
+  onOpenPersonal,
+  onRetryRequest,
   onSave,
   onDelete,
   online = true,
@@ -140,6 +153,18 @@ export function CreateScreen({
             localOnly={localOnly}
             available={!!onGenerate}
           />
+
+          {retryableRequests.length ? (
+            <RetainedRequests
+              requests={retryableRequests}
+              online={online}
+              onRetry={onRetryRequest}
+            />
+          ) : null}
+
+          {personalPacks.length ? (
+            <PersonalCollection packs={personalPacks} onOpen={onOpenPersonal} />
+          ) : null}
         </>
       )}
     </div>
@@ -324,7 +349,7 @@ function SegmentedControl<T extends string>({
             aria-checked={active}
             onClick={() => onChange(o.id)}
             className={cn(
-              "h-9 rounded-xl text-[12px] font-medium transition-swift",
+              "h-11 rounded-xl text-[12px] font-medium transition-swift",
               active
                 ? "bg-white/15 text-foreground shadow-sm"
                 : "text-foreground/60 hover:text-foreground",
@@ -352,11 +377,7 @@ function GenerateButton({
   available: boolean;
 }) {
   const disabled =
-    !available ||
-    status === "disabled" ||
-    status === "submitting" ||
-    status === "generating" ||
-    (status === "offline" && !localOnly);
+    !available || status === "disabled" || status === "submitting" || status === "generating";
   const label =
     status === "submitting"
       ? "Sending…"
@@ -364,9 +385,11 @@ function GenerateButton({
         ? "Generating…"
         : status === "success"
           ? "Regenerate"
-          : localOnly
-            ? "Save topic request"
-            : "Generate concept";
+          : status === "offline"
+            ? "Save for retry"
+            : localOnly
+              ? "Save topic request"
+              : "Generate concept";
   return (
     <button
       type="button"
@@ -483,7 +506,7 @@ export function GenerationProgress({ status, activeStepIndex }: GenerationProgre
         })}
       </ol>
       <p className="text-[11px] text-foreground/50">
-        Preview mode — no live generation is running.
+        This can take a moment. Your topic is already saved if the connection drops.
       </p>
     </div>
   );
@@ -516,6 +539,10 @@ export function GeneratedDraftPreview({
     if (id === selectedOptionId) return "incorrect";
     return "disabled";
   };
+  const selectedOption = pack.challenge.options.find((option) => option.id === selectedOptionId);
+  const selectedMisconception = selectedOption?.misconceptionId
+    ? pack.misconceptions?.find((item) => item.id === selectedOption.misconceptionId)
+    : undefined;
 
   return (
     <div className="flex flex-col gap-5">
@@ -523,7 +550,7 @@ export function GeneratedDraftPreview({
         <div className="flex items-center gap-2">
           <SubjectChip subject={pack.subject} size="sm" label={pack.categoryLabel} />
           <span className="rounded-full bg-brand-violet/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-violet">
-            AI-generated draft
+            AI-generated
           </span>
         </div>
         <span className="text-[11px] text-foreground/50">{pack.createdAtLabel}</span>
@@ -575,10 +602,12 @@ export function GeneratedDraftPreview({
         ) : null}
       </section>
 
-      <MisconceptionCard
-        misconception={pack.misconception.label}
-        correction={pack.misconception.correction}
-      />
+      {showResult && selectedOptionId !== pack.challenge.correctOptionId ? (
+        <MisconceptionCard
+          misconception={selectedMisconception?.label ?? pack.misconception.label}
+          correction={selectedMisconception?.correction ?? pack.misconception.correction}
+        />
+      ) : null}
 
       <MindBlownCard>
         <div className="flex flex-col gap-2">
@@ -595,9 +624,10 @@ export function GeneratedDraftPreview({
         <button
           type="button"
           onClick={onSave}
-          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] text-[13px] font-medium text-foreground/90 transition-swift hover:bg-white/[0.08]"
+          disabled={pack.contentLabel === "AI-generated"}
+          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] text-[13px] font-medium text-foreground/90 transition-swift hover:bg-white/[0.08] disabled:opacity-70"
         >
-          Save offline
+          {pack.contentLabel === "AI-generated" ? "Saved offline" : "Save offline"}
         </button>
         <button
           type="button"
@@ -610,8 +640,94 @@ export function GeneratedDraftPreview({
       </div>
 
       <p className="text-center text-[11px] text-foreground/50">
-        Drafts live only on this device until they're reviewed for the verified feed.
+        Your copy is saved on this device and stays separate from the verified feed.
       </p>
     </div>
+  );
+}
+
+function PersonalCollection({
+  packs,
+  onOpen,
+}: {
+  packs: GeneratedConceptPack[];
+  onOpen?: (pack: GeneratedConceptPack) => void;
+}) {
+  return (
+    <section aria-labelledby="personal-lessons-heading" className="mt-2 flex flex-col gap-3">
+      <div>
+        <h2
+          id="personal-lessons-heading"
+          className="font-display text-lg font-semibold text-foreground"
+        >
+          Personal lessons
+        </h2>
+        <p className="text-xs text-foreground/55">Validated drafts saved on this device.</p>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {packs.map((pack) => (
+          <li key={pack.id}>
+            <button
+              type="button"
+              onClick={() => onOpen?.(pack)}
+              className="flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-left transition-swift hover:bg-white/[0.07]"
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium text-foreground">
+                  {pack.hook}
+                </span>
+                <span className="mt-1 block text-[11px] uppercase tracking-wider text-brand-violet">
+                  AI-generated
+                </span>
+              </span>
+              <span className="shrink-0 text-xs text-foreground/55">Open</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function RetainedRequests({
+  requests,
+  online,
+  onRetry,
+}: {
+  requests: RetainedTopicRequest[];
+  online: boolean;
+  onRetry?: (request: RetainedTopicRequest) => void;
+}) {
+  return (
+    <section aria-labelledby="saved-requests-heading" className="mt-2 flex flex-col gap-3">
+      <div>
+        <h2 id="saved-requests-heading" className="font-display text-lg font-semibold">
+          Saved requests
+        </h2>
+        <p className="text-xs text-foreground/55">
+          {online
+            ? "Ready to retry without losing your topic."
+            : "Reconnect to retry these topics."}
+        </p>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {requests.map((request) => (
+          <li
+            key={request.id}
+            className="flex min-h-16 items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2"
+          >
+            <span className="min-w-0 truncate text-sm font-medium">{request.values.topic}</span>
+            <button
+              type="button"
+              disabled={!online || !onRetry}
+              onClick={() => onRetry?.(request)}
+              className="min-h-11 shrink-0 rounded-full bg-white/10 px-4 text-xs font-semibold transition-swift hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Retry
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

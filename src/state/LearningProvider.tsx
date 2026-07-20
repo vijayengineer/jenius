@@ -4,12 +4,17 @@ import type { CreateFormValues } from "@/lib/jenius/generatedPack";
 import {
   applyLearningOutcome,
   createInitialLearnerState,
+  deleteGeneratedConcept,
+  failTopicRequest,
+  queueTopicRequest,
+  storeGeneratedConcept,
   toggleSavedConcept,
   type LearnerState,
   type SavedCollection,
   recordAttempt,
 } from "@/storage/learner-state";
 import { createLearningRepository, type LearningRepository } from "@/storage/repository";
+import type { GeneratedConcept } from "../../shared/contracts";
 
 interface LearningContextValue {
   state: LearnerState;
@@ -18,6 +23,10 @@ interface LearningContextValue {
   complete: (outcome: LearningOutcome) => void;
   recordAttempt: (attempt: Omit<LearnerState["attempts"][number], "id" | "createdAt">) => void;
   saveTopicRequest: (values: CreateFormValues) => void;
+  queueTopicRequest: (values: CreateFormValues, requestId: string) => void;
+  failTopicRequest: (requestId: string, errorCategory: string) => void;
+  storeGeneratedConcept: (requestId: string, concept: GeneratedConcept) => void;
+  deleteGeneratedConcept: (conceptId: string) => void;
 }
 
 const LearningContext = React.createContext<LearningContextValue | null>(null);
@@ -84,6 +93,14 @@ export function LearningProvider({
             ],
           };
         }),
+      queueTopicRequest: (values, requestId) =>
+        update((current) => queueTopicRequest(current, values, requestId)),
+      failTopicRequest: (requestId, errorCategory) =>
+        update((current) => failTopicRequest(current, requestId, errorCategory)),
+      storeGeneratedConcept: (requestId, concept) =>
+        update((current) => storeGeneratedConcept(current, requestId, concept)),
+      deleteGeneratedConcept: (conceptId) =>
+        update((current) => deleteGeneratedConcept(current, conceptId)),
     }),
     [hydrated, state, update],
   );

@@ -232,7 +232,7 @@ function VideoControls({
             aria-label={captionsOn ? "Hide captions" : "Show captions"}
             aria-pressed={captionsOn}
             className={cn(
-              "glass grid size-8 place-items-center rounded-full transition-swift",
+              "glass grid size-11 place-items-center rounded-full transition-swift",
               "hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2",
               "focus-visible:ring-brand-blue",
               captionsOn && "bg-white/25 text-brand-blue",
@@ -246,7 +246,7 @@ function VideoControls({
           onClick={onToggleMuted}
           aria-label={muted ? "Unmute video" : "Mute video"}
           aria-pressed={!muted}
-          className="glass grid size-8 place-items-center rounded-full transition-swift hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
+          className="glass grid size-11 place-items-center rounded-full transition-swift hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-blue"
         >
           {muted ? (
             <VolumeX className="size-4" aria-hidden />
