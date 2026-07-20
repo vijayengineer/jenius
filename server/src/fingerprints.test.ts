@@ -14,6 +14,12 @@ describe("one-way keys", () => {
     expect(createExplanationCacheKey({ ...input, style: "simpler" })).not.toBe(
       createExplanationCacheKey(input),
     );
+    expect(createExplanationCacheKey({ ...input, model: "another-model" })).not.toBe(
+      createExplanationCacheKey(input),
+    );
+    expect(createExplanationCacheKey({ ...input, promptVersion: "v2" })).not.toBe(
+      createExplanationCacheKey(input),
+    );
   });
 
   it("does not expose raw network identifiers", () => {

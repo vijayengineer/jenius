@@ -81,9 +81,29 @@ function parseOrigins(raw: string, production: boolean): string[] {
   return origins;
 }
 
+function assertProductionConfiguration(
+  environment: NodeJS.ProcessEnv,
+  parsed: z.infer<typeof EnvironmentSchema>,
+): void {
+  const missing = [
+    !environment.FRONTEND_ORIGINS?.trim() && "FRONTEND_ORIGINS",
+    !parsed.OPENAI_API_KEY && "OPENAI_API_KEY",
+    !parsed.OPENAI_MODEL && "OPENAI_MODEL",
+    !parsed.USAGE_HASH_SALT && "USAGE_HASH_SALT",
+  ].filter((name): name is string => Boolean(name));
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required production configuration: ${missing.join(", ")}`);
+  }
+  if (parsed.USAGE_HASH_SALT.length < 32) {
+    throw new Error("USAGE_HASH_SALT must contain at least 32 characters in production");
+  }
+}
+
 export function loadConfig(environment: NodeJS.ProcessEnv = process.env): ServerConfig {
   const parsed = EnvironmentSchema.parse(environment);
   const production = parsed.NODE_ENV === "production";
+  if (production) assertProductionConfiguration(environment, parsed);
   const frontendOrigins = parseOrigins(parsed.FRONTEND_ORIGINS, production);
   const configurationReady = Boolean(
     parsed.OPENAI_API_KEY && parsed.OPENAI_MODEL && parsed.USAGE_HASH_SALT,
@@ -116,4 +136,14 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): Server
     },
     configurationReady,
   };
+}
+
+export function formatConfigurationError(error: unknown): string {
+  if (error instanceof z.ZodError) {
+    const variables = [
+      ...new Set(error.issues.map((issue) => String(issue.path[0] ?? "environment"))),
+    ];
+    return `Invalid server configuration: ${variables.join(", ")}`;
+  }
+  return error instanceof Error ? error.message : "Invalid server configuration";
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loadConfig } from "./config.js";
+import { formatConfigurationError, loadConfig } from "./config.js";
 
 const base = {
   NODE_ENV: "test",
@@ -24,8 +24,48 @@ describe("server config", () => {
   });
 
   it("rejects wildcard production CORS", () => {
-    expect(() => loadConfig({ ...base, NODE_ENV: "production", FRONTEND_ORIGINS: "*" })).toThrow(
-      /wildcard/i,
+    expect(() =>
+      loadConfig({
+        ...base,
+        NODE_ENV: "production",
+        FRONTEND_ORIGINS: "*",
+        USAGE_HASH_SALT: "a-production-only-salt-at-least-32-characters",
+      }),
+    ).toThrow(/wildcard/i);
+  });
+
+  it("fails clearly when production security configuration is missing", () => {
+    expect(() => loadConfig({ NODE_ENV: "production" })).toThrow(
+      /FRONTEND_ORIGINS, OPENAI_API_KEY, OPENAI_MODEL, USAGE_HASH_SALT/,
     );
+    expect(() =>
+      loadConfig({
+        ...base,
+        NODE_ENV: "production",
+        USAGE_HASH_SALT: "too-short",
+      }),
+    ).toThrow(/at least 32 characters/i);
+  });
+
+  it("accepts complete production configuration while keeping Firebase on ADC", () => {
+    const config = loadConfig({
+      ...base,
+      NODE_ENV: "production",
+      USAGE_HASH_SALT: "a-production-only-salt-at-least-32-characters",
+    });
+    expect(config.configurationReady).toBe(true);
+    expect(config.firebase.serviceAccountFile).toBe("");
+  });
+
+  it("formats schema errors without echoing rejected values", () => {
+    let caught: unknown;
+    try {
+      loadConfig({ NODE_ENV: "production", PORT: "secret-invalid-port" });
+    } catch (error) {
+      caught = error;
+    }
+    const message = formatConfigurationError(caught);
+    expect(message).toContain("PORT");
+    expect(message).not.toContain("secret-invalid-port");
   });
 });

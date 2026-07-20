@@ -14,6 +14,20 @@ export class ApiError extends Error {
   }
 }
 
+export function normalizeHttpError(error: unknown): unknown {
+  if (error instanceof ApiError) return error;
+  if (!error || typeof error !== "object" || !("statusCode" in error)) return error;
+
+  const statusCode = Number(error.statusCode);
+  if (statusCode === 413) {
+    return new ApiError(413, "bad_request", "The request body is too large.");
+  }
+  if (statusCode >= 400 && statusCode < 500) {
+    return new ApiError(400, "bad_request", "The request did not match the expected format.");
+  }
+  return error;
+}
+
 export function formatSafeError(
   error: unknown,
   requestId: string,

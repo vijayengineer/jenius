@@ -4,7 +4,7 @@ import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import { ZodError } from "zod";
 import { ExplainRequestSchema, GenerateRequestSchema } from "../../shared/contracts.js";
 import type { ServerConfig } from "./config.js";
-import { ApiError, formatSafeError } from "./errors.js";
+import { ApiError, formatSafeError, normalizeHttpError } from "./errors.js";
 import { createRequestFingerprint } from "./fingerprints.js";
 import { ModelUnavailableError, type StructuredModelGateway } from "./model/gateway.js";
 import type { JeniusRepository } from "./repositories/types.js";
@@ -151,9 +151,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     const normalized =
       error instanceof ZodError
         ? new ApiError(400, "bad_request", "The request did not match the expected format.")
-        : error && typeof error === "object" && "statusCode" in error && error.statusCode === 413
-          ? new ApiError(413, "bad_request", "The request body is too large.")
-          : error;
+        : normalizeHttpError(error);
     const formatted = formatSafeError(normalized, request.id);
     if (formatted.statusCode >= 500) {
       if (config.nodeEnv === "production") {
