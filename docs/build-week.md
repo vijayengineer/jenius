@@ -30,16 +30,16 @@ This log is factual and should be updated only after a capability is working and
 
 - [x] Re-audit instructions, architecture, content, learning state, IndexedDB, Create, PWA, branch,
       remotes, and baseline quality gates.
-- [ ] Scaffold the standalone Fastify TypeScript service and safe health endpoint.
-- [ ] Add server-only Firestore repositories, request fingerprints, and usage limits.
-- [ ] Add structured alternative-explanation generation and reusable caching.
-- [ ] Add structured personal-concept generation with one repair attempt.
-- [ ] Connect one typed, timeout-aware frontend API layer.
-- [ ] Preserve deterministic lessons when explaining fails or the browser is offline.
-- [ ] Persist validated generated concepts and pending retries in IndexedDB.
-- [ ] Add backend, frontend, and offline integration coverage.
-- [ ] Document Firebase, Ubuntu, Nginx, HTTPS, Vercel, mobile testing, and rollback.
-- [ ] Run the complete verification and credential audit, commit logical phases, and leave the
+- [x] Scaffold the standalone Fastify TypeScript service and safe health endpoint.
+- [x] Add server-only Firestore repositories, request fingerprints, and usage limits.
+- [x] Add structured alternative-explanation generation and reusable caching.
+- [x] Add structured personal-concept generation with one repair attempt.
+- [x] Connect one typed, timeout-aware frontend API layer.
+- [x] Preserve deterministic lessons when explaining fails or the browser is offline.
+- [x] Persist validated generated concepts and pending retries in IndexedDB.
+- [x] Add backend, frontend, and offline integration coverage.
+- [x] Document Firebase, Ubuntu, Nginx, HTTPS, Vercel, mobile testing, and rollback.
+- [x] Run the complete verification and credential audit, commit logical phases, and leave the
       branch clean without pushing.
 
 ## Implemented
@@ -65,8 +65,36 @@ This log is factual and should be updated only after a capability is working and
   treatment, reduced-motion rules, optional media collapse, and explicit non-swipe controls.
 - Final repository audit removed dormant prototype fallbacks and stale mock naming, verified that
   production Feed/Saved/Create/Me paths use real local state, scanned the current tree and Git
-  history for common secret signatures, and confirmed that no application environment variables
-  are required.
+  history for common secret signatures, and confirmed that bundled lessons require no application
+  environment variables.
+
+## Session 2A implemented
+
+- Added an optional standalone Fastify service that binds to loopback and exposes only health,
+  explanation, and generation routes. It includes an exact CORS allowlist, security headers,
+  body/request limits, request IDs, redacted minimal logs, safe errors, proxy configuration, and
+  clean shutdown.
+- The official OpenAI Node SDK requests strict JSON-schema output from a configurable model.
+  Versioned server-owned prompts keep verified catalogue copy authoritative for alternative
+  explanations. Model output never replaces the deterministic lesson.
+- Personal generation validates the complete lesson, including one four-option primary question,
+  three misconception feedback paths, one retry question, and one Mind Blown fact. A malformed
+  response gets one repair attempt and is otherwise rejected without partial success.
+- Firebase Admin is server-only. Firestore uses exactly `explanation_cache`, `generated_concepts`,
+  and `usage_limits`. Explanation cache keys include content/style/context, prompt version, and
+  model. Daily counters use salted one-way request fingerprints and transactions.
+- One browser API abstraction validates both directions, times out with `AbortController`, detects
+  offline/configuration failures, and categorises safe errors. No API credential enters frontend
+  code.
+- Explain another way adds a mobile style selector and non-blocking coach card. Failure leaves the
+  verified card and all learning controls unchanged.
+- Create queues requests before making a network call. Validated lessons persist in IndexedDB,
+  appear under Personal lessons, carry the `AI-generated` label, and open through the existing
+  challenge preview adapter. Failed requests remain stored for retry; no fake success is shown.
+- Nitro now emits Vercel Build Output API artifacts, while Ubuntu/systemd/Nginx deployment
+  examples keep the backend on `127.0.0.1:301`.
+- Automated non-live coverage now has 26 frontend/domain tests and 20 backend tests. OpenAI and
+  Firestore are mocked through injected interfaces; no live credential test was run.
 
 ## Demo outline
 
@@ -75,10 +103,14 @@ This log is factual and should be updated only after a capability is working and
 3. Retry with a reframed question, reveal the Mind Blown fact, and complete the lesson.
 4. Refresh/offline: show retained completion, XP, saved content, and bundled lessons.
 5. Open Saved and Me to show statistics derived from local activity.
-6. Submit a topic in Create and explain that the request is stored locally; remote generation is
-   intentionally not fabricated.
+6. Request a new explanation style and show the original verified lesson remains visible.
+7. Generate a personal topic, show its AI-generated label and primary challenge, then reload to
+   show local persistence.
+8. Stop the backend or go offline and repeat a bundled lesson to demonstrate graceful fallback.
 
 ## Honest limitations
 
-There is no remote backend, authentication, cross-device sync, live model generation, production
-media, or personalised recommendation system in this release.
+There is no authentication, cross-device sync, identity-grade rate limiting, automated
+educational verification of generated drafts, production media, or personalised recommendation
+system. AI-generated concepts remain separate from verified XP progression. This repository has
+not been deployed and no live OpenAI or Firestore credential test has been performed.

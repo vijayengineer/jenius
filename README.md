@@ -22,30 +22,52 @@ animation-ready; media remains optional and no remote media is loaded.
 3. Receive a concise explanation or feedback matched to the selected misconception.
 4. Try a different question, reveal the Mind Blown fact, and complete the concept.
 5. Save useful ideas and review real on-device progress in Saved and Me.
-6. Record a “Teach me anything” topic locally in Create; remote generation is not implemented.
+6. Optionally ask the server-side coach for another explanation without replacing the verified
+   lesson.
+7. Generate a personal lesson in Create, validate it, save it on-device, and keep failed requests
+   available for retry.
 
 ## Architecture
 
-TanStack Start and React render the existing Lovable interface. Zod validates bundled content
-at module and script boundaries. A pure reducer owns the learning flow. A small versioned
-IndexedDB repository owns progress, saves, attempts, topic requests, and review scheduling;
-React components access it through one application provider. The bundled catalogue and app
-shell are available offline through a narrowly scoped service worker.
+TanStack Start and React render the existing Lovable interface. Zod validates bundled content and
+all optional API responses. A pure reducer owns the verified learning flow. A small versioned
+IndexedDB repository owns progress, saves, attempts, topic requests, generated concepts, and
+review scheduling; React components access it through one application provider. The bundled
+catalogue and app shell are available offline through a narrowly scoped service worker.
+
+The standalone Fastify service under `server/` owns OpenAI and Firebase Admin. It exposes only
+`GET /health`, `POST /api/explain`, and `POST /api/generate`. Firestore caches validated
+explanations, stores validated generated concepts, and applies lightweight salted daily usage
+limits. No Firebase or OpenAI SDK is shipped to the browser.
 
 See [docs/architecture.md](docs/architecture.md) and
 [docs/content-model.md](docs/content-model.md) for the detailed contracts.
 
 ## Local development
 
-Requirements: Node.js 22.12+ and npm. `package-lock.json` is the canonical dependency lockfile.
+Requirements: Node.js 22.12+ and npm. The root and `server/` each have a canonical lockfile.
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
 
-No environment variables are required. The application intentionally has no authentication,
-remote backend, Firestore client, or model-provider call.
+`VITE_API_BASE_URL` is optional. If it is missing or unreachable, all ten bundled lessons and
+previously persisted progress remain usable.
+
+Run the optional backend in a second terminal:
+
+```bash
+cd server
+npm install
+cp .env.example .env
+npm run dev
+```
+
+The backend starts without usable model credentials in a degraded state so `/health` can report
+readiness. AI routes fail closed until OpenAI, Firestore, and the usage salt are configured. Never
+commit the copied environment files.
 
 ## Quality scripts
 
@@ -56,14 +78,18 @@ npm run typecheck
 npm run lint
 npm run test
 npm run build
+npm run server:test
+npm run server:typecheck
+npm run server:build
+npm run verify
 ```
 
 ## Offline-first approach
 
 Verified lessons ship in the client bundle. The service worker caches the shell and same-origin
-static assets while IndexedDB stores learner-owned state behind a repository abstraction. Future
-personalised API responses must define explicit cache policy and must not be added to the general
-runtime cache.
+static assets while IndexedDB stores learner-owned state behind a repository abstraction.
+Personalised API responses are validated and persisted deliberately; they are excluded from the
+general service-worker runtime cache.
 
 ## Misconception-aware learning
 
@@ -73,26 +99,30 @@ hook. The application does not shame, rank, or punish learners.
 
 ## Deployment
 
-`npm run build` produces the TanStack Start/Nitro output in `.output`. Deploy that output to the
-configured Cloudflare-compatible host over HTTPS so service workers and installation metadata are
-available. No secrets are required for the current local-only release.
+The frontend is pinned to Nitro's Vercel preset; `npm run build` produces Vercel Build Output API
+artifacts in `.vercel/output`. Configure `VITE_API_BASE_URL` at build time. The backend compiles to
+`server/dist/server/src/index.js`, binds to `127.0.0.1:301`, and is intended to sit behind Nginx
+and HTTPS on Ubuntu.
+
+See [docs/backend.md](docs/backend.md), [docs/deployment.md](docs/deployment.md), and
+[docs/mobile-testing.md](docs/mobile-testing.md).
 
 ## Build Week and Codex
 
-Codex, powered by GPT-5.6, was used as the engineering collaborator to audit the imported Lovable
-prototype, preserve its component quality, design typed content and learning-state boundaries,
-implement local persistence and offline support, add tests, and maintain factual project
-documentation. Educational copy remains deterministic and locally validated; the product does
-not claim that a live model generated or verified content at runtime.
+Codex, powered by GPT-5.6, was used as the engineering collaborator. At runtime, a configurable
+OpenAI model can provide optional alternative explanations and personal AI-generated lessons.
+Strict structured output, Zod validation, server-owned prompts, one repair attempt, and Firestore
+storage sit between model output and the browser. Bundled educational copy remains deterministic,
+verified, and independent of the model.
 
 ## Current limitations and next steps
 
-- The initial release is local-only and has no accounts or cross-device sync.
+- There are no accounts or cross-device sync.
 - Media entries are metadata/placeholders; no production clips are bundled.
-- Create records requests but does not fabricate remote generation.
-- Explain More uses a small bundled cache rather than a model endpoint.
-- A future backend should implement the existing API/repository boundary, content review,
-  authenticated sync, rate-limited generation, and privacy-aware analytics.
+- AI-generated lessons are drafts, not verified content, and do not enter verified XP progression.
+- Salted request fingerprints are lightweight abuse protection, not identity-grade enforcement.
+- Model and Firestore behavior has automated mock coverage; no live credential test or production
+  deployment is claimed by this repository.
 
 The factual implementation log and demo notes live in
 [docs/build-week.md](docs/build-week.md).
