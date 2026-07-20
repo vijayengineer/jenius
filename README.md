@@ -35,10 +35,11 @@ IndexedDB repository owns progress, saves, attempts, topic requests, generated c
 review scheduling; React components access it through one application provider. The bundled
 catalogue and app shell are available offline through a narrowly scoped service worker.
 
-The standalone Fastify service under `server/` owns OpenAI and Firebase Admin. It exposes only
+The standalone Fastify service under `server/` owns OpenAI and the official
+`@google-cloud/firestore` Node client. It exposes only
 `GET /health`, `POST /api/explain`, and `POST /api/generate`. Firestore caches validated
 explanations, stores validated generated concepts, and applies lightweight salted daily usage
-limits. No Firebase or OpenAI SDK is shipped to the browser.
+limits. No Firestore or OpenAI SDK is shipped to the browser.
 
 See [docs/architecture.md](docs/architecture.md) and
 [docs/content-model.md](docs/content-model.md) for the detailed contracts.
@@ -67,8 +68,9 @@ npm run dev
 
 In development and test, the backend can start without usable model credentials so `/health` can
 report degraded readiness and AI routes can fail closed. Production startup rejects missing
-`FRONTEND_ORIGINS`, `OPENAI_API_KEY`, `OPENAI_MODEL`, or `USAGE_HASH_SALT`; the usage salt must be
-at least 32 characters. Never commit the copied environment files.
+`FRONTEND_ORIGINS`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `GOOGLE_CLOUD_PROJECT`, or
+`USAGE_HASH_SALT`; the usage salt must be at least 32 characters. Never commit the copied
+environment files.
 
 ## Quality scripts
 

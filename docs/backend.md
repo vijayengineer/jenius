@@ -2,8 +2,9 @@
 
 ## Service boundary
 
-`server/` is a standalone strict-TypeScript Node service. It uses Fastify, Zod, Firebase Admin,
-and the official OpenAI Node SDK. The frontend can run without it.
+`server/` is a standalone strict-TypeScript Node service. It uses Fastify, Zod, the official
+`@google-cloud/firestore` Node client, and the official OpenAI Node SDK. The frontend can run
+without it.
 
 Public routes are deliberately limited to:
 
@@ -29,8 +30,8 @@ npm run dev
 The committed example contains placeholders only. In development and test, credentials may remain
 absent: `/health` reports a degraded configuration and AI routes return a controlled
 `not_configured` error. Production deliberately fails startup with variable names (never values)
-when `FRONTEND_ORIGINS`, `OPENAI_API_KEY`, `OPENAI_MODEL`, or `USAGE_HASH_SALT` is missing. The
-production usage salt must contain at least 32 characters.
+when `FRONTEND_ORIGINS`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `GOOGLE_CLOUD_PROJECT`, or
+`USAGE_HASH_SALT` is missing. The production usage salt must contain at least 32 characters.
 
 On Linux and other systems that reserve ports below 1024, use an unprivileged local override such
 as `PORT=3001` and point the frontend to `http://localhost:3001`. Production keeps the requested
@@ -46,32 +47,37 @@ This value is public routing configuration, never a credential.
 
 ## Environment reference
 
-| Variable                        | Purpose                                                                             |
-| ------------------------------- | ----------------------------------------------------------------------------------- |
-| `NODE_ENV`                      | `development`, `test`, or `production`.                                             |
-| `HOST`, `PORT`                  | Bind address and port; production defaults are `127.0.0.1:301`.                     |
-| `FRONTEND_ORIGINS`              | Comma-separated exact origins, with no paths or trailing slashes.                   |
-| `TRUST_PROXY`                   | Set `true` only behind the local trusted Nginx proxy.                               |
-| `OPENAI_API_KEY`                | Server-only OpenAI credential.                                                      |
-| `OPENAI_MODEL`                  | Configurable structured-output-capable model, such as an approved GPT-5.6 model ID. |
-| `OPENAI_TIMEOUT_MS`             | Per-call SDK timeout; default `30000`.                                              |
-| `OPENAI_MAX_RETRIES`            | SDK retry count; default `1`.                                                       |
-| `FIREBASE_SERVICE_ACCOUNT_FILE` | Optional absolute JSON credential path outside Git.                                 |
-| `FIRESTORE_DATABASE_ID`         | Firestore database name; default `(default)`.                                       |
-| `USAGE_HASH_SALT`               | Long random server-only salt for one-way request fingerprints.                      |
-| `DAILY_EXPLAIN_LIMIT`           | Daily explanation generations per fingerprint. Cache hits do not consume it.        |
-| `DAILY_GENERATE_LIMIT`          | Daily personal lesson generations per fingerprint.                                  |
-| `EXPLANATION_PROMPT_VERSION`    | Cache-breaking explanation prompt version.                                          |
-| `GENERATION_PROMPT_VERSION`     | Generated-concept provenance version.                                               |
+| Variable                         | Purpose                                                                             |
+| -------------------------------- | ----------------------------------------------------------------------------------- |
+| `NODE_ENV`                       | `development`, `test`, or `production`.                                             |
+| `HOST`, `PORT`                   | Bind address and port; production defaults are `127.0.0.1:301`.                     |
+| `FRONTEND_ORIGINS`               | Comma-separated exact origins, with no paths or trailing slashes.                   |
+| `TRUST_PROXY`                    | Set `true` only behind the local trusted Nginx proxy.                               |
+| `OPENAI_API_KEY`                 | Server-only OpenAI credential.                                                      |
+| `OPENAI_MODEL`                   | Configurable structured-output-capable model, such as an approved GPT-5.6 model ID. |
+| `OPENAI_TIMEOUT_MS`              | Per-call SDK timeout; default `30000`.                                              |
+| `OPENAI_MAX_RETRIES`             | SDK retry count; default `1`.                                                       |
+| `GOOGLE_CLOUD_PROJECT`           | Required production Google Cloud project ID for the direct Firestore client.        |
+| `FIRESTORE_SERVICE_ACCOUNT_FILE` | Optional absolute service-account JSON path outside Git, passed as `keyFilename`.   |
+| `FIRESTORE_DATABASE_ID`          | Firestore database name; default `(default)`.                                       |
+| `USAGE_HASH_SALT`                | Long random server-only salt for one-way request fingerprints.                      |
+| `DAILY_EXPLAIN_LIMIT`            | Daily explanation generations per fingerprint. Cache hits do not consume it.        |
+| `DAILY_GENERATE_LIMIT`           | Daily personal lesson generations per fingerprint.                                  |
+| `EXPLANATION_PROMPT_VERSION`     | Cache-breaking explanation prompt version.                                          |
+| `GENERATION_PROMPT_VERSION`      | Generated-concept provenance version.                                               |
 
 `USAGE_HASH_SALT` must be stable across restarts. Changing it resets effective anonymous usage
 identity. Fingerprints combine the salt, request IP, and user agent and never store the raw IP.
 This is lightweight abuse resistance, not an account or identity system.
 
-Firebase credentials are intentionally not part of the production startup assertion because
-Application Default Credentials may be supplied by the host. If neither ADC nor
-`FIREBASE_SERVICE_ACCOUNT_FILE` works, the HTTP server keeps `/health` available with
+`GOOGLE_CLOUD_PROJECT` is required in production. Credentials may come from
+`FIRESTORE_SERVICE_ACCOUNT_FILE` or the host's Application Default Credentials. The server passes
+`projectId`, optional `keyFilename`, and `databaseId` directly to `@google-cloud/firestore`. If
+authentication or a readiness query fails, the HTTP server keeps `/health` available with
 `firestore.ready=false` and both AI routes fail safely.
+Development health may include a fixed diagnostic code such as `authentication-failed` or
+`permission-denied`; it never includes credential values, file paths, project IDs, or upstream
+error messages. Production health omits the diagnostic reason.
 
 ## Structured model behavior
 
@@ -88,6 +94,9 @@ a controlled error; malformed partial data is never returned as success.
 Full prompts and model responses are not logged by default.
 
 ## Firestore
+
+The backend performs readiness checks with a lightweight `limit(1).get()` query against
+`usage_limits`. This is a real database operation, not a constructor-only check.
 
 Only these collections are used:
 

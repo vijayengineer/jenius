@@ -42,10 +42,16 @@ export class MemoryJeniusRepository implements JeniusRepository {
   }
 }
 
-/** Fail-closed fallback that keeps /health available when Firebase cannot initialise. */
+/** Fail-closed fallback that keeps /health available when Firestore cannot initialise. */
 export class UnavailableJeniusRepository implements JeniusRepository {
+  constructor(private readonly diagnostic = "database-unavailable") {}
+
   async checkReadiness(): Promise<boolean> {
     return false;
+  }
+
+  getReadinessDiagnostic(): string {
+    return this.diagnostic;
   }
 
   async getExplanation(): Promise<null> {

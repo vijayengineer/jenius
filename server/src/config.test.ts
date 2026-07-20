@@ -6,6 +6,7 @@ const base = {
   FRONTEND_ORIGINS: "http://localhost:5173,https://jns.fun",
   OPENAI_API_KEY: "test-key",
   OPENAI_MODEL: "test-model",
+  GOOGLE_CLOUD_PROJECT: "jenius-test",
   USAGE_HASH_SALT: "test-salt",
 };
 
@@ -15,6 +16,11 @@ describe("server config", () => {
     expect(config.host).toBe("127.0.0.1");
     expect(config.port).toBe(301);
     expect(config.frontendOrigins).toEqual(["http://localhost:5173", "https://jns.fun"]);
+    expect(config.firestore).toEqual({
+      projectId: "jenius-test",
+      keyFilename: "",
+      databaseId: "(default)",
+    });
     expect(config.configurationReady).toBe(true);
   });
 
@@ -36,7 +42,7 @@ describe("server config", () => {
 
   it("fails clearly when production security configuration is missing", () => {
     expect(() => loadConfig({ NODE_ENV: "production" })).toThrow(
-      /FRONTEND_ORIGINS, OPENAI_API_KEY, OPENAI_MODEL, USAGE_HASH_SALT/,
+      /FRONTEND_ORIGINS, OPENAI_API_KEY, OPENAI_MODEL, GOOGLE_CLOUD_PROJECT, USAGE_HASH_SALT/,
     );
     expect(() =>
       loadConfig({
@@ -47,14 +53,15 @@ describe("server config", () => {
     ).toThrow(/at least 32 characters/i);
   });
 
-  it("accepts complete production configuration while keeping Firebase on ADC", () => {
+  it("accepts complete production configuration with direct Firestore ADC", () => {
     const config = loadConfig({
       ...base,
       NODE_ENV: "production",
       USAGE_HASH_SALT: "a-production-only-salt-at-least-32-characters",
     });
     expect(config.configurationReady).toBe(true);
-    expect(config.firebase.serviceAccountFile).toBe("");
+    expect(config.firestore.projectId).toBe("jenius-test");
+    expect(config.firestore.keyFilename).toBe("");
   });
 
   it("formats schema errors without echoing rejected values", () => {

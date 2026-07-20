@@ -38,7 +38,7 @@ This log is factual and should be updated only after a capability is working and
 - [x] Preserve deterministic lessons when explaining fails or the browser is offline.
 - [x] Persist validated generated concepts and pending retries in IndexedDB.
 - [x] Add backend, frontend, and offline integration coverage.
-- [x] Document Firebase, Ubuntu, Nginx, HTTPS, Vercel, mobile testing, and rollback.
+- [x] Document Firestore, Ubuntu, Nginx, HTTPS, Vercel, mobile testing, and rollback.
 - [x] Run the complete verification and credential audit, commit logical phases, and leave the
       branch clean without pushing.
 
@@ -92,9 +92,11 @@ This log is factual and should be updated only after a capability is working and
 - Personal generation validates the complete lesson, including one four-option primary question,
   three misconception feedback paths, one retry question, and one Mind Blown fact. A malformed
   response gets one repair attempt and is otherwise rejected without partial success.
-- Firebase Admin is server-only. Firestore uses exactly `explanation_cache`, `generated_concepts`,
-  and `usage_limits`. Explanation cache keys include content/style/context, prompt version, and
-  model. Daily counters use salted one-way request fingerprints and transactions.
+- The server uses the official `@google-cloud/firestore` Node client directly with project,
+  credential-file/ADC, and database settings. Firestore uses exactly `explanation_cache`,
+  `generated_concepts`, and `usage_limits`. Explanation cache keys include
+  content/style/context, prompt version, and model. Daily counters use salted one-way request
+  fingerprints and transactions.
 - One browser API abstraction validates both directions, times out with `AbortController`, detects
   offline/configuration failures, and categorises safe errors. No API credential enters frontend
   code.
@@ -105,7 +107,7 @@ This log is factual and should be updated only after a capability is working and
   challenge preview adapter. Failed requests remain stored for retry; no fake success is shown.
 - Nitro now emits Vercel Build Output API artifacts, while Ubuntu/systemd/Nginx deployment
   examples keep the backend on `127.0.0.1:301`.
-- Automated non-live coverage now has 33 frontend/domain tests and 26 backend tests. OpenAI and
+- Automated non-live coverage now has 33 frontend/domain tests and 33 backend tests. OpenAI and
   Firestore are mocked through injected interfaces; no live credential test was run.
 
 ## Final production and mobile audit implemented
@@ -124,6 +126,16 @@ This log is factual and should be updated only after a capability is working and
 - The local production preview returned HTTP 200 for `/`, `/saved`, `/create`, `/me`, the manifest,
   service worker, and offline fallback. Physical iPhone Safari and Android Chrome verification is
   intentionally left as a deployment-time device check.
+
+## Direct Firestore client correction
+
+- [x] Remove the previous datastore initialization and dependency references.
+- [x] Configure `@google-cloud/firestore` with `GOOGLE_CLOUD_PROJECT`, optional
+      `FIRESTORE_SERVICE_ACCOUNT_FILE`, and `FIRESTORE_DATABASE_ID`.
+- [x] Preserve explanation caching, generated-concept storage, and transactional usage limits.
+- [x] Make readiness perform a real lightweight database query and expose only fixed development
+      diagnostics.
+- [x] Pass server tests, typecheck, build, and the complete non-live verification suite.
 
 ## Demo outline
 

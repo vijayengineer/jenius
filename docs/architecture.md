@@ -40,14 +40,14 @@ Prettier drift plus two substantive rules; no tests or test script existed.
 
 The optional standalone service lives under `server/` and binds to loopback. Fastify owns CORS,
 security headers, body and request limits, request IDs, safe errors, and three routes only:
-`GET /health`, `POST /api/explain`, and `POST /api/generate`. OpenAI and Firebase Admin are
-server-only dependencies.
+`GET /health`, `POST /api/explain`, and `POST /api/generate`. OpenAI and the official
+`@google-cloud/firestore` Node client are server-only dependencies.
 
 Shared Zod contracts validate requests and responses on both sides of the HTTP boundary. The
 server resolves explanations against a small tested projection of the verified catalogue.
 Generated concepts use a separate `AI-generated` schema and never acquire verified status.
-Firestore access is isolated behind `JeniusRepository`; the browser imports neither Firebase nor
-provider credentials.
+Firestore access is isolated behind `JeniusRepository`; the browser imports neither the Firestore
+client nor provider credentials.
 
 The service worker rejects API and cross-origin requests before runtime caching. Personal model
 responses are persisted deliberately in IndexedDB only after response validation.

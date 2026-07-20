@@ -1,6 +1,4 @@
-import { readFile } from "node:fs/promises";
-import { applicationDefault, cert, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getFirestore, type Firestore } from "firebase-admin/firestore";
+import { Firestore } from "@google-cloud/firestore";
 import { ExplanationPayloadSchema, GeneratedConceptSchema } from "../../../shared/contracts.js";
 import type { ServerConfig } from "../config.js";
 import type { ExplanationCacheRecord, GeneratedConceptRecord, JeniusRepository } from "./types.js";
@@ -11,34 +9,63 @@ const COLLECTIONS = {
   usageLimits: "usage_limits",
 } as const;
 
-async function createFirebaseApp(config: ServerConfig): Promise<App> {
-  const existing = getApps()[0];
-  if (existing) return existing;
-  if (config.firebase.serviceAccountFile) {
-    const raw = await readFile(config.firebase.serviceAccountFile, "utf8");
-    const credentials = JSON.parse(raw) as Parameters<typeof cert>[0];
-    return initializeApp({ credential: cert(credentials) });
+export function firestoreDiagnosticReason(error: unknown): string {
+  if (!error || typeof error !== "object") return "database-unavailable";
+  const candidate = error as { code?: unknown; name?: unknown };
+  const code = typeof candidate.code === "number" ? candidate.code : String(candidate.code ?? "");
+  if (code === "ENOENT") return "service-account-file-unavailable";
+  if (code === 4 || code === "4" || code === "DEADLINE_EXCEEDED") return "request-timeout";
+  if (code === 5 || code === "5" || code === "NOT_FOUND") return "database-not-found";
+  if (code === 7 || code === "7" || code === "PERMISSION_DENIED") return "permission-denied";
+  if (code === 16 || code === "16" || code === "UNAUTHENTICATED") {
+    return "authentication-failed";
   }
-  return initializeApp({ credential: applicationDefault() });
+  if (candidate.name === "SyntaxError") return "service-account-file-invalid";
+  return "database-unavailable";
+}
+
+export function createFirestoreSettings(
+  config: ServerConfig,
+): NonNullable<ConstructorParameters<typeof Firestore>[0]> {
+  return {
+    projectId: config.firestore.projectId || undefined,
+    keyFilename: config.firestore.keyFilename || undefined,
+    databaseId: config.firestore.databaseId,
+  };
+}
+
+export function createFirestoreClient(config: ServerConfig): Firestore {
+  return new Firestore(createFirestoreSettings(config));
 }
 
 export async function createFirestoreRepository(
   config: ServerConfig,
 ): Promise<FirestoreRepository> {
-  const app = await createFirebaseApp(config);
-  return new FirestoreRepository(getFirestore(app, config.firebase.databaseId));
+  return new FirestoreRepository(createFirestoreClient(config));
 }
 
 export class FirestoreRepository implements JeniusRepository {
+  private readinessDiagnostic: string | undefined;
+
   constructor(private readonly firestore: Firestore) {}
 
   async checkReadiness(): Promise<boolean> {
     try {
       await this.firestore.collection(COLLECTIONS.usageLimits).limit(1).get();
+      this.readinessDiagnostic = undefined;
       return true;
-    } catch {
+    } catch (error) {
+      this.readinessDiagnostic = firestoreDiagnosticReason(error);
       return false;
     }
+  }
+
+  getReadinessDiagnostic(): string | undefined {
+    return this.readinessDiagnostic;
+  }
+
+  async close(): Promise<void> {
+    await this.firestore.terminate();
   }
 
   async getExplanation(cacheKey: string): Promise<ExplanationCacheRecord | null> {

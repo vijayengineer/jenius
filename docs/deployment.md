@@ -3,10 +3,10 @@
 These are manual operator steps. This repository does not install services, change Nginx, create
 DNS records, push Git commits, or deploy automatically.
 
-## 1. Firebase and Firestore
+## 1. Google Cloud Firestore
 
-Create or select the production Firebase/Google Cloud project, enable billing if the selected
-plan requires it, and replace the angle-bracket placeholders below. In Google Cloud Shell:
+Create or select the production Google Cloud project, enable billing if the selected plan
+requires it, and replace the angle-bracket placeholders below. In Google Cloud Shell:
 
 ```bash
 gcloud config set project <PROJECT_ID>
@@ -43,17 +43,18 @@ On Ubuntu:
 ```bash
 sudo install -d -m 0750 -o root -g rndm_jenius /etc/jenius
 sudo install -m 0600 -o rndm_jenius -g rndm_jenius \
-  /tmp/jenius-api-key.json /etc/jenius/firebase-service-account.json
+  /tmp/jenius-api-key.json /etc/jenius/firestore-service-account.json
 rm -f /tmp/jenius-api-key.json
 ```
 
-Set `FIREBASE_SERVICE_ACCOUNT_FILE=/etc/jenius/firebase-service-account.json`. For keyless ADC,
-leave that variable empty and configure the host's ADC mechanism instead. Set
-`FIRESTORE_DATABASE_ID=(default)` unless a named database was intentionally created. No Firebase
-web configuration or permissive Firestore client rules are required.
+Set `GOOGLE_CLOUD_PROJECT=<PROJECT_ID>` and
+`FIRESTORE_SERVICE_ACCOUNT_FILE=/etc/jenius/firestore-service-account.json`. For keyless ADC,
+leave `FIRESTORE_SERVICE_ACCOUNT_FILE` empty and configure the host's ADC mechanism instead. Set
+`FIRESTORE_DATABASE_ID=(default)` unless a named database was intentionally created.
 
-No client Firebase configuration or Firestore web rules are needed because the browser never
-talks to Firestore.
+The backend passes these values directly to `new Firestore({ projectId, keyFilename, databaseId })`
+from `@google-cloud/firestore`. No separate admin SDK, browser Firestore configuration, or
+permissive client rules are needed because the browser never talks to Firestore.
 
 ## 2. Ubuntu backend
 
@@ -103,7 +104,8 @@ OPENAI_API_KEY=replace-at-deploy-time
 OPENAI_MODEL=gpt-5.6
 OPENAI_TIMEOUT_MS=30000
 OPENAI_MAX_RETRIES=1
-FIREBASE_SERVICE_ACCOUNT_FILE=/etc/jenius/firebase-service-account.json
+GOOGLE_CLOUD_PROJECT=<PROJECT_ID>
+FIRESTORE_SERVICE_ACCOUNT_FILE=/etc/jenius/firestore-service-account.json
 FIRESTORE_DATABASE_ID=(default)
 USAGE_HASH_SALT=replace-with-at-least-32-random-characters
 DAILY_EXPLAIN_LIMIT=20
@@ -218,7 +220,7 @@ curl -i -X OPTIONS https://api.jns.fun/api/generate \
 ```
 
 Health output must contain readiness booleans but no credentials, paths, project IDs, or host
-details.
+details. Development may return only a fixed safe Firestore diagnostic code; production omits it.
 
 ## 4. Vercel frontend
 

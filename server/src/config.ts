@@ -17,7 +17,8 @@ const EnvironmentSchema = z
     OPENAI_MODEL: z.string().trim().default(""),
     OPENAI_TIMEOUT_MS: z.coerce.number().int().min(1_000).max(120_000).default(30_000),
     OPENAI_MAX_RETRIES: z.coerce.number().int().min(0).max(3).default(1),
-    FIREBASE_SERVICE_ACCOUNT_FILE: z.string().trim().default(""),
+    GOOGLE_CLOUD_PROJECT: z.string().trim().default(""),
+    FIRESTORE_SERVICE_ACCOUNT_FILE: z.string().trim().default(""),
     FIRESTORE_DATABASE_ID: z.string().trim().default("(default)"),
     USAGE_HASH_SALT: z.string().default(""),
     DAILY_EXPLAIN_LIMIT: z.coerce.number().int().min(1).max(1_000).default(20),
@@ -39,8 +40,9 @@ export interface ServerConfig {
     timeoutMs: number;
     maxRetries: number;
   };
-  firebase: {
-    serviceAccountFile: string;
+  firestore: {
+    projectId: string;
+    keyFilename: string;
     databaseId: string;
   };
   usage: {
@@ -89,6 +91,7 @@ function assertProductionConfiguration(
     !environment.FRONTEND_ORIGINS?.trim() && "FRONTEND_ORIGINS",
     !parsed.OPENAI_API_KEY && "OPENAI_API_KEY",
     !parsed.OPENAI_MODEL && "OPENAI_MODEL",
+    !parsed.GOOGLE_CLOUD_PROJECT && "GOOGLE_CLOUD_PROJECT",
     !parsed.USAGE_HASH_SALT && "USAGE_HASH_SALT",
   ].filter((name): name is string => Boolean(name));
 
@@ -121,8 +124,9 @@ export function loadConfig(environment: NodeJS.ProcessEnv = process.env): Server
       timeoutMs: parsed.OPENAI_TIMEOUT_MS,
       maxRetries: parsed.OPENAI_MAX_RETRIES,
     },
-    firebase: {
-      serviceAccountFile: parsed.FIREBASE_SERVICE_ACCOUNT_FILE,
+    firestore: {
+      projectId: parsed.GOOGLE_CLOUD_PROJECT,
+      keyFilename: parsed.FIRESTORE_SERVICE_ACCOUNT_FILE,
       databaseId: parsed.FIRESTORE_DATABASE_ID,
     },
     usage: {

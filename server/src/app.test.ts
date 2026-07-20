@@ -9,6 +9,7 @@ const config = loadConfig({
   FRONTEND_ORIGINS: "https://jns.fun",
   OPENAI_API_KEY: "test-key",
   OPENAI_MODEL: "test-model",
+  GOOGLE_CLOUD_PROJECT: "jenius-test",
   USAGE_HASH_SALT: "test-salt",
 });
 
@@ -128,6 +129,65 @@ describe("HTTP boundary", () => {
       retryable: true,
     });
     expect(explain.body).not.toContain("Firestore unavailable");
+    await app.close();
+  });
+
+  it("reports only a fixed Firestore diagnostic in development", async () => {
+    const developmentConfig = loadConfig({
+      NODE_ENV: "test",
+      FRONTEND_ORIGINS: "http://localhost:5173",
+      OPENAI_API_KEY: "test-key",
+      OPENAI_MODEL: "test-model",
+      USAGE_HASH_SALT: "test-salt",
+      GOOGLE_CLOUD_PROJECT: "jenius-test",
+    });
+    const app = await buildApp({
+      config: developmentConfig,
+      repository: new UnavailableJeniusRepository("authentication-failed"),
+    });
+    const health = await app.inject({ method: "GET", url: "/health" });
+    expect(health.json().firestore).toEqual({
+      ready: false,
+      reason: "authentication-failed",
+    });
+    expect(health.body).not.toContain("credential");
+    expect(health.body).not.toContain("jenius-test");
+    await app.close();
+  });
+
+  it("replaces an unsafe development diagnostic rather than echoing it", async () => {
+    const developmentConfig = loadConfig({
+      NODE_ENV: "test",
+      FRONTEND_ORIGINS: "http://localhost:5173",
+    });
+    const app = await buildApp({
+      config: developmentConfig,
+      repository: new UnavailableJeniusRepository("credential at /private/key.json"),
+    });
+    const health = await app.inject({ method: "GET", url: "/health" });
+    expect(health.json().firestore).toEqual({
+      ready: false,
+      reason: "database-unavailable",
+    });
+    expect(health.body).not.toContain("/private");
+    await app.close();
+  });
+
+  it("omits Firestore diagnostics from production health", async () => {
+    const productionConfig = loadConfig({
+      NODE_ENV: "production",
+      FRONTEND_ORIGINS: "https://jns.fun",
+      OPENAI_API_KEY: "test-key",
+      OPENAI_MODEL: "test-model",
+      USAGE_HASH_SALT: "a-production-only-salt-at-least-32-characters",
+      GOOGLE_CLOUD_PROJECT: "jenius-production",
+    });
+    const app = await buildApp({
+      config: productionConfig,
+      repository: new UnavailableJeniusRepository("authentication-failed"),
+    });
+    const health = await app.inject({ method: "GET", url: "/health" });
+    expect(health.json().firestore).toEqual({ ready: false });
     await app.close();
   });
 

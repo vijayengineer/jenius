@@ -2,7 +2,7 @@ import "dotenv/config";
 import { buildApp } from "./app.js";
 import { formatConfigurationError, loadConfig, type ServerConfig } from "./config.js";
 import { OpenAIStructuredModelGateway } from "./model/openai.js";
-import { createFirestoreRepository } from "./repositories/firestore.js";
+import { createFirestoreRepository, firestoreDiagnosticReason } from "./repositories/firestore.js";
 import { UnavailableJeniusRepository } from "./repositories/memory.js";
 
 let config: ServerConfig | undefined;
@@ -19,9 +19,13 @@ try {
 
 if (config) {
   const activeConfig = config;
-  const repository = await createFirestoreRepository(activeConfig).catch(
-    () => new UnavailableJeniusRepository(),
-  );
+  const repository = await createFirestoreRepository(activeConfig).catch((error) => {
+    const reason = firestoreDiagnosticReason(error);
+    if (activeConfig.nodeEnv !== "production") {
+      console.error(`[jenius-api] Firestore startup unavailable: ${reason}`);
+    }
+    return new UnavailableJeniusRepository(reason);
+  });
   const model = activeConfig.openai.apiKey
     ? new OpenAIStructuredModelGateway(activeConfig)
     : undefined;

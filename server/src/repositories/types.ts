@@ -36,6 +36,8 @@ export interface UsageResult {
 
 export interface JeniusRepository {
   checkReadiness(): Promise<boolean>;
+  getReadinessDiagnostic?(): string | undefined;
+  close?(): Promise<void>;
   getExplanation(cacheKey: string): Promise<ExplanationCacheRecord | null>;
   saveExplanation(record: ExplanationCacheRecord): Promise<void>;
   saveGeneratedConcept(record: GeneratedConceptRecord): Promise<void>;

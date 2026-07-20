@@ -18,17 +18,50 @@ export interface AppDependencies {
   model?: StructuredModelGateway;
 }
 
-async function readinessWithTimeout(repository: JeniusRepository): Promise<boolean> {
+interface ReadinessResult {
+  ready: boolean;
+  reason?: string;
+}
+
+const SAFE_FIRESTORE_DIAGNOSTICS = new Set([
+  "authentication-failed",
+  "database-not-found",
+  "database-unavailable",
+  "permission-denied",
+  "request-timeout",
+  "service-account-file-invalid",
+  "service-account-file-unavailable",
+]);
+
+function safeReadinessDiagnostic(repository: JeniusRepository): string {
+  const reason = repository.getReadinessDiagnostic?.();
+  return reason && SAFE_FIRESTORE_DIAGNOSTICS.has(reason) ? reason : "database-unavailable";
+}
+
+async function readinessWithTimeout(repository: JeniusRepository): Promise<ReadinessResult> {
   let timer: NodeJS.Timeout | undefined;
+  let timedOut = false;
   try {
-    return await Promise.race([
+    const ready = await Promise.race([
       repository.checkReadiness(),
       new Promise<boolean>((resolve) => {
-        timer = setTimeout(() => resolve(false), 1_500);
+        timer = setTimeout(() => {
+          timedOut = true;
+          resolve(false);
+        }, 1_500);
       }),
     ]);
+    return {
+      ready,
+      ...(!ready
+        ? { reason: timedOut ? "request-timeout" : safeReadinessDiagnostic(repository) }
+        : {}),
+    };
   } catch {
-    return false;
+    return {
+      ready: false,
+      reason: safeReadinessDiagnostic(repository),
+    };
   } finally {
     if (timer) clearTimeout(timer);
   }
@@ -88,10 +121,14 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     return payload;
   });
 
+  app.addHook("onClose", async () => {
+    await repository.close?.();
+  });
+
   app.get("/health", async () => {
-    const firestoreReady = await readinessWithTimeout(repository);
+    const firestoreReadiness = await readinessWithTimeout(repository);
     return {
-      status: config.configurationReady && firestoreReady ? "ready" : "degraded",
+      status: config.configurationReady && firestoreReadiness.ready ? "ready" : "degraded",
       service: SERVICE_NAME,
       version: APPLICATION_VERSION,
       timestamp: new Date().toISOString(),
@@ -101,7 +138,10 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
         usageProtection: Boolean(config.usage.hashSalt),
       },
       firestore: {
-        ready: firestoreReady,
+        ready: firestoreReadiness.ready,
+        ...(config.nodeEnv !== "production" && firestoreReadiness.reason
+          ? { reason: firestoreReadiness.reason }
+          : {}),
       },
     };
   });
