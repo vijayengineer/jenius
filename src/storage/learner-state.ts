@@ -6,19 +6,21 @@ import type { CreateFormValues } from "@/lib/jenius/generatedPack";
 const SavedCollectionSchema = z.enum(["mind-blown", "finally-get-it"]);
 const TopicRequestStatusSchema = z.enum(["local-request", "pending", "failed", "generated"]);
 
-const TopicRequestSchema = z.object({
-  id: z.string(),
-  topic: z.string(),
-  subject: z.string(),
-  readingLevel: z.string(),
-  length: z.string(),
-  goal: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string().optional(),
-  status: TopicRequestStatusSchema,
-  errorCategory: z.string().optional(),
-  generatedConceptId: z.string().optional(),
-});
+const TopicRequestSchema = z
+  .object({
+    id: z.string(),
+    topic: z.string(),
+    subject: z.enum(["", "science", "geography", "biology", "physics", "general"]),
+    readingLevel: z.enum(["", "8-10", "11-14", "15-18", "adult"]),
+    length: z.enum(["", "quick", "standard"]),
+    goal: z.enum(["", "basics", "misconception", "test"]),
+    createdAt: z.string(),
+    updatedAt: z.string().optional(),
+    status: TopicRequestStatusSchema,
+    errorCategory: z.string().optional(),
+    generatedConceptId: z.string().optional(),
+  })
+  .strict();
 
 const LearnerStateV1Schema = z.object({
   version: z.literal(1),

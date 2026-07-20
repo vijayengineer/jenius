@@ -75,7 +75,7 @@ export function SavedScreen({ items, offline = false, onReplay, onRemove }: Save
               type="button"
               onClick={() => setCollection(c.id)}
               className={cn(
-                "flex-1 rounded-full px-3 py-2 text-[13px] font-medium transition-swift",
+                "min-h-11 flex-1 rounded-full px-3 text-[13px] font-medium transition-swift",
                 active
                   ? "gradient-brand text-primary-foreground shadow-glow"
                   : "text-foreground/70 hover:text-foreground",
@@ -124,7 +124,7 @@ export function SavedScreen({ items, offline = false, onReplay, onRemove }: Save
               label={SUBJECTS[s].label}
               onClick={() => setSubjectFilter(s)}
               className={cn(
-                "cursor-pointer whitespace-nowrap",
+                "min-h-11 cursor-pointer whitespace-nowrap",
                 subjectFilter !== s && "opacity-60",
               )}
             />
@@ -178,7 +178,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "whitespace-nowrap rounded-full border px-3 py-1.5 text-[12px] font-medium transition-swift",
+        "min-h-11 whitespace-nowrap rounded-full border px-3 text-[12px] font-medium transition-swift",
         active
           ? "border-transparent bg-white/15 text-foreground"
           : "border-white/10 bg-transparent text-foreground/60 hover:text-foreground",

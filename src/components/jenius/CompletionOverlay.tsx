@@ -43,7 +43,7 @@ export function CompletionOverlay({
           onClick={onSave}
           aria-pressed={!!saved}
           className={cn(
-            "flex h-9 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium transition-swift",
+            "flex h-11 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium transition-swift",
             saved
               ? "bg-mind-blown/20 text-mind-blown"
               : "bg-white/[0.06] text-foreground hover:bg-white/[0.12]",
@@ -56,7 +56,7 @@ export function CompletionOverlay({
       <button
         type="button"
         onClick={onKeepSwiping}
-        className="h-9 rounded-full bg-foreground/90 px-3 text-[12px] font-semibold text-background transition-swift hover:bg-foreground"
+        className="h-11 rounded-full bg-foreground/90 px-3 text-[12px] font-semibold text-background transition-swift hover:bg-foreground"
       >
         Keep swiping
       </button>
@@ -65,7 +65,7 @@ export function CompletionOverlay({
           type="button"
           onClick={onDismiss}
           aria-label="Dismiss"
-          className="grid size-8 place-items-center rounded-full text-foreground/60 transition-swift hover:bg-white/10 hover:text-foreground"
+          className="grid size-11 place-items-center rounded-full text-foreground/60 transition-swift hover:bg-white/10 hover:text-foreground"
         >
           <X className="size-4" />
         </button>

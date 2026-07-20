@@ -27,7 +27,9 @@ export interface CreateScreenProps {
   /** When present, the draft preview replaces the form. */
   generatedPack?: GeneratedConceptPack | null;
   personalPacks?: GeneratedConceptPack[];
+  retryableRequests?: RetainedTopicRequest[];
   onOpenPersonal?: (pack: GeneratedConceptPack) => void;
+  onRetryRequest?: (request: RetainedTopicRequest) => void;
   onSave?: (pack: GeneratedConceptPack) => void;
   onDelete?: (pack: GeneratedConceptPack) => void;
   online?: boolean;
@@ -40,16 +42,23 @@ export interface CreateScreenProps {
   requestStored?: boolean;
 }
 
+export interface RetainedTopicRequest {
+  id: string;
+  values: CreateFormValues;
+}
+
 /**
- * CreateScreen — presenter for local topic requests and future API-driven
- * generation. It never manufactures a successful pack.
+ * CreateScreen — presenter for optional API-driven generation and local request fallbacks.
+ * It never manufactures a successful pack.
  */
 export function CreateScreen({
   onGenerate,
   generationStatus: externalStatus,
   generatedPack: externalPack,
   personalPacks = [],
+  retryableRequests = [],
   onOpenPersonal,
+  onRetryRequest,
   onSave,
   onDelete,
   online = true,
@@ -144,6 +153,14 @@ export function CreateScreen({
             localOnly={localOnly}
             available={!!onGenerate}
           />
+
+          {retryableRequests.length ? (
+            <RetainedRequests
+              requests={retryableRequests}
+              online={online}
+              onRetry={onRetryRequest}
+            />
+          ) : null}
 
           {personalPacks.length ? (
             <PersonalCollection packs={personalPacks} onOpen={onOpenPersonal} />
@@ -332,7 +349,7 @@ function SegmentedControl<T extends string>({
             aria-checked={active}
             onClick={() => onChange(o.id)}
             className={cn(
-              "h-9 rounded-xl text-[12px] font-medium transition-swift",
+              "h-11 rounded-xl text-[12px] font-medium transition-swift",
               active
                 ? "bg-white/15 text-foreground shadow-sm"
                 : "text-foreground/60 hover:text-foreground",
@@ -664,6 +681,49 @@ function PersonalCollection({
                 </span>
               </span>
               <span className="shrink-0 text-xs text-foreground/55">Open</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function RetainedRequests({
+  requests,
+  online,
+  onRetry,
+}: {
+  requests: RetainedTopicRequest[];
+  online: boolean;
+  onRetry?: (request: RetainedTopicRequest) => void;
+}) {
+  return (
+    <section aria-labelledby="saved-requests-heading" className="mt-2 flex flex-col gap-3">
+      <div>
+        <h2 id="saved-requests-heading" className="font-display text-lg font-semibold">
+          Saved requests
+        </h2>
+        <p className="text-xs text-foreground/55">
+          {online
+            ? "Ready to retry without losing your topic."
+            : "Reconnect to retry these topics."}
+        </p>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {requests.map((request) => (
+          <li
+            key={request.id}
+            className="flex min-h-16 items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2"
+          >
+            <span className="min-w-0 truncate text-sm font-medium">{request.values.topic}</span>
+            <button
+              type="button"
+              disabled={!online || !onRetry}
+              onClick={() => onRetry?.(request)}
+              className="min-h-11 shrink-0 rounded-full bg-white/10 px-4 text-xs font-semibold transition-swift hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Retry
             </button>
           </li>
         ))}

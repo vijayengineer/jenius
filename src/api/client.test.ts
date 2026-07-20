@@ -65,4 +65,33 @@ describe("Jenius API client", () => {
     ).rejects.toBeInstanceOf(JeniusApiError);
     expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it("fails safely without an API base URL", async () => {
+    const fetchMock = vi.fn();
+    const client = createJeniusApiClient({
+      baseUrl: "",
+      fetch: fetchMock,
+      isOnline: () => true,
+    });
+    await expect(
+      client.explain({ conceptId: "seasons", explanationStyle: "simpler" }),
+    ).rejects.toMatchObject({ category: "configuration", retryable: false });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed success payloads", async () => {
+    const client = createJeniusApiClient({
+      baseUrl: "https://api.jns.fun",
+      fetch: vi
+        .fn()
+        .mockResolvedValue(
+          new Response(JSON.stringify({ concept: { title: "partial" } }), { status: 200 }),
+        ),
+      isOnline: () => true,
+    });
+    await expect(client.generate({ topic: "Rainbows" })).rejects.toMatchObject({
+      category: "validation",
+      retryable: true,
+    });
+  });
 });

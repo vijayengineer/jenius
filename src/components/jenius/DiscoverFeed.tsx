@@ -28,6 +28,7 @@ import { selectProgressStats } from "@/state/selectors";
 import type { SavedCollection } from "@/storage/learner-state";
 import { EXPLAIN_PACKS, type ExplainPack, type ExplainStatus } from "@/lib/jenius/explainMore";
 import { useOffline } from "@/lib/jenius/offline";
+import { shareOrCopy } from "@/lib/jenius/share";
 import { createJeniusApiClient, JeniusApiError } from "@/api/client";
 import type { ExplanationStyle } from "../../../shared/contracts";
 import { Bookmark, Home, Plus, User } from "lucide-react";
@@ -352,21 +353,11 @@ export function DiscoverFeed({
 
   const shareConcept = async (concept: Concept) => {
     const text = `${concept.hook}\n\n${concept.takeaway}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `${concept.hook} — Jenius`,
-          text,
-          url: window.location.href,
-        });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
-      }
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
-      // Sharing is an enhancement; learning remains uninterrupted if the
-      // platform share sheet or clipboard is unavailable.
-    }
+    await shareOrCopy({
+      title: `${concept.hook} — Jenius`,
+      text,
+      url: window.location.href,
+    });
   };
 
   const advanceToNextConcept = () => {
@@ -654,7 +645,7 @@ const EndOfFeedCard = React.forwardRef<HTMLElement, EndOfFeedCardProps>(({ onLoo
       <button
         type="button"
         onClick={onLoop}
-        className="mt-2 rounded-full bg-white/10 px-5 py-2.5 text-sm font-medium text-foreground transition-swift hover:bg-white/15 active:scale-[0.98]"
+        className="mt-2 min-h-11 rounded-full bg-white/10 px-5 text-sm font-medium text-foreground transition-swift hover:bg-white/15 active:scale-[0.98]"
       >
         Restart feed
       </button>

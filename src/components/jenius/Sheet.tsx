@@ -54,6 +54,7 @@ export const SheetContent = React.forwardRef<
         "fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[460px]",
         "glass-strong rounded-t-3xl border-t border-white/10 p-6 pt-4",
         "pb-[max(env(safe-area-inset-bottom),1.5rem)]",
+        "max-h-[100dvh] overflow-y-auto overscroll-contain",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom",
         "duration-300",
@@ -79,7 +80,7 @@ export const SheetContent = React.forwardRef<
         {showClose ? (
           <DialogPrimitive.Close
             aria-label="Close"
-            className="grid size-10 place-items-center rounded-full bg-white/8 text-foreground transition-swift hover:bg-white/12"
+            className="grid size-11 place-items-center rounded-full bg-white/8 text-foreground transition-swift hover:bg-white/12"
           >
             <X className="size-4" />
           </DialogPrimitive.Close>

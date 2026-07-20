@@ -8,9 +8,11 @@ import { useLearning } from "@/state/LearningProvider";
 import { createJeniusApiClient, JeniusApiError } from "@/api/client";
 import {
   toGeneratedConceptPack,
+  type CreateFormValues,
   type GeneratedConceptPack,
   type GenerationStatus,
 } from "@/lib/jenius/generatedPack";
+import type { RetainedTopicRequest } from "@/components/jenius/CreateScreen";
 
 export const Route = createFileRoute("/create")({
   head: () => ({
@@ -51,13 +53,31 @@ function CreateRoute() {
     () => state.generatedConcepts.map(toGeneratedConceptPack),
     [state.generatedConcepts],
   );
+  const retryableRequests = React.useMemo<RetainedTopicRequest[]>(
+    () =>
+      state.topicRequests
+        .filter((request) => request.status === "failed")
+        .map((request) => ({
+          id: request.id,
+          values: {
+            topic: request.topic,
+            subject: request.subject,
+            readingLevel: request.readingLevel,
+            length: request.length,
+            goal: request.goal,
+          },
+        })),
+    [state.topicRequests],
+  );
 
-  const generate = async (values: Parameters<typeof queueTopicRequest>[0]) => {
-    const requestId = `topic-${
-      typeof crypto !== "undefined" && "randomUUID" in crypto
-        ? crypto.randomUUID()
-        : new Date().toISOString()
-    }`;
+  const generate = async (values: CreateFormValues, retainedRequestId?: string) => {
+    const requestId =
+      retainedRequestId ??
+      `topic-${
+        typeof crypto !== "undefined" && "randomUUID" in crypto
+          ? crypto.randomUUID()
+          : new Date().toISOString()
+      }`;
     queueTopicRequest(values, requestId);
     setPack(null);
     setError(undefined);
@@ -102,6 +122,7 @@ function CreateRoute() {
         generationStatus={status}
         generatedPack={pack}
         personalPacks={personalPacks}
+        retryableRequests={retryableRequests}
         error={error}
         onOpenPersonal={(selected) => {
           setPack(selected);
@@ -113,6 +134,7 @@ function CreateRoute() {
           setStatus(undefined);
         }}
         onSave={() => {}}
+        onRetryRequest={(request) => void generate(request.values, request.id)}
         onGenerate={(values) => void generate(values)}
       />
     </TabShell>

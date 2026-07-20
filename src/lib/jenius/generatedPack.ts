@@ -1,10 +1,7 @@
 import type { SubjectId } from "./types";
 import type { GeneratedConcept } from "../../../shared/contracts";
 
-/**
- * Concept-generation states for the Create tab. Frontend-only for now —
- * a future Node API will drive real transitions.
- */
+/** Presenter states driven by the optional Node API and honest local fallbacks. */
 export type GenerationStatus =
   | "disabled" // form incomplete
   | "ready" // form valid, not yet submitted

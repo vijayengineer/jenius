@@ -1,14 +1,48 @@
-const CACHE_NAME = "jenius-shell-v1";
+const CACHE_NAME = "jenius-shell-v2";
 const PRECACHE = [
-  "/",
   "/offline.html",
   "/manifest.webmanifest",
   "/favicon.ico",
   "/icons/jenius-icon.svg",
 ];
 
+function discoverShellAssets(html) {
+  const assets = new Set();
+  const references = html.matchAll(/(?:src|href)=["']([^"'#]+)["']/gi);
+  for (const [, reference] of references) {
+    try {
+      const url = new URL(reference, self.location.origin);
+      if (
+        url.origin === self.location.origin &&
+        !url.pathname.startsWith("/api/") &&
+        (url.pathname.startsWith("/assets/") ||
+          url.pathname.startsWith("/icons/") ||
+          url.pathname === "/manifest.webmanifest" ||
+          url.pathname === "/favicon.ico")
+      ) {
+        assets.add(url.pathname);
+      }
+    } catch {
+      // Ignore malformed optional references; the critical shell remains cached.
+    }
+  }
+  return [...assets];
+}
+
+async function precacheShell() {
+  const cache = await caches.open(CACHE_NAME);
+  await cache.addAll(PRECACHE);
+
+  const shellResponse = await fetch(new Request("/", { cache: "reload" }));
+  if (!shellResponse.ok) throw new Error("Unable to cache the Jenius shell");
+  await cache.put("/", shellResponse.clone());
+
+  const html = await shellResponse.text();
+  await cache.addAll(discoverShellAssets(html));
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE)));
+  event.waitUntil(precacheShell());
   self.skipWaiting();
 });
 
@@ -33,8 +67,10 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          void caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          if (response.ok) {
+            const copy = response.clone();
+            void caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         .catch(async () => {

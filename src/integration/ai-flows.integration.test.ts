@@ -3,6 +3,7 @@ import { GeneratedConceptSchema, type GeneratedConcept } from "../../shared/cont
 import { validGeneratedConceptDraft } from "../../server/src/test-fixtures";
 import { createJeniusApiClient } from "@/api/client";
 import { getVerifiedConcept } from "@/content/catalog";
+import { toGeneratedConceptPack } from "@/lib/jenius/generatedPack";
 import {
   createInitialLearnerState,
   failTopicRequest,
@@ -70,6 +71,9 @@ describe("optional AI integration", () => {
       status: "generated",
       generatedConceptId: concept.id,
     });
+    expect(toGeneratedConceptPack(persisted.generatedConcepts[0]).contentLabel).toBe(
+      "AI-generated",
+    );
   });
 
   it("retains a failed generation request for retry", async () => {
@@ -87,6 +91,14 @@ describe("optional AI integration", () => {
       topic: "Rainbows",
       status: "failed",
       errorCategory: "network",
+    });
+
+    state = queueTopicRequest(state, values, "topic-request");
+    expect(state.topicRequests).toHaveLength(1);
+    expect(state.topicRequests[0]).toMatchObject({
+      id: "topic-request",
+      topic: "Rainbows",
+      status: "pending",
     });
   });
 

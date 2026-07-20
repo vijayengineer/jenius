@@ -48,7 +48,7 @@ export const FeedTopBar = React.forwardRef<HTMLDivElement, FeedTopBarProps>(
                 aria-selected={active}
                 onClick={() => onModeChange?.(tab.key)}
                 className={cn(
-                  "rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-swift",
+                  "min-h-11 rounded-full px-3.5 text-[13px] font-medium transition-swift",
                   active
                     ? "bg-white/15 text-foreground"
                     : "text-foreground/60 hover:text-foreground",
@@ -65,7 +65,7 @@ export const FeedTopBar = React.forwardRef<HTMLDivElement, FeedTopBarProps>(
           onClick={onToggleMuted}
           aria-label={muted ? "Unmute (coming soon)" : "Mute"}
           aria-pressed={muted}
-          className="glass grid size-10 place-items-center rounded-full text-foreground/80 transition-swift active:scale-95"
+          className="glass grid size-11 place-items-center rounded-full text-foreground/80 transition-swift active:scale-95"
         >
           {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
         </button>
