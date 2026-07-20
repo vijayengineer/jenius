@@ -151,10 +151,7 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
     const normalized =
       error instanceof ZodError
         ? new ApiError(400, "bad_request", "The request did not match the expected format.")
-        : error &&
-            typeof error === "object" &&
-            "statusCode" in error &&
-            error.statusCode === 413
+        : error && typeof error === "object" && "statusCode" in error && error.statusCode === 413
           ? new ApiError(413, "bad_request", "The request body is too large.")
           : error;
     const formatted = formatSafeError(normalized, request.id);
