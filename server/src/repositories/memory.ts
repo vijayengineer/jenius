@@ -41,3 +41,26 @@ export class MemoryJeniusRepository implements JeniusRepository {
     return { allowed: true, count, limit: input.limit };
   }
 }
+
+/** Fail-closed fallback that keeps /health available when Firebase cannot initialise. */
+export class UnavailableJeniusRepository implements JeniusRepository {
+  async checkReadiness(): Promise<boolean> {
+    return false;
+  }
+
+  async getExplanation(): Promise<null> {
+    throw new Error("Firestore unavailable");
+  }
+
+  async saveExplanation(): Promise<void> {
+    throw new Error("Firestore unavailable");
+  }
+
+  async saveGeneratedConcept(): Promise<void> {
+    throw new Error("Firestore unavailable");
+  }
+
+  async consumeUsage(): Promise<never> {
+    throw new Error("Firestore unavailable");
+  }
+}
