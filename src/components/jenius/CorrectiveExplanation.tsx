@@ -45,18 +45,14 @@ export function CorrectiveExplanation({
         <div className="text-[11px] font-semibold uppercase tracking-wider text-brand-blue">
           Why that makes sense
         </div>
-        <p className="mt-1 text-[15px] leading-relaxed text-foreground/85">
-          {whyUnderstandable}
-        </p>
+        <p className="mt-1 text-[15px] leading-relaxed text-foreground/85">{whyUnderstandable}</p>
       </div>
 
       <div>
         <div className="text-[11px] font-semibold uppercase tracking-wider text-misconception">
           Where it breaks
         </div>
-        <p className="mt-1 text-[15px] leading-relaxed text-foreground/85">
-          {whyIncorrect}
-        </p>
+        <p className="mt-1 text-[15px] leading-relaxed text-foreground/85">{whyIncorrect}</p>
       </div>
 
       <div className="rounded-2xl bg-success/12 p-4 ring-1 ring-success/25">

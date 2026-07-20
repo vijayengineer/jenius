@@ -26,7 +26,6 @@ export interface Concept {
   saved?: boolean;
 }
 
-
 export const MOCK_CONCEPTS: Concept[] = [
   {
     id: "seasons",

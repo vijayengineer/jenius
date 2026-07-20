@@ -27,7 +27,6 @@ export interface ConceptCardProps extends React.HTMLAttributes<HTMLElement> {
   showSwipeCue?: boolean;
 }
 
-
 /**
  * ConceptCard — one concept, one viewport. Used as a snap child inside the
  * Discover feed. Layout:
@@ -98,7 +97,6 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
           </div>
         ) : null}
 
-
         <div className="flex flex-wrap items-center gap-2">
           <SubjectChip subject={concept.subject} size="sm" />
           <span className="text-xs uppercase tracking-wider text-foreground/60">
@@ -141,16 +139,13 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
           </div>
         </div>
 
-
         {showSwipeCue ? (
           <div
             aria-hidden
             className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+104px)] flex flex-col items-center gap-1 text-foreground/55"
           >
             <ChevronUp className="size-4 animate-bounce" />
-            <span className="text-[11px] uppercase tracking-[0.18em]">
-              Swipe to discover
-            </span>
+            <span className="text-[11px] uppercase tracking-[0.18em]">Swipe to discover</span>
           </div>
         ) : null}
       </article>
@@ -167,7 +162,10 @@ function AnimationSlot() {
       className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-white/10"
       style={{ background: "var(--gradient-brand)" }}
     >
-      <div className="absolute inset-0 opacity-30 mix-blend-overlay" style={{ background: "radial-gradient(120% 80% at 20% 20%, white, transparent 60%)" }} />
+      <div
+        className="absolute inset-0 opacity-30 mix-blend-overlay"
+        style={{ background: "radial-gradient(120% 80% at 20% 20%, white, transparent 60%)" }}
+      />
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-white">
         <div className="glass-strong grid size-12 place-items-center rounded-full">
           <svg viewBox="0 0 24 24" className="size-5 translate-x-[1px] fill-white/95">

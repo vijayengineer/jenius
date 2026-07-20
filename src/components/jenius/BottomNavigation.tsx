@@ -30,12 +30,7 @@ export interface BottomNavigationProps extends Omit<React.HTMLAttributes<HTMLEle
 export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
   ({ active, items = DEFAULT_NAV_ITEMS, onSelect, className, ...props }, ref) => {
     return (
-      <nav
-        ref={ref}
-        aria-label="Primary"
-        className={cn("px-4 pb-3 pt-2", className)}
-        {...props}
-      >
+      <nav ref={ref} aria-label="Primary" className={cn("px-4 pb-3 pt-2", className)} {...props}>
         <ul className="glass-strong mx-auto flex items-center justify-between gap-1 rounded-full p-1.5">
           {items.map((item) => {
             const Icon = item.icon;
@@ -56,12 +51,7 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
                   )}
                 >
                   <Icon className="size-5" />
-                  <span
-                    className={cn(
-                      "text-[13px] font-medium",
-                      isActive ? "inline" : "hidden",
-                    )}
-                  >
+                  <span className={cn("text-[13px] font-medium", isActive ? "inline" : "hidden")}>
                     {item.label}
                   </span>
                 </button>

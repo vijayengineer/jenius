@@ -35,9 +35,7 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
             {title}
           </h3>
           {description ? (
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {description}
-            </p>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
           ) : null}
         </div>
         {action ? <div className="w-full">{action}</div> : null}

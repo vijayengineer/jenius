@@ -4,14 +4,7 @@
  */
 
 export type SubjectId =
-  | "math"
-  | "science"
-  | "history"
-  | "language"
-  | "tech"
-  | "arts"
-  | "mind"
-  | "life";
+  "math" | "science" | "history" | "language" | "tech" | "arts" | "mind" | "life";
 
 export interface Subject {
   id: SubjectId;
@@ -71,12 +64,7 @@ export interface MediaSlotData {
 }
 
 /** Playback state for the video-ready MediaSlot UI. */
-export type MediaPlaybackState =
-  | "poster"
-  | "loading"
-  | "playing"
-  | "paused"
-  | "failed";
+export type MediaPlaybackState = "poster" | "loading" | "playing" | "paused" | "failed";
 
 export interface AnswerOptionData {
   id: string;

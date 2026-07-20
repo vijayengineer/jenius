@@ -18,45 +18,25 @@ export const AppShell = React.forwardRef<HTMLDivElement, AppShellProps>(
     return (
       <div
         ref={ref}
-        className={cn(
-          "relative flex min-h-dvh flex-col bg-background text-foreground",
-          className,
-        )}
+        className={cn("relative flex min-h-dvh flex-col bg-background text-foreground", className)}
         {...props}
       >
         {header ? (
           <header className="sticky top-0 z-40 safe-top">
-            <div
-              className={cn(
-                "mx-auto w-full",
-                contained && "max-w-[460px]",
-              )}
-            >
-              {header}
-            </div>
+            <div className={cn("mx-auto w-full", contained && "max-w-[460px]")}>{header}</div>
           </header>
         ) : null}
 
         <main
           id="jenius-main"
-          className={cn(
-            "mx-auto flex w-full flex-1 flex-col",
-            contained && "max-w-[460px]",
-          )}
+          className={cn("mx-auto flex w-full flex-1 flex-col", contained && "max-w-[460px]")}
         >
           {children}
         </main>
 
         {footer ? (
           <div className="sticky bottom-0 z-40 safe-bottom">
-            <div
-              className={cn(
-                "mx-auto w-full",
-                contained && "max-w-[460px]",
-              )}
-            >
-              {footer}
-            </div>
+            <div className={cn("mx-auto w-full", contained && "max-w-[460px]")}>{footer}</div>
           </div>
         ) : null}
       </div>

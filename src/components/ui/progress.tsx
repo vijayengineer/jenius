@@ -11,10 +11,7 @@ const Progress = React.forwardRef<
 >(({ className, value, ...props }, ref) => (
   <ProgressPrimitive.Root
     ref={ref}
-    className={cn(
-      "relative h-1.5 w-full overflow-hidden rounded-full bg-white/8",
-      className,
-    )}
+    className={cn("relative h-1.5 w-full overflow-hidden rounded-full bg-white/8", className)}
     {...props}
   >
     <ProgressPrimitive.Indicator
@@ -41,10 +38,7 @@ const SegmentedProgress = React.forwardRef<HTMLDivElement, SegmentedProgressProp
       {Array.from({ length: total }).map((_, i) => {
         const fill = i < current ? 100 : i === current ? progress : 0;
         return (
-          <div
-            key={i}
-            className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-white/15"
-          >
+          <div key={i} className="relative h-[3px] flex-1 overflow-hidden rounded-full bg-white/15">
             <div
               className="h-full gradient-brand transition-all duration-300 ease-out"
               style={{ width: `${fill}%` }}

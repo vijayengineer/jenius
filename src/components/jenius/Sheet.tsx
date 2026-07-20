@@ -33,8 +33,9 @@ const SheetOverlay = React.forwardRef<
 ));
 SheetOverlay.displayName = "SheetOverlay";
 
-export interface SheetContentProps
-  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+export interface SheetContentProps extends React.ComponentPropsWithoutRef<
+  typeof DialogPrimitive.Content
+> {
   title: string;
   description?: string;
   hideHeader?: boolean;
@@ -60,10 +61,7 @@ export const SheetContent = React.forwardRef<
       )}
       {...props}
     >
-      <div
-        aria-hidden
-        className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-white/25"
-      />
+      <div aria-hidden className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-white/25" />
 
       <div className={cn("flex items-start justify-between gap-4", hideHeader && "sr-only")}>
         <div>

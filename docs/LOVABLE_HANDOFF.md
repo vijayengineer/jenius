@@ -1,7 +1,7 @@
 # Jenius — Lovable → Codex Handoff
 
 > **Prototype status.** This app is a mobile-first Lovable prototype for
-> *Jenius — Infinite Understanding*. It intentionally ships with no backend
+> _Jenius — Infinite Understanding_. It intentionally ships with no backend
 > and no external service integrations. Everything below documents the
 > shape Codex is expected to preserve when it wires the real system.
 
@@ -11,23 +11,23 @@
 - **Styling:** Tailwind v4 via `src/styles.css` + shadcn primitives.
 - **Data layer today:** local mock modules only.
 
-| Purpose      | Command      |
-| ------------ | ------------ |
-| Dev preview  | `bun dev`    |
-| Type check   | `bunx tsgo --noEmit` |
-| Prod build   | `bun run build` |
+| Purpose     | Command              |
+| ----------- | -------------------- |
+| Dev preview | `bun dev`            |
+| Type check  | `bunx tsgo --noEmit` |
+| Prod build  | `bun run build`      |
 
 There is no server function, edge function, or `.env` requirement.
 
 ## 2. Routes
 
-| Path       | File                       | Description |
-| ---------- | -------------------------- | ----------- |
-| `/`        | `src/routes/index.tsx`     | Discover feed. |
-| `/saved`   | `src/routes/saved.tsx`     | Saved collections screen. |
-| `/create`  | `src/routes/create.tsx`    | AI-generated draft form (mock). |
-| `/me`      | `src/routes/me.tsx`        | Personal progress overview. |
-| `/dev`     | `src/routes/dev.tsx`       | **Dev-only** state preview — every UI state on one screen. Marked `robots: noindex`. |
+| Path      | File                    | Description                                                                          |
+| --------- | ----------------------- | ------------------------------------------------------------------------------------ |
+| `/`       | `src/routes/index.tsx`  | Discover feed.                                                                       |
+| `/saved`  | `src/routes/saved.tsx`  | Saved collections screen.                                                            |
+| `/create` | `src/routes/create.tsx` | AI-generated draft form (mock).                                                      |
+| `/me`     | `src/routes/me.tsx`     | Personal progress overview.                                                          |
+| `/dev`    | `src/routes/dev.tsx`    | **Dev-only** state preview — every UI state on one screen. Marked `robots: noindex`. |
 
 ## 3. Component map
 
@@ -35,17 +35,20 @@ All Jenius components live under `src/components/jenius/` and are
 re-exported from `src/components/jenius/index.ts`.
 
 ### Shell & navigation
+
 - `AppShell`, `BottomNavigation`, `TabShell`, `FeedTopBar`, `DailyDiscoveryBadge`
 - System: `OfflineBanner`, `LoadingState`, `EmptyState`, `ErrorState`
 - Brand: `JeniusMark`
 
 ### Feed
+
 - `DiscoverFeed` — snap-scrolling controller (**demo controller**, see §7).
 - `ConceptCard`, `ConceptActions`, `FeedCard`, `FeedActions`, `FeedProgress`
 - `MediaSlot` — production-ready media presenter.
 - `SubjectChip`
 
 ### Challenge / feedback
+
 - `ChallengeSheet` (state-machine presenter)
 - `AnswerOption`, `TeacherMessage`, `MisconceptionCard`, `MemoryHook`
 - `CorrectFeedback`, `IncorrectFeedback`, `CorrectiveExplanation`
@@ -53,31 +56,34 @@ re-exported from `src/components/jenius/index.ts`.
 - `CompletionOverlay`
 
 ### Secondary screens
+
 - `SavedScreen`, `SavedCard`
 - `MeScreen`, `StatCard`, `WeeklyHeatmap`
 - `CreateScreen`, `CreateForm`, `GenerationProgress`, `GeneratedDraftPreview`
 - `ExplainMoreSheet`
 
 ### Primitives
+
 - `PrimaryButton`, `SecondaryButton`
 - `Sheet` (Radix Dialog wrapper)
 
 ## 4. Mock data locations
 
-| Concern | File | Replace with |
-| --- | --- | --- |
-| Concepts (10) | `src/lib/jenius/mockConcepts.ts` | Real feed fetch. |
-| Challenges + feedback (30 wrong-option branches) | `src/lib/jenius/challenges.ts` | Server-resolved answer + misconception payload. |
-| Explain-more packs + statuses | `src/lib/jenius/explainMore.ts` | Live "explain" API + cache. |
-| Saved collections | `src/lib/jenius/savedCollections.ts` | Persistent user library. |
-| Personal progress | `src/lib/jenius/progress.ts` | Real learner stats. |
-| Generated draft | `src/lib/jenius/generatedPack.ts` | Actual generation API. |
-| Offline flag | `src/lib/jenius/offline.ts` (`useOffline`) | `navigator.onLine` + heartbeat. |
-| Shared types | `src/lib/jenius/types.ts` | Keep as canonical shapes. |
+| Concern                                          | File                                       | Replace with                                    |
+| ------------------------------------------------ | ------------------------------------------ | ----------------------------------------------- |
+| Concepts (10)                                    | `src/lib/jenius/mockConcepts.ts`           | Real feed fetch.                                |
+| Challenges + feedback (30 wrong-option branches) | `src/lib/jenius/challenges.ts`             | Server-resolved answer + misconception payload. |
+| Explain-more packs + statuses                    | `src/lib/jenius/explainMore.ts`            | Live "explain" API + cache.                     |
+| Saved collections                                | `src/lib/jenius/savedCollections.ts`       | Persistent user library.                        |
+| Personal progress                                | `src/lib/jenius/progress.ts`               | Real learner stats.                             |
+| Generated draft                                  | `src/lib/jenius/generatedPack.ts`          | Actual generation API.                          |
+| Offline flag                                     | `src/lib/jenius/offline.ts` (`useOffline`) | `navigator.onLine` + heartbeat.                 |
+| Shared types                                     | `src/lib/jenius/types.ts`                  | Keep as canonical shapes.                       |
 
 ## 5. Design tokens
 
 Tokens live in `src/styles.css`:
+
 - Colours: `--brand-blue`, `--brand-violet`, `--brand-amber` (Mind Blown),
   `--misconception`, `--subject-*` per subject.
 - Fonts: Space Grotesk (display), Manrope (sans).
@@ -98,7 +104,11 @@ interface MediaSlotProps {
   muted?: boolean;
   reducedMotion?: boolean;
   failed?: boolean;
-  onPlay?, onPause?, onReplay?, onToggleCaptions?, onToggleMuted?;
+  onPlay?;
+  onPause?;
+  onReplay?;
+  onToggleCaptions?;
+  onToggleMuted?;
 }
 ```
 
@@ -133,12 +143,14 @@ components pure presenters.
 ## 8. Component prop contracts (stable)
 
 ### FeedCard / ConceptCard
+
 ```ts
 { concept, media?, saved?, onSave?, onGotIt?, onExplainMore?,
   explainDisabled?, explainHint?, playbackState?, reducedMotion?, muted? }
 ```
 
 ### ChallengeSheet
+
 ```ts
 { question, selectedOptionId, submissionState, resolvedOptionStates,
   onSelect, onSubmit, onClose, stage, correctFeedback?, incorrectFeedback?,
@@ -149,17 +161,22 @@ components pure presenters.
 ```
 
 ### FeedbackSequence (composed inside ChallengeSheet)
+
 `CorrectFeedback`, `IncorrectFeedback` each accept:
+
 ```ts
 { resolution, onRetry?, onContinue?, onSaveMindBlown?,
   onlineCoachAvailable?, onExplainMore? }
 ```
+
 (Data-only — no correctness lookup.)
 
 ### MediaSlot
+
 See §6.
 
 ### CreateConceptForm (`CreateForm`)
+
 ```ts
 { values, validation?, generationStatus, online?, onChange, onSubmit }
 ```
@@ -196,17 +213,17 @@ the same context as the real app.
 
 ## 12. What Codex must replace
 
-| Temporary | Real thing |
-| --- | --- |
-| `MOCK_CONCEPTS` | Feed fetch (paginated, personalised). |
-| `resolveChallenge` / `CHALLENGE_FEEDBACK` | Server-resolved answer key + misconception payloads. |
-| `mockFreshExplainPack` / `EXPLAIN_PACKS` | Real explain endpoint + on-device cache. |
-| `MOCK_PROGRESS_*` | Live learner stats from backend. |
-| `MOCK_SAVED_ITEMS` + in-memory `saved` set | Persistent library (DB + sync). |
-| `useOffline` (mock toggle) | Real connectivity hook. |
-| `CreateScreen` `onGenerate` stub | Real generation API (rate-limited, streamed). |
-| Completion overlay auto-dismiss timer | Real completion telemetry. |
-| Placeholder video paths | Actual `.webm` assets with captions. |
+| Temporary                                  | Real thing                                           |
+| ------------------------------------------ | ---------------------------------------------------- |
+| `MOCK_CONCEPTS`                            | Feed fetch (paginated, personalised).                |
+| `resolveChallenge` / `CHALLENGE_FEEDBACK`  | Server-resolved answer key + misconception payloads. |
+| `mockFreshExplainPack` / `EXPLAIN_PACKS`   | Real explain endpoint + on-device cache.             |
+| `MOCK_PROGRESS_*`                          | Live learner stats from backend.                     |
+| `MOCK_SAVED_ITEMS` + in-memory `saved` set | Persistent library (DB + sync).                      |
+| `useOffline` (mock toggle)                 | Real connectivity hook.                              |
+| `CreateScreen` `onGenerate` stub           | Real generation API (rate-limited, streamed).        |
+| Completion overlay auto-dismiss timer      | Real completion telemetry.                           |
+| Placeholder video paths                    | Actual `.webm` assets with captions.                 |
 
 ## 13. Restrictions (currently verified)
 

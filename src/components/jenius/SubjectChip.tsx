@@ -42,10 +42,7 @@ export const SubjectChip = React.forwardRef<HTMLButtonElement, SubjectChipProps>
         {withDot ? (
           <span
             aria-hidden
-            className={cn(
-              "size-2 rounded-full",
-              active ? "bg-white" : dotClassBySubject[subject],
-            )}
+            className={cn("size-2 rounded-full", active ? "bg-white" : dotClassBySubject[subject])}
           />
         ) : null}
         <span>{label ?? meta.label}</span>

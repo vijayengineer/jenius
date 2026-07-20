@@ -63,15 +63,16 @@
   --color-subject-life: var(--subject-life);
 }
 
-:root, .dark {
+:root,
+.dark {
   /* Base */
   --background: oklch(0.16 0.02 275);
   --foreground: oklch(0.98 0.005 275);
 
-  --surface: oklch(0.20 0.025 275);
+  --surface: oklch(0.2 0.025 275);
   --surface-elevated: oklch(0.24 0.03 275);
 
-  --card: oklch(0.20 0.025 275);
+  --card: oklch(0.2 0.025 275);
   --card-foreground: oklch(0.98 0.005 275);
 
   --popover: oklch(0.22 0.028 275);
@@ -80,16 +81,16 @@
   /* Brand — blue → violet → purple */
   --brand-blue: oklch(0.68 0.19 258);
   --brand-violet: oklch(0.64 0.22 285);
-  --brand-purple: oklch(0.60 0.24 305);
+  --brand-purple: oklch(0.6 0.24 305);
 
-  --primary: oklch(0.66 0.20 275);
+  --primary: oklch(0.66 0.2 275);
   --primary-foreground: oklch(0.99 0.003 275);
 
   --secondary: oklch(0.28 0.035 275);
   --secondary-foreground: oklch(0.97 0.005 275);
 
   --muted: oklch(0.24 0.02 275);
-  --muted-foreground: oklch(0.70 0.02 275);
+  --muted-foreground: oklch(0.7 0.02 275);
 
   --accent: oklch(0.34 0.06 285);
   --accent-foreground: oklch(0.99 0.003 275);
@@ -101,25 +102,25 @@
   --success-foreground: oklch(0.15 0.02 160);
 
   /* Semantic — pedagogy */
-  --mind-blown: oklch(0.82 0.16 78);           /* amber for "Mind Blown" */
+  --mind-blown: oklch(0.82 0.16 78); /* amber for "Mind Blown" */
   --mind-blown-foreground: oklch(0.18 0.04 78);
-  --misconception: oklch(0.72 0.16 30);        /* warm coral for gentle correction */
+  --misconception: oklch(0.72 0.16 30); /* warm coral for gentle correction */
   --misconception-foreground: oklch(0.15 0.03 30);
 
   /* Subject palette — calm, distinct, harmonised with the dark base */
-  --subject-math: oklch(0.70 0.16 240);       /* cool blue */
-  --subject-science: oklch(0.74 0.16 175);    /* teal */
-  --subject-history: oklch(0.75 0.14 55);     /* warm ochre */
-  --subject-language: oklch(0.72 0.18 335);   /* magenta */
-  --subject-tech: oklch(0.70 0.19 280);       /* violet */
-  --subject-arts: oklch(0.74 0.16 15);        /* coral */
-  --subject-mind: oklch(0.72 0.14 155);       /* sage */
-  --subject-life: oklch(0.78 0.14 105);       /* lime */
+  --subject-math: oklch(0.7 0.16 240); /* cool blue */
+  --subject-science: oklch(0.74 0.16 175); /* teal */
+  --subject-history: oklch(0.75 0.14 55); /* warm ochre */
+  --subject-language: oklch(0.72 0.18 335); /* magenta */
+  --subject-tech: oklch(0.7 0.19 280); /* violet */
+  --subject-arts: oklch(0.74 0.16 15); /* coral */
+  --subject-mind: oklch(0.72 0.14 155); /* sage */
+  --subject-life: oklch(0.78 0.14 105); /* lime */
 
   --border: oklch(1 0 0 / 8%);
   --border-strong: oklch(1 0 0 / 16%);
   --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.66 0.20 275);
+  --ring: oklch(0.66 0.2 275);
 
   --radius: 24px;
 
@@ -130,14 +131,27 @@
   --duration-slow: 420ms;
   --duration-slower: 640ms;
 
-
   /* Gradients */
-  --gradient-brand: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-violet) 50%, var(--brand-purple) 100%);
-  --gradient-brand-soft: linear-gradient(135deg, oklch(0.68 0.19 258 / 0.18) 0%, oklch(0.60 0.24 305 / 0.18) 100%);
-  --gradient-aurora: radial-gradient(120% 80% at 20% 0%, oklch(0.68 0.19 258 / 0.35), transparent 60%),
-                     radial-gradient(100% 70% at 80% 100%, oklch(0.60 0.24 305 / 0.30), transparent 60%);
+  --gradient-brand: linear-gradient(
+    135deg,
+    var(--brand-blue) 0%,
+    var(--brand-violet) 50%,
+    var(--brand-purple) 100%
+  );
+  --gradient-brand-soft: linear-gradient(
+    135deg,
+    oklch(0.68 0.19 258 / 0.18) 0%,
+    oklch(0.6 0.24 305 / 0.18) 100%
+  );
+  --gradient-aurora:
+    radial-gradient(120% 80% at 20% 0%, oklch(0.68 0.19 258 / 0.35), transparent 60%),
+    radial-gradient(100% 70% at 80% 100%, oklch(0.6 0.24 305 / 0.3), transparent 60%);
   --gradient-text: linear-gradient(135deg, oklch(0.85 0.14 258), oklch(0.78 0.18 300));
-  --gradient-surface: linear-gradient(180deg, oklch(0.22 0.028 275 / 0.9), oklch(0.18 0.02 275 / 0.9));
+  --gradient-surface: linear-gradient(
+    180deg,
+    oklch(0.22 0.028 275 / 0.9),
+    oklch(0.18 0.02 275 / 0.9)
+  );
 
   /* Shadows — soft, layered, tinted */
   --shadow-xs: 0 1px 2px oklch(0 0 0 / 0.35);
@@ -145,8 +159,8 @@
   --shadow-md: 0 8px 24px -8px oklch(0 0 0 / 0.45);
   --shadow-lg: 0 20px 48px -16px oklch(0 0 0 / 0.55);
   --shadow-xl: 0 32px 80px -24px oklch(0 0 0 / 0.6);
-  --shadow-glow: 0 10px 40px -10px oklch(0.66 0.20 275 / 0.55);
-  --shadow-glow-lg: 0 20px 80px -20px oklch(0.66 0.20 275 / 0.65);
+  --shadow-glow: 0 10px 40px -10px oklch(0.66 0.2 275 / 0.55);
+  --shadow-glow-lg: 0 20px 80px -20px oklch(0.66 0.2 275 / 0.65);
   --shadow-inner-highlight: inset 0 1px 0 oklch(1 0 0 / 0.08);
 
   /* Motion */
@@ -155,14 +169,14 @@
   --transition-smooth: 400ms var(--ease-out-expo);
   --transition-swift: 220ms var(--ease-out-expo);
 
-  --sidebar: oklch(0.20 0.025 275);
+  --sidebar: oklch(0.2 0.025 275);
   --sidebar-foreground: oklch(0.98 0.005 275);
-  --sidebar-primary: oklch(0.66 0.20 275);
+  --sidebar-primary: oklch(0.66 0.2 275);
   --sidebar-primary-foreground: oklch(0.99 0.003 275);
   --sidebar-accent: oklch(0.28 0.035 275);
   --sidebar-accent-foreground: oklch(0.99 0.003 275);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.66 0.20 275);
+  --sidebar-ring: oklch(0.66 0.2 275);
 }
 
 @layer base {
@@ -170,7 +184,8 @@
     border-color: var(--color-border);
   }
 
-  html, body {
+  html,
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -185,7 +200,11 @@
     background-attachment: fixed;
   }
 
-  h1, h2, h3, h4, h5 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
     font-family: var(--font-display);
     letter-spacing: -0.02em;
     font-weight: 600;
@@ -256,18 +275,21 @@
     outline: none;
   }
   *:focus-visible {
-    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--ring);
     border-radius: 8px;
   }
 }
 
 /* Reduced-motion: honour the OS setting globally */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
 }
-

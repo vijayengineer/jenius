@@ -77,9 +77,7 @@ export const FeedCard = React.forwardRef<HTMLElement, FeedCardProps>(
             {title}
           </h2>
           {body ? (
-            <div className="mt-4 text-[17px] leading-relaxed text-foreground/85">
-              {body}
-            </div>
+            <div className="mt-4 text-[17px] leading-relaxed text-foreground/85">{body}</div>
           ) : null}
 
           {footer ? <div className="mt-6">{footer}</div> : null}

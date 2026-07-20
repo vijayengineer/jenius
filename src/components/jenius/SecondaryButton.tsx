@@ -10,13 +10,7 @@ export type SecondaryButtonProps = Omit<ButtonProps, "variant">;
 
 export const SecondaryButton = React.forwardRef<HTMLButtonElement, SecondaryButtonProps>(
   ({ size = "lg", className, ...props }, ref) => (
-    <Button
-      ref={ref}
-      variant="glass"
-      size={size}
-      className={cn("w-full", className)}
-      {...props}
-    />
+    <Button ref={ref} variant="glass" size={size} className={cn("w-full", className)} {...props} />
   ),
 );
 SecondaryButton.displayName = "SecondaryButton";

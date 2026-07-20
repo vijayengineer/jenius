@@ -30,9 +30,7 @@ export const TeacherMessage = React.forwardRef<HTMLDivElement, TeacherMessagePro
           <div className="text-[11px] font-semibold uppercase tracking-wider text-brand-blue">
             {eyebrow}
           </div>
-          <div className="mt-1 text-[15px] leading-relaxed text-foreground/90">
-            {children}
-          </div>
+          <div className="mt-1 text-[15px] leading-relaxed text-foreground/90">{children}</div>
         </div>
       </div>
     );

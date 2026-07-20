@@ -1,5 +1,13 @@
 import * as React from "react";
-import { Loader2, Lightbulb, AlertTriangle, HardDriveDownload, Clock, ShieldAlert, CloudOff } from "lucide-react";
+import {
+  Loader2,
+  Lightbulb,
+  AlertTriangle,
+  HardDriveDownload,
+  Clock,
+  ShieldAlert,
+  CloudOff,
+} from "lucide-react";
 import { Sheet, SheetContent } from "./Sheet";
 import { SubjectChip } from "./SubjectChip";
 import { PrimaryButton } from "./PrimaryButton";
@@ -59,9 +67,7 @@ export function ExplainMoreSheet({
             <SuccessBlock pack={pack} cached={status === "cached" || !!pack.fromCache} />
           ) : null}
 
-          {status === "available" ? (
-            <AvailableBlock hook={conceptHook} onRetry={onRetry} />
-          ) : null}
+          {status === "available" ? <AvailableBlock hook={conceptHook} onRetry={onRetry} /> : null}
 
           {status === "offline-unavailable" ? (
             <ErrorBlock
@@ -161,7 +167,9 @@ function SuccessBlock({ pack, cached }: { pack: ExplainPack; cached?: boolean })
 function Card({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="glass rounded-2xl p-4">
-      <div className={cn("mb-1 text-[11px] uppercase tracking-[0.18em] text-foreground/60")}>{label}</div>
+      <div className={cn("mb-1 text-[11px] uppercase tracking-[0.18em] text-foreground/60")}>
+        {label}
+      </div>
       {children}
     </div>
   );

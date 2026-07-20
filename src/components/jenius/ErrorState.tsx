@@ -46,9 +46,7 @@ export const ErrorState = React.forwardRef<HTMLDivElement, ErrorStateProps>(
           <h3 className="font-display text-xl font-semibold tracking-tight text-foreground">
             {title}
           </h3>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-            {description}
-          </p>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
         </div>
         {onRetry ? (
           <SecondaryButton onClick={onRetry} size="md">

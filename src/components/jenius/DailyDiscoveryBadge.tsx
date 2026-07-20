@@ -12,11 +12,7 @@ export interface DailyDiscoveryBadgeProps {
  * DailyDiscoveryBadge — small, subtle indicator that can sit inside the
  * feed top bar. Communicates progress without pressure.
  */
-export function DailyDiscoveryBadge({
-  progress,
-  target,
-  className,
-}: DailyDiscoveryBadgeProps) {
+export function DailyDiscoveryBadge({ progress, target, className }: DailyDiscoveryBadgeProps) {
   const pct = target ? Math.min(1, progress / target) : 0;
   const complete = pct >= 1;
   return (

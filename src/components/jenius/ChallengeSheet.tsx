@@ -24,11 +24,7 @@ import type {
  * The stage machine lives in the caller; this sheet is a pure presenter.
  */
 export type ChallengeStage =
-  | "question"
-  | "feedback-correct"
-  | "feedback-incorrect"
-  | "retry"
-  | "mind-blown";
+  "question" | "feedback-correct" | "feedback-incorrect" | "retry" | "mind-blown";
 
 export interface ChallengeSheetProps {
   open: boolean;
@@ -88,14 +84,7 @@ const MARKERS = ["A", "B", "C", "D"];
  * All copy and correctness resolution arrives through props.
  */
 export function ChallengeSheet(props: ChallengeSheetProps) {
-  const {
-    open,
-    onOpenChange,
-    subject,
-    conceptReminder,
-    stage,
-    onClose,
-  } = props;
+  const { open, onOpenChange, subject, conceptReminder, stage, onClose } = props;
 
   return (
     <Sheet
@@ -219,9 +208,8 @@ function QuestionStage({
                 } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
                   e.preventDefault();
                   onSelect(
-                    question.options[
-                      (i - 1 + question.options.length) % question.options.length
-                    ].id,
+                    question.options[(i - 1 + question.options.length) % question.options.length]
+                      .id,
                   );
                 }
               }}

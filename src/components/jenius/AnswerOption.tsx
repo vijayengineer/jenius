@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 
 export type AnswerState = "idle" | "selected" | "correct" | "incorrect" | "disabled";
 
-export interface AnswerOptionProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface AnswerOptionProps extends Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
   label: string;
   /** Optional prefix marker, e.g. "A", "B". */
   marker?: string;
@@ -57,12 +59,18 @@ export const AnswerOption = React.forwardRef<HTMLButtonElement, AnswerOptionProp
         ) : null}
         <span className="min-w-0 flex-1">{label}</span>
         {showCheck ? (
-          <span aria-hidden className="grid size-6 place-items-center rounded-full bg-success text-success-foreground">
+          <span
+            aria-hidden
+            className="grid size-6 place-items-center rounded-full bg-success text-success-foreground"
+          >
             <Check className="size-3.5" />
           </span>
         ) : null}
         {showCross ? (
-          <span aria-hidden className="grid size-6 place-items-center rounded-full bg-misconception text-misconception-foreground">
+          <span
+            aria-hidden
+            className="grid size-6 place-items-center rounded-full bg-misconception text-misconception-foreground"
+          >
             <X className="size-3.5" />
           </span>
         ) : null}

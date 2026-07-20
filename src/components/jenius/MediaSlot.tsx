@@ -11,10 +11,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type {
-  MediaPlaybackState,
-  MediaSlotData,
-} from "@/lib/jenius/types";
+import type { MediaPlaybackState, MediaSlotData } from "@/lib/jenius/types";
 
 export interface MediaSlotProps extends React.HTMLAttributes<HTMLDivElement> {
   media?: MediaSlotData | null;
@@ -118,11 +115,7 @@ export const MediaSlot = React.forwardRef<HTMLDivElement, MediaSlotProps>(
                 aria-hidden
                 className="grid size-11 place-items-center rounded-full bg-misconception/15 text-misconception"
               >
-                {failed ? (
-                  <ImageOff className="size-5" />
-                ) : (
-                  <AlertTriangle className="size-5" />
-                )}
+                {failed ? <ImageOff className="size-5" /> : <AlertTriangle className="size-5" />}
               </div>
               <p className="max-w-[28ch] text-[13px] leading-snug text-foreground/85">
                 {failed
@@ -147,9 +140,7 @@ export const MediaSlot = React.forwardRef<HTMLDivElement, MediaSlotProps>(
         </div>
 
         {media.caption ? (
-          <figcaption className="text-xs text-foreground/70">
-            {media.caption}
-          </figcaption>
+          <figcaption className="text-xs text-foreground/70">{media.caption}</figcaption>
         ) : null}
       </figure>
     );
@@ -194,7 +185,13 @@ function VideoControls({
         <button
           type="button"
           onClick={
-            isPlaying ? onPause : state === "paused" ? onPlay : state === "poster" ? onPlay : onReplay
+            isPlaying
+              ? onPause
+              : state === "paused"
+                ? onPlay
+                : state === "poster"
+                  ? onPlay
+                  : onReplay
           }
           aria-label={
             isPlaying

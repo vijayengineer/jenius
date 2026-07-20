@@ -14,11 +14,9 @@ const chipVariants = cva(
       variant: {
         default:
           "bg-white/6 text-foreground border border-white/10 hover:bg-white/10 hover:border-white/20",
-        active:
-          "gradient-brand text-primary-foreground border border-white/15 shadow-glow",
+        active: "gradient-brand text-primary-foreground border border-white/15 shadow-glow",
         glass: "glass text-foreground hover:bg-white/10",
-        outline:
-          "border border-border-strong bg-transparent text-foreground hover:bg-white/5",
+        outline: "border border-border-strong bg-transparent text-foreground hover:bg-white/5",
       },
       size: {
         sm: "h-8 px-3 text-xs [&_svg]:size-3.5",
@@ -34,8 +32,7 @@ const chipVariants = cva(
 );
 
 export interface ChipProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof chipVariants> {
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof chipVariants> {
   active?: boolean;
 }
 

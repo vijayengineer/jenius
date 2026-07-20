@@ -53,9 +53,7 @@ function RailButton({
       >
         {children}
       </span>
-      <span className="text-[11px] font-medium leading-none text-foreground/80">
-        {label}
-      </span>
+      <span className="text-[11px] font-medium leading-none text-foreground/80">{label}</span>
     </button>
   );
 }
@@ -66,30 +64,13 @@ function RailButton({
  */
 export const ConceptActions = React.forwardRef<HTMLDivElement, ConceptActionsProps>(
   (
-    {
-      saved,
-      onSave,
-      onGotIt,
-      onExplainMore,
-      explainDisabled,
-      explainHint,
-      className,
-      ...props
-    },
+    { saved, onSave, onGotIt, onExplainMore, explainDisabled, explainHint, className, ...props },
     ref,
   ) => {
     const hintId = React.useId();
     return (
-      <div
-        ref={ref}
-        className={cn("flex flex-col items-center gap-4", className)}
-        {...props}
-      >
-        <RailButton
-          label={saved ? "Saved" : "Save"}
-          active={saved}
-          onClick={onSave}
-        >
+      <div ref={ref} className={cn("flex flex-col items-center gap-4", className)} {...props}>
+        <RailButton label={saved ? "Saved" : "Save"} active={saved} onClick={onSave}>
           <Bookmark className={cn("size-5", saved && "fill-current")} />
         </RailButton>
 

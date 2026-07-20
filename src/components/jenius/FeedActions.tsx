@@ -43,26 +43,9 @@ function ActionButton({ label, active, activeClass, onClick, children }: ActionB
  * Share). Callbacks are placeholders; real handlers arrive later.
  */
 export const FeedActions = React.forwardRef<HTMLDivElement, FeedActionsProps>(
-  (
-    {
-      liked,
-      saved,
-      mindBlown,
-      onLike,
-      onSave,
-      onShare,
-      onMindBlown,
-      className,
-      ...props
-    },
-    ref,
-  ) => {
+  ({ liked, saved, mindBlown, onLike, onSave, onShare, onMindBlown, className, ...props }, ref) => {
     return (
-      <div
-        ref={ref}
-        className={cn("flex flex-col items-center gap-3", className)}
-        {...props}
-      >
+      <div ref={ref} className={cn("flex flex-col items-center gap-3", className)} {...props}>
         <ActionButton
           label={liked ? "Unlike" : "Like"}
           active={liked}

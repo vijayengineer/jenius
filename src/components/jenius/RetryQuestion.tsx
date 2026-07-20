@@ -2,7 +2,11 @@ import * as React from "react";
 import { Loader2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AnswerOption, type AnswerState } from "./AnswerOption";
-import type { ChallengeOption, ResolvedOptionState, SubmissionState } from "@/lib/jenius/challenges";
+import type {
+  ChallengeOption,
+  ResolvedOptionState,
+  SubmissionState,
+} from "@/lib/jenius/challenges";
 
 export interface RetryQuestionProps {
   /** Supportive framing, e.g. "Let's test the same idea with a different example." */
@@ -60,14 +64,10 @@ export function RetryQuestion({
     <div className={cn("flex flex-col gap-4", className)}>
       <div className="flex items-center gap-2 text-brand-violet">
         <RotateCcw className="size-4" aria-hidden />
-        <span className="text-[11px] font-semibold uppercase tracking-wider">
-          Try another way
-        </span>
+        <span className="text-[11px] font-semibold uppercase tracking-wider">Try another way</span>
       </div>
 
-      <p className="text-[13px] leading-relaxed text-foreground/70">
-        {supportiveIntro}
-      </p>
+      <p className="text-[13px] leading-relaxed text-foreground/70">{supportiveIntro}</p>
 
       <h3
         id="retry-prompt"
@@ -76,11 +76,7 @@ export function RetryQuestion({
         {prompt}
       </h3>
 
-      <div
-        role="radiogroup"
-        aria-labelledby="retry-prompt"
-        className="flex flex-col gap-2.5"
-      >
+      <div role="radiogroup" aria-labelledby="retry-prompt" className="flex flex-col gap-2.5">
         {options.map((opt, i) => {
           const isChecked = selectedOptionId === opt.id;
           const disabled = isSubmitted || isSubmitting;

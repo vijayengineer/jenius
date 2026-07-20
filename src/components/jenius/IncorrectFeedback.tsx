@@ -45,11 +45,7 @@ export function IncorrectFeedback({
   className,
 }: IncorrectFeedbackProps) {
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={cn("flex flex-col gap-5", className)}
-    >
+    <div role="status" aria-live="polite" className={cn("flex flex-col gap-5", className)}>
       {/* Stage 1 — Acknowledge */}
       <div>
         <div className="text-[11px] font-semibold uppercase tracking-wider text-brand-blue">

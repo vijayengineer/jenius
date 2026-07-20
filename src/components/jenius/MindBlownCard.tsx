@@ -32,9 +32,7 @@ export const MindBlownCard = React.forwardRef<HTMLDivElement, MindBlownCardProps
         />
         <div className="relative flex items-center gap-2 text-mind-blown">
           <Sparkles className="size-4" />
-          <span className="text-[11px] font-semibold uppercase tracking-wider">
-            {title}
-          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider">{title}</span>
         </div>
         <div className="relative mt-3 font-display text-[22px] font-semibold leading-tight tracking-tight text-foreground">
           {children}

@@ -28,11 +28,7 @@ export function CorrectFeedback({
   className,
 }: CorrectFeedbackProps) {
   return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={cn("flex flex-col gap-4", className)}
-    >
+    <div role="status" aria-live="polite" className={cn("flex flex-col gap-4", className)}>
       <div className="flex items-start gap-3">
         <div
           aria-hidden
@@ -50,18 +46,13 @@ export function CorrectFeedback({
         </div>
       </div>
 
-      <p className="text-[15px] leading-relaxed text-foreground/85">
-        {explanation}
-      </p>
+      <p className="text-[15px] leading-relaxed text-foreground/85">{explanation}</p>
 
       <MemoryHook>{memoryHook}</MemoryHook>
 
       {progressGain ? (
         <div className="flex items-center gap-2 text-[12px] font-medium text-foreground/70">
-          <span
-            aria-hidden
-            className="inline-block size-1.5 rounded-full bg-success"
-          />
+          <span aria-hidden className="inline-block size-1.5 rounded-full bg-success" />
           {progressGain}
         </div>
       ) : null}

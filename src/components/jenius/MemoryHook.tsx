@@ -34,9 +34,7 @@ export const MemoryHook = React.forwardRef<HTMLDivElement, MemoryHookProps>(
           <div className="text-[11px] font-semibold uppercase tracking-wider text-brand-violet">
             {title}
           </div>
-          <div className="mt-1 text-[15px] leading-relaxed text-foreground/90">
-            {children}
-          </div>
+          <div className="mt-1 text-[15px] leading-relaxed text-foreground/90">{children}</div>
         </div>
       </div>
     );

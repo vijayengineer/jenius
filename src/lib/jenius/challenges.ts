@@ -9,17 +9,13 @@
  *   of truth. The helpers below are demo-only resolvers.
  */
 
-export type SubmissionState =
-  | "idle"
-  | "submitting"
-  | "submitted"
-  | "error";
+export type SubmissionState = "idle" | "submitting" | "submitted" | "error";
 
 export type ResolvedOptionState =
   | "unanswered" // pre-submit
-  | "correct"    // post-submit, this is the correct answer
-  | "incorrect"  // post-submit, learner picked this and it was wrong
-  | "locked";    // post-submit, another option (not chosen, not correct)
+  | "correct" // post-submit, this is the correct answer
+  | "incorrect" // post-submit, learner picked this and it was wrong
+  | "locked"; // post-submit, another option (not chosen, not correct)
 
 export interface ChallengeOption {
   id: string;
@@ -135,8 +131,7 @@ export const CHALLENGES: Record<string, Challenge> = {
   },
   falling: {
     conceptId: "falling",
-    prompt:
-      "In a vacuum, what happens when a heavy ball and a light ball are dropped together?",
+    prompt: "In a vacuum, what happens when a heavy ball and a light ball are dropped together?",
     options: [
       { id: "a", label: "The heavy ball falls much faster" },
       { id: "b", label: "The light ball falls much faster" },
@@ -356,16 +351,14 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
           "Movies and photos usually show the Sahara, so 'desert' gets tied to blistering heat.",
         whyIncorrect:
           "Antarctica gets almost no rain and is Earth's largest desert — and it's freezing. Heat isn't the requirement.",
-        correctiveStatement:
-          "The one thing every desert shares is very little precipitation.",
+        correctiveStatement: "The one thing every desert shares is very little precipitation.",
         memoryHook: "Cold + dry = desert too.",
       },
       c: {
         optionId: "c",
         misconceptionLabel: "Sand makes a desert",
         acknowledgement: "Good instinct — sand is iconic.",
-        whyUnderstandable:
-          "The word 'desert' pulls up sand dunes for almost everyone.",
+        whyUnderstandable: "The word 'desert' pulls up sand dunes for almost everyone.",
         whyIncorrect:
           "Only about 20% of deserts are sandy. The rest are rock, gravel, salt flats or ice.",
         correctiveStatement:
@@ -445,8 +438,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
           "Earth does have a magnetic field, and metal + magnets is a natural pairing.",
         whyIncorrect:
           "Aircraft aluminium isn't strongly magnetic, and the field is far too weak to lift tonnes of metal anyway.",
-        correctiveStatement:
-          "Flight is aerodynamic — wings deflecting air — not magnetic.",
+        correctiveStatement: "Flight is aerodynamic — wings deflecting air — not magnetic.",
         memoryHook: "Air, not iron, holds a plane up.",
       },
     },
@@ -465,7 +457,8 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
       wrapUp: "That's a tiny wing. Same principle scales up to airliners.",
     },
     mindBlown: {
-      headline: "A fully loaded 747 pushes down millions of kilograms of air every second to stay airborne.",
+      headline:
+        "A fully loaded 747 pushes down millions of kilograms of air every second to stay airborne.",
     },
   },
 
@@ -485,8 +478,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
           "In everyday life a hammer clearly does beat a feather, so weight looks like it wins.",
         whyIncorrect:
           "That's because air slows the feather. Remove the air, and they land together — actually demonstrated on the Moon.",
-        correctiveStatement:
-          "Without air resistance, all masses fall at the same rate.",
+        correctiveStatement: "Without air resistance, all masses fall at the same rate.",
         memoryHook: "Blame the air, not the weight.",
       },
       b: {
@@ -497,8 +489,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
           "Maybe you were correcting for the 'heavier is faster' trap. Good instinct to question it.",
         whyIncorrect:
           "Lighter objects fall slower in air, not faster. In a vacuum, mass makes no difference at all.",
-        correctiveStatement:
-          "In a vacuum, mass is irrelevant to falling speed.",
+        correctiveStatement: "In a vacuum, mass is irrelevant to falling speed.",
         memoryHook: "Same gravity, same fall.",
       },
       d: {
@@ -546,8 +537,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         optionId: "a",
         misconceptionLabel: "Sky reflects the ocean",
         acknowledgement: "Poetic idea.",
-        whyUnderstandable:
-          "The sea and sky match in colour, so a reflection feels intuitive.",
+        whyUnderstandable: "The sea and sky match in colour, so a reflection feels intuitive.",
         whyIncorrect:
           "The sky is blue over deserts, mountains and cities too — thousands of kilometres from any ocean.",
         correctiveStatement:
@@ -558,8 +548,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         optionId: "c",
         misconceptionLabel: "Sunlight is mostly blue",
         acknowledgement: "That's a fair guess.",
-        whyUnderstandable:
-          "If the sky is blue, blue sunlight sounds like a tidy explanation.",
+        whyUnderstandable: "If the sky is blue, blue sunlight sounds like a tidy explanation.",
         whyIncorrect:
           "Sunlight is close to white — a full mix of colours. If it were mostly blue, snow and paper would look blue too.",
         correctiveStatement:
@@ -594,7 +583,8 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         "At sunset light travels through much more air, so the blue gets scattered out — leaving red and orange to reach you.",
     },
     mindBlown: {
-      headline: "The sky on Mars looks butterscotch in the day and blue at sunset — the opposite of Earth.",
+      headline:
+        "The sky on Mars looks butterscotch in the day and blue at sunset — the opposite of Earth.",
     },
   },
 
@@ -626,8 +616,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
           "It sits at the centre of the cell, so it's easy to imagine it as the engine too.",
         whyIncorrect:
           "The cell's energy comes from mitochondria, using food and oxygen. DNA doesn't produce energy itself.",
-        correctiveStatement:
-          "DNA stores instructions. Mitochondria produce the energy.",
+        correctiveStatement: "DNA stores instructions. Mitochondria produce the energy.",
         memoryHook: "Library, not power plant.",
       },
       d: {
@@ -674,8 +663,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         optionId: "a",
         misconceptionLabel: "Cold paints the leaves",
         acknowledgement: "Cold and colour do go together in autumn.",
-        whyUnderstandable:
-          "Leaves change as it cools, so it's tempting to make cold the cause.",
+        whyUnderstandable: "Leaves change as it cools, so it's tempting to make cold the cause.",
         whyIncorrect:
           "The main trigger is shorter daylight, not temperature. Trees start the change even when autumn is warm.",
         correctiveStatement:
@@ -698,8 +686,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         optionId: "d",
         misconceptionLabel: "The Sun bleaches leaves",
         acknowledgement: "Sun does bleach things — not a wild guess.",
-        whyUnderstandable:
-          "Sunlight really does fade paint and hair over time.",
+        whyUnderstandable: "Sunlight really does fade paint and hair over time.",
         whyIncorrect:
           "If sunlight bleached leaves, they'd turn white — and change fastest in summer, not autumn.",
         correctiveStatement:
@@ -718,7 +705,8 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         { id: "d", label: "They already changed colour in summer" },
       ],
       correctOptionId: "b",
-      wrapUp: "Evergreens keep the green tap on all year, so the hidden colours never get their turn.",
+      wrapUp:
+        "Evergreens keep the green tap on all year, so the hidden colours never get their turn.",
     },
     mindBlown: {
       headline:
@@ -738,20 +726,17 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         optionId: "a",
         misconceptionLabel: "Vaccines are germ-killers on contact",
         acknowledgement: "Reasonable — the word 'shot' sounds combative.",
-        whyUnderstandable:
-          "We often think of medicine as attacking the bad guys directly.",
+        whyUnderstandable: "We often think of medicine as attacking the bad guys directly.",
         whyIncorrect:
           "A vaccine doesn't roam the body killing germs. It trains your own immune system to do that.",
-        correctiveStatement:
-          "Vaccines teach; your immune system fights.",
+        correctiveStatement: "Vaccines teach; your immune system fights.",
         memoryHook: "Teacher, not soldier.",
       },
       c: {
         optionId: "c",
         misconceptionLabel: "Vaccines replace or cleanse blood",
         acknowledgement: "Interesting thought.",
-        whyUnderstandable:
-          "'Cleaner blood' has a strong intuitive appeal — like changing the oil.",
+        whyUnderstandable: "'Cleaner blood' has a strong intuitive appeal — like changing the oil.",
         whyIncorrect:
           "Nothing in a vaccine replaces blood. Your blood is fine; it just needs a preview of what to fight.",
         correctiveStatement:
@@ -766,8 +751,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
           "Your body does raise its temperature to fight infection, so heat and immunity feel linked.",
         whyIncorrect:
           "A vaccine doesn't heat your body. Any mild temperature bump is a side effect of the immune practice, not the mechanism.",
-        correctiveStatement:
-          "The protection comes from trained immune memory, not from heat.",
+        correctiveStatement: "The protection comes from trained immune memory, not from heat.",
         memoryHook: "Memory beats heat.",
       },
     },
@@ -778,12 +762,16 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         "Why can a vaccine still work well even if it only contains a tiny piece of the virus?",
       options: [
         { id: "a", label: "The piece grows into a full virus in you" },
-        { id: "b", label: "Your immune system learns to recognise that piece, so it can spot the real virus" },
+        {
+          id: "b",
+          label: "Your immune system learns to recognise that piece, so it can spot the real virus",
+        },
         { id: "c", label: "It boils your blood clean" },
         { id: "d", label: "It replaces damaged cells" },
       ],
       correctOptionId: "b",
-      wrapUp: "Recognising one distinctive shape is enough. Once your body knows the target, it can react fast.",
+      wrapUp:
+        "Recognising one distinctive shape is enough. Once your body knows the target, it can react fast.",
     },
     mindBlown: {
       headline:
@@ -803,8 +791,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         optionId: "a",
         misconceptionLabel: "Yawns fix an oxygen shortage",
         acknowledgement: "This is by far the most common answer — you're not alone.",
-        whyUnderstandable:
-          "Yawning feels like a big breath, so an oxygen fix sounds obvious.",
+        whyUnderstandable: "Yawning feels like a big breath, so an oxygen fix sounds obvious.",
         whyIncorrect:
           "Studies show breathing extra oxygen doesn't reduce yawning, and low-oxygen air doesn't increase it.",
         correctiveStatement:
@@ -815,8 +802,7 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         optionId: "b",
         misconceptionLabel: "Yawns stretch the throat for speech",
         acknowledgement: "Creative link.",
-        whyUnderstandable:
-          "Yawns are big and jaw-heavy, so a speech connection feels plausible.",
+        whyUnderstandable: "Yawns are big and jaw-heavy, so a speech connection feels plausible.",
         whyIncorrect:
           "Babies yawn in the womb, before they ever speak — and animals that don't talk yawn too.",
         correctiveStatement:
@@ -827,10 +813,8 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         optionId: "d",
         misconceptionLabel: "Yawns reset balance",
         acknowledgement: "Interesting theory.",
-        whyUnderstandable:
-          "Your inner ear is right there, so it's an understandable leap.",
-        whyIncorrect:
-          "There's no evidence that yawning changes balance or the vestibular system.",
+        whyUnderstandable: "Your inner ear is right there, so it's an understandable leap.",
+        whyIncorrect: "There's no evidence that yawning changes balance or the vestibular system.",
         correctiveStatement:
           "The strongest evidence still points to brain cooling and shifts in alertness.",
         memoryHook: "Cool the brain, not the ears.",
@@ -848,7 +832,8 @@ export const CHALLENGE_FEEDBACK: Record<string, ChallengeFeedback> = {
         { id: "d", label: "Yawning stretches the vocal cords" },
       ],
       correctOptionId: "b",
-      wrapUp: "The same situations that overheat and under-stimulate the brain trigger the most yawns.",
+      wrapUp:
+        "The same situations that overheat and under-stimulate the brain trigger the most yawns.",
     },
     mindBlown: {
       headline: "Yawns are so contagious that even reading the word 'yawn' can start one.",
@@ -882,9 +867,7 @@ export function resolveFeedback(
   challenge: Challenge,
   feedback: ChallengeFeedback,
   selectedOptionId: string,
-):
-  | { kind: "correct"; data: CorrectFeedbackData }
-  | { kind: "incorrect"; data: OptionFeedback } {
+): { kind: "correct"; data: CorrectFeedbackData } | { kind: "incorrect"; data: OptionFeedback } {
   if (selectedOptionId === challenge.correctOptionId) {
     return { kind: "correct", data: feedback.correct };
   }

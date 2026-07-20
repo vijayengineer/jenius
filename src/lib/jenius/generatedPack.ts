@@ -5,21 +5,16 @@ import type { SubjectId } from "./types";
  * a future Node API will drive real transitions.
  */
 export type GenerationStatus =
-  | "disabled"      // form incomplete
-  | "ready"         // form valid, not yet submitted
-  | "submitting"    // click acknowledged, request being made
-  | "generating"    // long-running work in progress
-  | "success"       // pack ready
-  | "rate-limit"    // too many generations
+  | "disabled" // form incomplete
+  | "ready" // form valid, not yet submitted
+  | "submitting" // click acknowledged, request being made
+  | "generating" // long-running work in progress
+  | "success" // pack ready
+  | "rate-limit" // too many generations
   | "network-error" // transient failure
-  | "offline";      // browser is offline
+  | "offline"; // browser is offline
 
-export type SubjectChoice =
-  | "science"
-  | "geography"
-  | "biology"
-  | "physics"
-  | "general";
+export type SubjectChoice = "science" | "geography" | "biology" | "physics" | "general";
 
 export const SUBJECT_CHOICES: Array<{ id: SubjectChoice; label: string }> = [
   { id: "science", label: "Science" },
@@ -49,11 +44,7 @@ export const LENGTH_CHOICES: Array<{
   { id: "standard", label: "Standard", hint: "~2 minutes" },
 ];
 
-export type LearningGoal =
-  | "basics"
-  | "misconception"
-  | "test"
-  | "";
+export type LearningGoal = "basics" | "misconception" | "test" | "";
 
 export const LEARNING_GOALS: Array<{ id: LearningGoal; label: string }> = [
   { id: "", label: "No specific goal" },
@@ -79,12 +70,7 @@ export const EMPTY_CREATE_FORM: CreateFormValues = {
 };
 
 export function isFormReady(v: CreateFormValues): boolean {
-  return (
-    v.topic.trim().length >= 2 &&
-    !!v.subject &&
-    !!v.readingLevel &&
-    !!v.length
-  );
+  return v.topic.trim().length >= 2 && !!v.subject && !!v.readingLevel && !!v.length;
 }
 
 export interface GenerationStep {
@@ -147,8 +133,7 @@ export const SAMPLE_BLACK_HOLES_PACK: GeneratedConceptPack = {
       "Black holes only have strong gravity up close. From far enough away, orbiting one is just like orbiting a star of the same mass.",
   },
   mindBlown: {
-    headline:
-      "If the Sun suddenly became a black hole, Earth's orbit would barely change.",
+    headline: "If the Sun suddenly became a black hole, Earth's orbit would barely change.",
     detail: "It would just get very dark and very cold.",
   },
   createdAtLabel: "Just now",

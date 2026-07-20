@@ -21,10 +21,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/dev")({
   head: () => ({
-    meta: [
-      { title: "Jenius — State preview" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Jenius — State preview" }, { name: "robots", content: "noindex" }],
   }),
   component: DevPreview,
 });
@@ -45,17 +42,13 @@ function DevPreview() {
       id: "feed-text",
       group: "Feed",
       label: "Text-only concept",
-      render: () => (
-        <DiscoverFeed concepts={MOCK_CONCEPTS.filter((c) => !c.media)} />
-      ),
+      render: () => <DiscoverFeed concepts={MOCK_CONCEPTS.filter((c) => !c.media)} />,
     },
     {
       id: "feed-media",
       group: "Feed",
       label: "Media (video-ready) concept",
-      render: () => (
-        <DiscoverFeed concepts={MOCK_CONCEPTS.filter((c) => c.media)} />
-      ),
+      render: () => <DiscoverFeed concepts={MOCK_CONCEPTS.filter((c) => c.media)} />,
     },
     {
       id: "feed-loading",
@@ -104,49 +97,37 @@ function DevPreview() {
       id: "feedback-correct",
       group: "Feedback",
       label: "Correct",
-      render: () => (
-        <DiscoverFeed stageOverride="feedback-correct" previewConceptId="seasons" />
-      ),
+      render: () => <DiscoverFeed stageOverride="feedback-correct" previewConceptId="seasons" />,
     },
     {
       id: "feedback-incorrect-seasons",
       group: "Feedback",
       label: "Incorrect — Seasons (distance misconception)",
-      render: () => (
-        <DiscoverFeed stageOverride="feedback-incorrect" previewConceptId="seasons" />
-      ),
+      render: () => <DiscoverFeed stageOverride="feedback-incorrect" previewConceptId="seasons" />,
     },
     {
       id: "feedback-incorrect-planes",
       group: "Feedback",
       label: "Incorrect — Planes",
-      render: () => (
-        <DiscoverFeed stageOverride="feedback-incorrect" previewConceptId="planes" />
-      ),
+      render: () => <DiscoverFeed stageOverride="feedback-incorrect" previewConceptId="planes" />,
     },
     {
       id: "feedback-incorrect-dna",
       group: "Feedback",
       label: "Incorrect — DNA",
-      render: () => (
-        <DiscoverFeed stageOverride="feedback-incorrect" previewConceptId="dna" />
-      ),
+      render: () => <DiscoverFeed stageOverride="feedback-incorrect" previewConceptId="dna" />,
     },
     {
       id: "retry",
       group: "Feedback",
       label: "Retry",
-      render: () => (
-        <DiscoverFeed stageOverride="retry" previewConceptId="seasons" />
-      ),
+      render: () => <DiscoverFeed stageOverride="retry" previewConceptId="seasons" />,
     },
     {
       id: "mind-blown",
       group: "Feedback",
       label: "Mind Blown",
-      render: () => (
-        <DiscoverFeed stageOverride="mind-blown" previewConceptId="seasons" />
-      ),
+      render: () => <DiscoverFeed stageOverride="mind-blown" previewConceptId="seasons" />,
     },
 
     {
@@ -192,10 +173,7 @@ function DevPreview() {
       group: "Create",
       label: "Generated Black Holes",
       render: () => (
-        <CreateScreen
-          generationStatus="success"
-          generatedPack={SAMPLE_BLACK_HOLES_PACK}
-        />
+        <CreateScreen generationStatus="success" generatedPack={SAMPLE_BLACK_HOLES_PACK} />
       ),
     },
 
@@ -203,17 +181,13 @@ function DevPreview() {
       id: "explain-success",
       group: "Explain more",
       label: "Success",
-      render: () => (
-        <ExplainStandalone status="success" pack={EXPLAIN_PACKS.seasons} />
-      ),
+      render: () => <ExplainStandalone status="success" pack={EXPLAIN_PACKS.seasons} />,
     },
     {
       id: "explain-cached",
       group: "Explain more",
       label: "Cached",
-      render: () => (
-        <ExplainStandalone status="cached" pack={EXPLAIN_PACKS.seasons} />
-      ),
+      render: () => <ExplainStandalone status="cached" pack={EXPLAIN_PACKS.seasons} />,
     },
     {
       id: "explain-loading",
@@ -284,10 +258,7 @@ function DevPreview() {
       label: "Media unavailable",
       render: () => (
         <MediaFrame>
-          <MediaSlot
-            media={MOCK_CONCEPTS.find((c) => c.id === "seasons")!.media}
-            failed
-          />
+          <MediaSlot media={MOCK_CONCEPTS.find((c) => c.id === "seasons")!.media} failed />
         </MediaFrame>
       ),
     },
@@ -297,10 +268,7 @@ function DevPreview() {
       label: "Reduced motion",
       render: () => (
         <MediaFrame>
-          <MediaSlot
-            media={MOCK_CONCEPTS.find((c) => c.id === "seasons")!.media}
-            reducedMotion
-          />
+          <MediaSlot media={MOCK_CONCEPTS.find((c) => c.id === "seasons")!.media} reducedMotion />
         </MediaFrame>
       ),
     },

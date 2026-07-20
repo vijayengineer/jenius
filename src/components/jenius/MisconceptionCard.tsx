@@ -31,9 +31,7 @@ export const MisconceptionCard = React.forwardRef<HTMLDivElement, MisconceptionC
       >
         <div className="flex items-center gap-2 text-misconception">
           <AlertCircle className="size-4" />
-          <span className="text-[11px] font-semibold uppercase tracking-wider">
-            {title}
-          </span>
+          <span className="text-[11px] font-semibold uppercase tracking-wider">{title}</span>
         </div>
 
         <p className="mt-3 text-[17px] font-medium leading-snug text-foreground line-through decoration-misconception/60 decoration-2">
@@ -44,9 +42,7 @@ export const MisconceptionCard = React.forwardRef<HTMLDivElement, MisconceptionC
           <div className="text-[11px] font-semibold uppercase tracking-wider text-success">
             Actually
           </div>
-          <p className="mt-1 text-[15px] leading-relaxed text-foreground/90">
-            {correction}
-          </p>
+          <p className="mt-1 text-[15px] leading-relaxed text-foreground/90">{correction}</p>
         </div>
       </div>
     );

@@ -23,10 +23,7 @@ export const FeedTopBar = React.forwardRef<HTMLDivElement, FeedTopBarProps>(
     return (
       <div
         ref={ref}
-        className={cn(
-          "flex items-center justify-between gap-3 px-4 py-3",
-          className,
-        )}
+        className={cn("flex items-center justify-between gap-3 px-4 py-3", className)}
         {...props}
       >
         <JeniusMark size={26} />
