@@ -17,14 +17,36 @@ This log is factual and should be updated only after a capability is working and
 
 - [x] Audit repository, remotes, routes, components, styles, data, and baseline checks.
 - [x] Record architecture, design constraints, content rules, and Build Week scope.
-- [ ] Add strict content schemas and validate all ten bundled concepts.
-- [ ] Add content validation/report scripts and tests.
-- [ ] Add deterministic learning reducer and end-to-end domain flow.
-- [ ] Add versioned IndexedDB repository and application provider.
-- [ ] Connect Feed, Saved, Create, and Me to real local state.
-- [ ] Add manifest, icons, service worker, and offline fallback.
-- [ ] Pass validation, report, tests, typecheck, lint, and build.
-- [ ] Review the live application for obvious mobile and accessibility regressions.
+- [x] Add strict content schemas and validate all ten bundled concepts.
+- [x] Add content validation/report scripts and tests.
+- [x] Add deterministic learning reducer and end-to-end domain flow.
+- [x] Add versioned IndexedDB repository and application provider.
+- [x] Connect Feed, Saved, Create, and Me to real local state.
+- [x] Add manifest, icons, service worker, and offline fallback.
+- [x] Pass validation, report, tests, typecheck, lint, and build.
+- [x] Review the live application for obvious mobile and accessibility regressions.
+
+## Implemented
+
+- Zod validates the ten-concept catalogue and rejects duplicate IDs, malformed questions, missing
+  misconception references/retries/facts/text, and remote media URLs.
+- Content reporting confirms 10 concepts, 20 questions, 30 misconception branches, 100%
+  wrong-answer coverage, and the five requested animation-ready concepts.
+- A pure reducer covers viewing, answering, teacher feedback, misconception, retry, retry
+  feedback, Mind Blown, and completion states. Completion XP is idempotent.
+- IndexedDB persists completion, saves, attempts, misconception/retry history, XP, 0–5
+  understanding, recent activity, review scheduling, and local topic requests behind one
+  repository.
+- Saved supports both existing collections. Create records a validated local request without
+  claiming remote generation. Me derives XP, completion, understanding, subject distribution,
+  activity, and retry/misconception statistics from learner state.
+- The manifest, same-origin service worker, app icon, cached shell/static assets, and navigation
+  fallback make bundled lessons available after an initial load.
+- The complete quality gate passed with 19 tests across four files. Lint has no errors; 11
+  pre-existing Fast Refresh advisory warnings remain for mixed-export component modules.
+- Post-build development smoke tests returned HTTP 200 for all five routes and every PWA asset.
+  Source review confirmed retained safe-area layout, keyboard/radio semantics, visible focus
+  treatment, reduced-motion rules, optional media collapse, and explicit non-swipe controls.
 
 ## Demo outline
 

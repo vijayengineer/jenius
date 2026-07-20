@@ -44,6 +44,22 @@ credentials. Server-generated learning packs must pass the same content validati
 Personalised/sensitive responses require an explicit cache policy and are excluded from the
 general service-worker runtime cache.
 
+## Implemented application flow
+
+The Feed now consumes `VERIFIED_CONCEPTS` through adapters that preserve the Lovable presenter
+contracts. `learningReducer` owns deterministic domain transitions and the feed mirrors those
+events while retaining the existing sheet states and motion. Closing a sheet hides it without
+discarding the learner's selection or feedback stage.
+
+`LearningProvider` is the only React-level persistence coordinator. It hydrates a versioned
+learner document from `LearningRepository`, applies pure updates, and writes the resulting
+document back. Saved, Create, and Me consume selectors over that same state. The current
+`LocalTopicGenerationService` stores a validated request and explicitly does not return a
+fabricated pack.
+
+The production-only service-worker registration caches same-origin shell/static requests and
+navigation fallbacks. `/api/` and cross-origin requests are deliberately excluded.
+
 ## Persistence decisions
 
 Learner state is a single serializable versioned document to make migrations atomic and testable.
