@@ -26,13 +26,10 @@ import { initialLearningState, learningReducer, toLearningOutcome } from "@/lear
 import { useLearning } from "@/state/LearningProvider";
 import { selectProgressStats } from "@/state/selectors";
 import type { SavedCollection } from "@/storage/learner-state";
-import {
-  EXPLAIN_PACKS,
-  createLocalExplainPack,
-  type ExplainPack,
-  type ExplainStatus,
-} from "@/lib/jenius/explainMore";
+import { EXPLAIN_PACKS, type ExplainPack, type ExplainStatus } from "@/lib/jenius/explainMore";
 import { useOffline } from "@/lib/jenius/offline";
+import { createJeniusApiClient, JeniusApiError } from "@/api/client";
+import type { ExplanationStyle } from "../../../shared/contracts";
 import { Bookmark, Home, Plus, User } from "lucide-react";
 
 const FEED_NAV_ITEMS: BottomNavItem[] = [
@@ -292,6 +289,8 @@ export function DiscoverFeed({
   const [explainConceptId, setExplainConceptId] = React.useState<string | null>(null);
   const [explainStatus, setExplainStatus] = React.useState<ExplainStatus>("available");
   const [explainPack, setExplainPack] = React.useState<ExplainPack | undefined>();
+  const [explanationStyle, setExplanationStyle] = React.useState<ExplanationStyle>("simpler");
+  const api = React.useMemo(() => createJeniusApiClient(), []);
 
   const explainConcept = explainConceptId
     ? (concepts.find((c) => c.id === explainConceptId) ?? null)
@@ -314,13 +313,39 @@ export function DiscoverFeed({
     setExplainPack(undefined);
   };
 
-  const fetchExplain = () => {
+  const fetchExplain = async () => {
     if (!explainConcept) return;
     setExplainStatus("loading");
-    window.setTimeout(() => {
-      setExplainPack(createLocalExplainPack(explainConcept.id, explainConcept.hook));
+    try {
+      const response = await api.explain({
+        conceptId: explainConcept.id,
+        explanationStyle,
+      });
+      setExplainPack({
+        conceptId: response.conceptId,
+        alternative: response.explanation,
+        memoryHook: response.memoryHook,
+        miniExample: response.miniExample,
+        fromCache: response.cached,
+      });
       setExplainStatus("success");
-    }, 700);
+    } catch (error) {
+      if (error instanceof JeniusApiError) {
+        if (error.category === "timeout") setExplainStatus("timeout");
+        else if (error.category === "rate-limit") setExplainStatus("rate-limited");
+        else if (error.category === "offline") {
+          const cached = EXPLAIN_PACKS[explainConcept.id];
+          if (cached) {
+            setExplainPack(cached);
+            setExplainStatus("cached");
+          } else {
+            setExplainStatus("offline-unavailable");
+          }
+        } else setExplainStatus("server-error");
+      } else {
+        setExplainStatus("server-error");
+      }
+    }
   };
 
   const closeExplain = () => setExplainConceptId(null);
@@ -565,7 +590,9 @@ export function DiscoverFeed({
           conceptHook={explainConcept.hook}
           status={explainStatus}
           pack={explainPack}
-          onRetry={fetchExplain}
+          style={explanationStyle}
+          onStyleChange={setExplanationStyle}
+          onRetry={() => void fetchExplain()}
           onClose={closeExplain}
         />
       ) : null}

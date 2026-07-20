@@ -15,6 +15,7 @@ import { SecondaryButton } from "./SecondaryButton";
 import { cn } from "@/lib/utils";
 import type { SubjectId } from "@/lib/jenius/types";
 import type { ExplainPack, ExplainStatus } from "@/lib/jenius/explainMore";
+import { ExplanationStyleSchema, type ExplanationStyle } from "../../../shared/contracts";
 
 export interface ExplainMoreSheetProps {
   open: boolean;
@@ -23,6 +24,8 @@ export interface ExplainMoreSheetProps {
   conceptHook: string;
   status: ExplainStatus;
   pack?: ExplainPack;
+  style?: ExplanationStyle;
+  onStyleChange?: (style: ExplanationStyle) => void;
   onRetry?: () => void;
   onClose?: () => void;
 }
@@ -47,6 +50,8 @@ export function ExplainMoreSheet({
   conceptHook,
   status,
   pack,
+  style = "simpler",
+  onStyleChange,
   onRetry,
   onClose,
 }: ExplainMoreSheetProps) {
@@ -64,10 +69,21 @@ export function ExplainMoreSheet({
           {status === "loading" ? <LoadingBlock /> : null}
 
           {(status === "success" || status === "cached") && pack ? (
-            <SuccessBlock pack={pack} cached={status === "cached" || !!pack.fromCache} />
+            <SuccessBlock
+              pack={pack}
+              locallyCached={status === "cached"}
+              reused={!!pack.fromCache}
+            />
           ) : null}
 
-          {status === "available" ? <AvailableBlock hook={conceptHook} onRetry={onRetry} /> : null}
+          {status === "available" ? (
+            <AvailableBlock
+              hook={conceptHook}
+              style={style}
+              onStyleChange={onStyleChange}
+              onRetry={onRetry}
+            />
+          ) : null}
 
           {status === "offline-unavailable" ? (
             <ErrorBlock
@@ -123,7 +139,25 @@ function LoadingBlock() {
   );
 }
 
-function AvailableBlock({ hook, onRetry }: { hook: string; onRetry?: () => void }) {
+const STYLE_LABELS: Record<ExplanationStyle, string> = {
+  simpler: "Simpler",
+  analogy: "Analogy",
+  visual: "Picture it",
+  example: "Example",
+  concise: "Concise",
+};
+
+function AvailableBlock({
+  hook,
+  style,
+  onStyleChange,
+  onRetry,
+}: {
+  hook: string;
+  style: ExplanationStyle;
+  onStyleChange?: (style: ExplanationStyle) => void;
+  onRetry?: () => void;
+}) {
   return (
     <div className="glass flex flex-col gap-3 rounded-2xl p-4">
       <div className="flex items-center gap-2">
@@ -131,20 +165,46 @@ function AvailableBlock({ hook, onRetry }: { hook: string; onRetry?: () => void 
         <span className="text-sm font-medium">Want another angle?</span>
       </div>
       <p className="text-sm text-foreground/80">
-        We can rewrite “{hook}” with a fresh analogy and a quick self-check.
+        We can rewrite “{hook}” from a fresh angle. Your original lesson stays right where it is.
       </p>
+      <div aria-label="Explanation style" className="flex flex-wrap gap-2">
+        {ExplanationStyleSchema.options.map((option) => (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={style === option}
+            onClick={() => onStyleChange?.(option)}
+            className={cn(
+              "min-h-11 rounded-full border px-3 text-xs font-medium transition-swift",
+              style === option
+                ? "border-brand-blue/60 bg-brand-blue/15 text-foreground"
+                : "border-white/10 bg-white/[0.03] text-foreground/65",
+            )}
+          >
+            {STYLE_LABELS[option]}
+          </button>
+        ))}
+      </div>
       <PrimaryButton onClick={onRetry}>Fetch alternative</PrimaryButton>
     </div>
   );
 }
 
-function SuccessBlock({ pack, cached }: { pack: ExplainPack; cached?: boolean }) {
+function SuccessBlock({
+  pack,
+  locallyCached,
+  reused,
+}: {
+  pack: ExplainPack;
+  locallyCached?: boolean;
+  reused?: boolean;
+}) {
   return (
     <div className="flex flex-col gap-3">
-      {cached ? (
+      {locallyCached || reused ? (
         <div className="inline-flex w-fit items-center gap-1.5 rounded-full border border-white/10 bg-white/6 px-3 py-1 text-[11px] text-foreground/75">
           <HardDriveDownload className="size-3.5 text-brand-blue" aria-hidden />
-          Saved on this device
+          {locallyCached ? "Saved on this device" : "Reused validated explanation"}
         </div>
       ) : null}
 
@@ -152,14 +212,30 @@ function SuccessBlock({ pack, cached }: { pack: ExplainPack; cached?: boolean })
         <p className="text-[15px] leading-relaxed text-foreground/90">{pack.alternative}</p>
       </Card>
 
-      <Card label="Analogy">
-        <p className="text-[15px] leading-relaxed text-foreground/85">{pack.analogy}</p>
-      </Card>
+      {pack.analogy ? (
+        <Card label="Analogy">
+          <p className="text-[15px] leading-relaxed text-foreground/85">{pack.analogy}</p>
+        </Card>
+      ) : null}
 
-      <Card label="Check yourself">
-        <p className="text-[15px] font-medium text-foreground">{pack.check.prompt}</p>
-        <p className="mt-1 text-[13px] text-foreground/70">Hint · {pack.check.answerHint}</p>
-      </Card>
+      {pack.miniExample ? (
+        <Card label="Mini example">
+          <p className="text-[15px] leading-relaxed text-foreground/85">{pack.miniExample}</p>
+        </Card>
+      ) : null}
+
+      {pack.memoryHook ? (
+        <Card label="Memory hook">
+          <p className="text-[15px] font-medium text-foreground">{pack.memoryHook}</p>
+        </Card>
+      ) : null}
+
+      {pack.check ? (
+        <Card label="Check yourself">
+          <p className="text-[15px] font-medium text-foreground">{pack.check.prompt}</p>
+          <p className="mt-1 text-[13px] text-foreground/70">Hint · {pack.check.answerHint}</p>
+        </Card>
+      ) : null}
     </div>
   );
 }

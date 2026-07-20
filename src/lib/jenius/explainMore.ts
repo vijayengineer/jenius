@@ -24,11 +24,14 @@ export interface ExplainPack {
   conceptId: string;
   /** Alternative explanation — different wording, same idea. */
   alternative: string;
-  /** A concrete analogy learners can picture. */
-  analogy: string;
-  /** One quick self-check question with a hint answer. */
-  check: ExplainCheckQuestion;
-  /** True if this pack is served from the local cache. */
+  /** A concrete analogy learners can picture in bundled packs. */
+  analogy?: string;
+  /** One quick self-check question in bundled packs. */
+  check?: ExplainCheckQuestion;
+  /** Optional structured coach fields returned by the backend. */
+  memoryHook?: string;
+  miniExample?: string;
+  /** True if the server reused an already validated response. */
   fromCache?: boolean;
 }
 
