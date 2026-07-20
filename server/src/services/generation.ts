@@ -12,7 +12,7 @@ import type { StructuredModelGateway } from "../model/gateway.js";
 import { GENERATED_CONCEPT_JSON_SCHEMA } from "../model/schema.js";
 import { buildGenerationPrompt, buildRepairPrompt } from "../prompts/generation.js";
 import type { JeniusRepository } from "../repositories/types.js";
-import { assertSafeGenerateRequest } from "../safety.js";
+import { assertSafeGenerateRequest, containsPromptLeakage } from "../safety.js";
 import { consumeUsageOrThrow, mapModelError } from "./common.js";
 
 export interface GenerationServiceInput {
@@ -123,8 +123,14 @@ export class GenerationService {
       normalizeModelConcept(raw, input.request.topic, generatedAt),
     );
 
-    if (!parsed.success) {
-      const repair = buildRepairPrompt(input.request, raw, validationSummary(parsed));
+    if (!parsed.success || containsPromptLeakage(parsed.data)) {
+      const repair = buildRepairPrompt(
+        input.request,
+        raw,
+        parsed.success
+          ? "Lesson content referenced hidden prompts or internal instructions"
+          : validationSummary(parsed),
+      );
       raw = await this.callModel({
         ...repair,
         safetyIdentifier: input.requestFingerprint,
@@ -133,7 +139,7 @@ export class GenerationService {
         normalizeModelConcept(raw, input.request.topic, generatedAt),
       );
     }
-    if (!parsed.success) {
+    if (!parsed.success || containsPromptLeakage(parsed.data)) {
       throw new ApiError(
         502,
         "validation_failed",

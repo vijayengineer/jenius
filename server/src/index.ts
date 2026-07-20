@@ -21,7 +21,12 @@ async function shutdown(signal: string) {
     await app.close();
     process.exitCode = 0;
   } catch (error) {
-    app.log.error({ err: error }, "shutdown failed");
+    app.log.error(
+      config.nodeEnv === "production"
+        ? { message: error instanceof Error ? error.message : "Unknown shutdown error" }
+        : { err: error },
+      "shutdown failed",
+    );
     process.exitCode = 1;
   }
 }
@@ -32,6 +37,11 @@ process.once("SIGTERM", () => void shutdown("SIGTERM"));
 try {
   await app.listen({ host: config.host, port: config.port });
 } catch (error) {
-  app.log.error({ err: error }, "startup failed");
+  app.log.error(
+    config.nodeEnv === "production"
+      ? { message: error instanceof Error ? error.message : "Unknown startup error" }
+      : { err: error },
+    "startup failed",
+  );
   process.exitCode = 1;
 }

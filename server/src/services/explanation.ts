@@ -12,6 +12,7 @@ import type { StructuredModelGateway } from "../model/gateway.js";
 import { EXPLANATION_JSON_SCHEMA } from "../model/schema.js";
 import { buildExplanationPrompt } from "../prompts/explanation.js";
 import type { JeniusRepository } from "../repositories/types.js";
+import { containsPromptLeakage } from "../safety.js";
 import { consumeUsageOrThrow, mapModelError } from "./common.js";
 
 export interface ExplanationServiceInput {
@@ -117,7 +118,7 @@ export class ExplanationService {
         ? { ...raw, miniExample: undefined }
         : raw;
     const payload = ExplanationPayloadSchema.safeParse(normalized);
-    if (!payload.success) {
+    if (!payload.success || containsPromptLeakage(payload.data)) {
       throw new ApiError(
         502,
         "validation_failed",

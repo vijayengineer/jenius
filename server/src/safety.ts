@@ -36,3 +36,10 @@ export function assertSafeGenerateRequest(request: GenerateRequest): void {
     );
   }
 }
+
+export function containsPromptLeakage(value: unknown): boolean {
+  const text = JSON.stringify(value);
+  return /(system prompt|developer message|hidden instructions?|internal policy|prompt text)/i.test(
+    text,
+  );
+}

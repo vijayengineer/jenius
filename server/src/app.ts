@@ -156,7 +156,18 @@ export async function buildApp(dependencies: AppDependencies): Promise<FastifyIn
           : error;
     const formatted = formatSafeError(normalized, request.id);
     if (formatted.statusCode >= 500) {
-      request.log.error({ err: error, requestId: request.id }, "request failed");
+      if (config.nodeEnv === "production") {
+        request.log.error(
+          {
+            requestId: request.id,
+            statusCode: formatted.statusCode,
+            code: formatted.body.error.code,
+          },
+          "request failed",
+        );
+      } else {
+        request.log.error({ err: error, requestId: request.id }, "request failed");
+      }
     }
     return reply.status(formatted.statusCode).send(formatted.body);
   });

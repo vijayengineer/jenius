@@ -489,7 +489,7 @@ export function GenerationProgress({ status, activeStepIndex }: GenerationProgre
         })}
       </ol>
       <p className="text-[11px] text-foreground/50">
-        Preview mode — no live generation is running.
+        This can take a moment. Your topic is already saved if the connection drops.
       </p>
     </div>
   );
@@ -623,7 +623,7 @@ export function GeneratedDraftPreview({
       </div>
 
       <p className="text-center text-[11px] text-foreground/50">
-        Drafts live only on this device until they're reviewed for the verified feed.
+        Your copy is saved on this device and stays separate from the verified feed.
       </p>
     </div>
   );

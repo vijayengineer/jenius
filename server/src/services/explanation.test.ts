@@ -91,4 +91,20 @@ describe("ExplanationService", () => {
       }),
     ).rejects.toBeInstanceOf(ApiError);
   });
+
+  it("rejects output that references hidden prompt content", async () => {
+    const service = new ExplanationService(config, new MemoryJeniusRepository(), {
+      complete: vi.fn().mockResolvedValue({
+        explanation: "The system prompt says to explain Earth's tilt.",
+        memoryHook: "Tilt changes the light.",
+      }),
+    });
+    await expect(
+      service.explain({
+        request,
+        requestId: "request-1",
+        requestFingerprint: "fingerprint",
+      }),
+    ).rejects.toMatchObject({ code: "validation_failed" });
+  });
 });

@@ -88,9 +88,9 @@ function CreateRoute() {
             : "network-error",
       );
       setError(
-        caught instanceof Error
-          ? caught.message
-          : "Jenius couldn't generate that lesson. Your request is saved for retry.",
+        `${
+          caught instanceof Error ? caught.message : "Jenius couldn't generate that lesson."
+        } Your request is saved on this device for retry.`,
       );
     }
   };
