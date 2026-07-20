@@ -26,6 +26,22 @@ This log is factual and should be updated only after a capability is working and
 - [x] Pass validation, report, tests, typecheck, lint, and build.
 - [x] Review the live application for obvious mobile and accessibility regressions.
 
+### Session 2A — secure optional AI backend
+
+- [x] Re-audit instructions, architecture, content, learning state, IndexedDB, Create, PWA, branch,
+      remotes, and baseline quality gates.
+- [ ] Scaffold the standalone Fastify TypeScript service and safe health endpoint.
+- [ ] Add server-only Firestore repositories, request fingerprints, and usage limits.
+- [ ] Add structured alternative-explanation generation and reusable caching.
+- [ ] Add structured personal-concept generation with one repair attempt.
+- [ ] Connect one typed, timeout-aware frontend API layer.
+- [ ] Preserve deterministic lessons when explaining fails or the browser is offline.
+- [ ] Persist validated generated concepts and pending retries in IndexedDB.
+- [ ] Add backend, frontend, and offline integration coverage.
+- [ ] Document Firebase, Ubuntu, Nginx, HTTPS, Vercel, mobile testing, and rollback.
+- [ ] Run the complete verification and credential audit, commit logical phases, and leave the
+      branch clean without pushing.
+
 ## Implemented
 
 - Zod validates the ten-concept catalogue and rejects duplicate IDs, malformed questions, missing
