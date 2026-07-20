@@ -67,4 +67,26 @@ describe("learning engine", () => {
     expect(reopened.phase).toBe("answering");
     expect(reopened.panelOpen).toBe(true);
   });
+
+  it("changes understanding based on the successful path", () => {
+    const direct = toLearningOutcome({
+      ...initialLearningState,
+      conceptId: seasons.id,
+      phase: "completed",
+      completed: true,
+      primaryCorrect: true,
+      xpAwarded: 100,
+    });
+    const corrected = toLearningOutcome({
+      ...initialLearningState,
+      conceptId: seasons.id,
+      phase: "completed",
+      completed: true,
+      primaryCorrect: false,
+      retryCorrect: true,
+      xpAwarded: 75,
+    });
+    expect(direct?.understandingLevel).toBe(5);
+    expect(corrected?.understandingLevel).toBe(4);
+  });
 });

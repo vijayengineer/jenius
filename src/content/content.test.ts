@@ -40,4 +40,42 @@ describe("verified content", () => {
     invalid.primaryQuestion.options[0].misconceptionId = "missing-idea";
     expect(FeedConceptSchema.safeParse(invalid).success).toBe(false);
   });
+
+  it.each([
+    [
+      "an empty required field",
+      (value: (typeof VERIFIED_CONCEPTS)[number]) => {
+        value.explanation = "";
+      },
+    ],
+    [
+      "a missing Mind Blown fact",
+      (value: (typeof VERIFIED_CONCEPTS)[number]) => {
+        value.mindBlown.headline = "";
+      },
+    ],
+    [
+      "fewer than four answers",
+      (value: (typeof VERIFIED_CONCEPTS)[number]) => {
+        value.primaryQuestion.options.pop();
+      },
+    ],
+    [
+      "multiple correct answers",
+      (value: (typeof VERIFIED_CONCEPTS)[number]) => {
+        value.primaryQuestion.options[0].isCorrect = true;
+        value.primaryQuestion.options[1].isCorrect = true;
+      },
+    ],
+    [
+      "an incomplete retry",
+      (value: (typeof VERIFIED_CONCEPTS)[number]) => {
+        value.retryQuestion.wrapUp = "";
+      },
+    ],
+  ])("rejects %s", (_label, mutate) => {
+    const invalid = structuredClone(VERIFIED_CONCEPTS[0]);
+    mutate(invalid);
+    expect(FeedConceptSchema.safeParse(invalid).success).toBe(false);
+  });
 });
