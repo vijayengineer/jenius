@@ -1,0 +1,20 @@
+{
+  "name": "Jenius — Infinite Understanding",
+  "short_name": "Jenius",
+  "description": "A mixed-subject learning feed with misconception-aware feedback.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#141428",
+  "theme_color": "#141428",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/jenius-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

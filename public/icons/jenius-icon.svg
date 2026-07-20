@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Jenius">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5d9cff"/>
+      <stop offset=".52" stop-color="#8467ed"/>
+      <stop offset="1" stop-color="#a04ed8"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#141428"/>
+  <circle cx="256" cy="256" r="174" fill="url(#brand)" opacity=".18"/>
+  <path d="M173 132h72v206c0 36-12 64-37 84-22 18-51 27-88 27v-66c18 0 31-4 40-12 9-8 13-21 13-39V132Z" fill="url(#brand)"/>
+  <circle cx="342" cy="181" r="46" fill="url(#brand)"/>
+  <path d="M298 255h88v62h-88z" fill="#f7f7ff" opacity=".92"/>
+</svg>
