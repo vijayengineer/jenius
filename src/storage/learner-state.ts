@@ -1,7 +1,24 @@
 import { z } from "zod";
 import type { LearningOutcome } from "@/content/schema";
+import { GeneratedConceptSchema, type GeneratedConcept } from "../../shared/contracts";
+import type { CreateFormValues } from "@/lib/jenius/generatedPack";
 
 const SavedCollectionSchema = z.enum(["mind-blown", "finally-get-it"]);
+const TopicRequestStatusSchema = z.enum(["local-request", "pending", "failed", "generated"]);
+
+const TopicRequestSchema = z.object({
+  id: z.string(),
+  topic: z.string(),
+  subject: z.string(),
+  readingLevel: z.string(),
+  length: z.string(),
+  goal: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string().optional(),
+  status: TopicRequestStatusSchema,
+  errorCategory: z.string().optional(),
+  generatedConceptId: z.string().optional(),
+});
 
 const LearnerStateV1Schema = z.object({
   version: z.literal(1),
@@ -57,18 +74,8 @@ const LearnerStateV1Schema = z.object({
       intervalDays: z.number().int().positive(),
     }),
   ),
-  topicRequests: z.array(
-    z.object({
-      id: z.string(),
-      topic: z.string(),
-      subject: z.string(),
-      readingLevel: z.string(),
-      length: z.string(),
-      goal: z.string(),
-      createdAt: z.string(),
-      status: z.literal("local-request"),
-    }),
-  ),
+  topicRequests: z.array(TopicRequestSchema),
+  generatedConcepts: z.array(GeneratedConceptSchema).default([]),
 });
 
 export type LearnerState = z.infer<typeof LearnerStateV1Schema>;
@@ -86,6 +93,7 @@ export function createInitialLearnerState(): LearnerState {
     recentActivity: [],
     reviews: {},
     topicRequests: [],
+    generatedConcepts: [],
   };
 }
 
@@ -179,5 +187,89 @@ export function recordAttempt(
       ...state.attempts,
       { ...attempt, id: `${attempt.conceptId}-${attempt.kind}-${createdAt}`, createdAt },
     ],
+  };
+}
+
+export function queueTopicRequest(
+  state: LearnerState,
+  values: CreateFormValues,
+  requestId: string,
+  now = new Date(),
+): LearnerState {
+  const createdAt = now.toISOString();
+  return {
+    ...state,
+    topicRequests: [
+      {
+        id: requestId,
+        topic: values.topic.trim(),
+        subject: values.subject,
+        readingLevel: values.readingLevel,
+        length: values.length,
+        goal: values.goal,
+        createdAt,
+        updatedAt: createdAt,
+        status: "pending",
+      },
+      ...state.topicRequests.filter((request) => request.id !== requestId),
+    ],
+  };
+}
+
+export function failTopicRequest(
+  state: LearnerState,
+  requestId: string,
+  errorCategory: string,
+  now = new Date(),
+): LearnerState {
+  return {
+    ...state,
+    topicRequests: state.topicRequests.map((request) =>
+      request.id === requestId
+        ? {
+            ...request,
+            status: "failed" as const,
+            errorCategory,
+            updatedAt: now.toISOString(),
+          }
+        : request,
+    ),
+  };
+}
+
+export function storeGeneratedConcept(
+  state: LearnerState,
+  requestId: string,
+  concept: GeneratedConcept,
+  now = new Date(),
+): LearnerState {
+  const validated = GeneratedConceptSchema.parse(concept);
+  return {
+    ...state,
+    generatedConcepts: [
+      validated,
+      ...state.generatedConcepts.filter((item) => item.id !== validated.id),
+    ],
+    topicRequests: state.topicRequests.map((request) =>
+      request.id === requestId
+        ? {
+            ...request,
+            status: "generated" as const,
+            generatedConceptId: validated.id,
+            errorCategory: undefined,
+            updatedAt: now.toISOString(),
+          }
+        : request,
+    ),
+  };
+}
+
+export function deleteGeneratedConcept(state: LearnerState, conceptId: string): LearnerState {
+  return {
+    ...state,
+    generatedConcepts: state.generatedConcepts.filter((concept) => concept.id !== conceptId),
+    topicRequests: state.topicRequests.filter(
+      (request) => request.generatedConceptId !== conceptId,
+    ),
   };
 }

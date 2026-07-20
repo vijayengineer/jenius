@@ -3,8 +3,14 @@ import { CreateScreen } from "@/components/jenius/CreateScreen";
 import { TabShell, useActiveTab } from "@/components/jenius/TabShell";
 import * as React from "react";
 import { useOffline } from "@/lib/jenius/offline";
-import { LocalTopicGenerationService } from "@/services/topic-generation";
+import { RemoteTopicGenerationService } from "@/services/topic-generation";
 import { useLearning } from "@/state/LearningProvider";
+import { createJeniusApiClient, JeniusApiError } from "@/api/client";
+import {
+  toGeneratedConceptPack,
+  type GeneratedConceptPack,
+  type GenerationStatus,
+} from "@/lib/jenius/generatedPack";
 
 export const Route = createFileRoute("/create")({
   head: () => ({
@@ -27,23 +33,87 @@ export const Route = createFileRoute("/create")({
 function CreateRoute() {
   const active = useActiveTab();
   const { online } = useOffline();
-  const { saveTopicRequest } = useLearning();
-  const [requestStored, setRequestStored] = React.useState(false);
+  const {
+    state,
+    queueTopicRequest,
+    failTopicRequest,
+    storeGeneratedConcept,
+    deleteGeneratedConcept,
+  } = useLearning();
+  const [status, setStatus] = React.useState<GenerationStatus | undefined>();
+  const [error, setError] = React.useState<string>();
+  const [pack, setPack] = React.useState<GeneratedConceptPack | null>(null);
   const service = React.useMemo(
-    () => new LocalTopicGenerationService(saveTopicRequest),
-    [saveTopicRequest],
+    () => new RemoteTopicGenerationService(createJeniusApiClient()),
+    [],
   );
+  const personalPacks = React.useMemo(
+    () => state.generatedConcepts.map(toGeneratedConceptPack),
+    [state.generatedConcepts],
+  );
+
+  const generate = async (values: Parameters<typeof queueTopicRequest>[0]) => {
+    const requestId = `topic-${
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : new Date().toISOString()
+    }`;
+    queueTopicRequest(values, requestId);
+    setPack(null);
+    setError(undefined);
+    if (!online) {
+      failTopicRequest(requestId, "offline");
+      setStatus("offline");
+      setError("You're offline. The request is saved on this device for retry.");
+      return;
+    }
+    setStatus("generating");
+    try {
+      const result = await service.request(values);
+      if (result.status !== "generated" || !result.concept) {
+        throw new Error("Generation did not return a concept");
+      }
+      storeGeneratedConcept(requestId, result.concept);
+      const generatedPack = toGeneratedConceptPack(result.concept);
+      setPack(generatedPack);
+      setStatus("success");
+    } catch (caught) {
+      const category = caught instanceof JeniusApiError ? caught.category : "network";
+      failTopicRequest(requestId, category);
+      setStatus(
+        category === "offline"
+          ? "offline"
+          : category === "rate-limit"
+            ? "rate-limit"
+            : "network-error",
+      );
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "Jenius couldn't generate that lesson. Your request is saved for retry.",
+      );
+    }
+  };
+
   return (
     <TabShell active={active}>
       <CreateScreen
         online={online}
-        localOnly
-        requestStored={requestStored}
-        onGenerate={(values) => {
-          void service.request(values).then(() => {
-            setRequestStored(true);
-          });
+        generationStatus={status}
+        generatedPack={pack}
+        personalPacks={personalPacks}
+        error={error}
+        onOpenPersonal={(selected) => {
+          setPack(selected);
+          setStatus("success");
         }}
+        onDelete={(selected) => {
+          deleteGeneratedConcept(selected.id);
+          setPack(null);
+          setStatus(undefined);
+        }}
+        onSave={() => {}}
+        onGenerate={(values) => void generate(values)}
       />
     </TabShell>
   );
