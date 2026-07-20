@@ -8,6 +8,8 @@ import type { SubjectId } from "./types";
 export interface ProgressStats {
   /** Total locally awarded experience points. */
   xp?: number;
+  /** Mean persisted understanding level, 0..5. */
+  averageUnderstanding?: number;
   /** Current curiosity streak in days. */
   streakDays: number;
   conceptsExplored: number;
@@ -27,6 +29,11 @@ export interface ProgressStats {
     conceptId: string;
     label: string;
     correction: string;
+  }>;
+  recentActivity?: Array<{
+    id: string;
+    label: string;
+    createdAt: string;
   }>;
 }
 

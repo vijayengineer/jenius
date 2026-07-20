@@ -69,6 +69,12 @@ export function selectProgressStats(state: LearnerState): ProgressStats {
   const retries = state.retryOutcomes;
   return {
     xp: state.xp,
+    averageUnderstanding: completedIds.length
+      ? Object.values(state.completedConcepts).reduce(
+          (total, item) => total + item.understandingLevel,
+          0,
+        ) / completedIds.length
+      : 0,
     streakDays: calculateStreak(state),
     conceptsExplored: new Set(state.attempts.map(({ conceptId }) => conceptId)).size,
     conceptsUnderstood: completedIds.length,
@@ -80,6 +86,11 @@ export function selectProgressStats(state: LearnerState): ProgressStats {
     weekly,
     subjectBalance: [...subjectCounts].map(([subject, count]) => ({ subject, count })),
     recentMisconceptionsFixed,
+    recentActivity: state.recentActivity.map(({ id, label, createdAt }) => ({
+      id,
+      label,
+      createdAt,
+    })),
   };
 }
 

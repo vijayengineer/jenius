@@ -78,7 +78,7 @@ export function MeScreen({ stats = MOCK_PROGRESS_ACTIVE, name = "You" }: MeScree
         <StatCard label="Completed" value={stats.conceptsUnderstood} hint="Concepts understood" />
         <StatCard
           label="Understanding"
-          value={stats.conceptsUnderstood}
+          value={`${(stats.averageUnderstanding ?? 0).toFixed(1)}/5`}
           hint={
             stats.conceptsExplored ? `${understandingPct}% of explored` : "Let's explore some ideas"
           }
@@ -87,11 +87,6 @@ export function MeScreen({ stats = MOCK_PROGRESS_ACTIVE, name = "You" }: MeScree
           label="Ideas revisited"
           value={Math.round(stats.retrySuccessRate * 100) + "%"}
           hint="Retry success rate"
-        />
-        <StatCard
-          label="Misconceptions fixed"
-          value={stats.recentMisconceptionsFixed.length}
-          hint="Recent aha moments"
         />
       </section>
 
@@ -167,6 +162,33 @@ export function MeScreen({ stats = MOCK_PROGRESS_ACTIVE, name = "You" }: MeScree
                 <p className="mt-1 text-[13px] leading-relaxed text-foreground/75">
                   {m.correction}
                 </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {stats.recentActivity?.length ? (
+        <section
+          aria-label="Recent learning activity"
+          className="rounded-3xl border border-white/10 bg-white/[0.03] p-5"
+        >
+          <h2 className="text-[13px] font-semibold uppercase tracking-wider text-foreground/70">
+            Recent activity
+          </h2>
+          <ul className="mt-3 flex flex-col gap-2">
+            {stats.recentActivity.slice(0, 5).map((activity) => (
+              <li
+                key={activity.id}
+                className="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.03] p-3"
+              >
+                <span className="text-[13px] text-foreground/85">{activity.label}</span>
+                <time
+                  dateTime={activity.createdAt}
+                  className="shrink-0 text-[11px] text-foreground/50"
+                >
+                  {new Date(activity.createdAt).toLocaleDateString()}
+                </time>
               </li>
             ))}
           </ul>

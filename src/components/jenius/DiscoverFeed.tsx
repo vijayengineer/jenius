@@ -25,6 +25,7 @@ import { CONTENT_CHALLENGES, CONTENT_FEEDBACK } from "@/content/presenter";
 import { initialLearningState, learningReducer, toLearningOutcome } from "@/learning/engine";
 import { useLearning } from "@/state/LearningProvider";
 import { selectProgressStats } from "@/state/selectors";
+import type { SavedCollection } from "@/storage/learner-state";
 import {
   EXPLAIN_PACKS,
   mockFreshExplainPack,
@@ -135,14 +136,14 @@ export function DiscoverFeed({
     return () => observer.disconnect();
   }, [concepts.length, empty, loading]);
 
-  const toggleSave = (id: string) => {
+  const toggleSave = (id: string, collection: SavedCollection = "mind-blown") => {
     setSaved((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-    learningStore.toggleSaved(id);
+    learningStore.toggleSaved(id, collection);
   };
 
   const scrollToIndex = (idx: number) => {
@@ -504,7 +505,13 @@ export function DiscoverFeed({
           onRetrySubmit={submitRetry}
           mindBlown={activeFeedback.mindBlown}
           saved={activeChallengeConcept ? saved.has(activeChallengeConcept.id) : false}
-          onToggleSave={() => activeChallengeConcept && toggleSave(activeChallengeConcept.id)}
+          onToggleSave={() =>
+            activeChallengeConcept &&
+            toggleSave(
+              activeChallengeConcept.id,
+              retrySelectedId ? "finally-get-it" : "mind-blown",
+            )
+          }
           onShare={() => {
             // Real sharing wired up in a later prompt.
           }}
@@ -525,7 +532,15 @@ export function DiscoverFeed({
         message="Another idea understood."
         saved={completionConceptId ? saved.has(completionConceptId) : false}
         onKeepSwiping={() => setCompletionConceptId(null)}
-        onSave={completionConceptId ? () => toggleSave(completionConceptId) : undefined}
+        onSave={
+          completionConceptId
+            ? () =>
+                toggleSave(
+                  completionConceptId,
+                  retrySelectedId ? "finally-get-it" : "mind-blown",
+                )
+            : undefined
+        }
         onDismiss={() => setCompletionConceptId(null)}
       />
 
