@@ -507,10 +507,7 @@ export function DiscoverFeed({
           saved={activeChallengeConcept ? saved.has(activeChallengeConcept.id) : false}
           onToggleSave={() =>
             activeChallengeConcept &&
-            toggleSave(
-              activeChallengeConcept.id,
-              retrySelectedId ? "finally-get-it" : "mind-blown",
-            )
+            toggleSave(activeChallengeConcept.id, retrySelectedId ? "finally-get-it" : "mind-blown")
           }
           onShare={() => {
             // Real sharing wired up in a later prompt.
@@ -535,10 +532,7 @@ export function DiscoverFeed({
         onSave={
           completionConceptId
             ? () =>
-                toggleSave(
-                  completionConceptId,
-                  retrySelectedId ? "finally-get-it" : "mind-blown",
-                )
+                toggleSave(completionConceptId, retrySelectedId ? "finally-get-it" : "mind-blown")
             : undefined
         }
         onDismiss={() => setCompletionConceptId(null)}
