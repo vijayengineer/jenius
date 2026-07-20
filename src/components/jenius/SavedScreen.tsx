@@ -6,7 +6,6 @@ import { EmptyState } from "./EmptyState";
 import { SavedCard } from "./SavedCard";
 import { SubjectChip } from "./SubjectChip";
 import {
-  MOCK_SAVED_ITEMS,
   SAVED_COLLECTIONS,
   type SavedCollectionId,
   type SavedItem,
@@ -14,7 +13,7 @@ import {
 import { SUBJECTS, type SubjectId } from "@/lib/jenius/types";
 
 export interface SavedScreenProps {
-  items?: SavedItem[];
+  items: SavedItem[];
   /** When true, shows an offline notice above the list. */
   offline?: boolean;
   onReplay?: (conceptId: string) => void;
@@ -26,12 +25,7 @@ export interface SavedScreenProps {
  * with subject filters and a search field. Content-agnostic: pass in your
  * own items to preview populated / empty / offline states.
  */
-export function SavedScreen({
-  items = MOCK_SAVED_ITEMS,
-  offline = false,
-  onReplay,
-  onRemove,
-}: SavedScreenProps) {
+export function SavedScreen({ items, offline = false, onReplay, onRemove }: SavedScreenProps) {
   const [collection, setCollection] = React.useState<SavedCollectionId>("mind-blown");
   const [query, setQuery] = React.useState("");
   const [subjectFilter, setSubjectFilter] = React.useState<SubjectId | "all">("all");

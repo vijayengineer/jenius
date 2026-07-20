@@ -64,8 +64,8 @@ export const EXPLAIN_PACKS: Record<string, ExplainPack> = {
   },
 };
 
-/** Simulate a fetch that "succeeds" and returns a fresh pack. */
-export function mockFreshExplainPack(conceptId: string, hook: string): ExplainPack {
+/** Build a deterministic local explanation when a cached pack is unavailable. */
+export function createLocalExplainPack(conceptId: string, hook: string): ExplainPack {
   const cached = EXPLAIN_PACKS[conceptId];
   if (cached) return { ...cached, fromCache: false };
   return {

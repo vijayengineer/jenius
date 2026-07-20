@@ -10,10 +10,10 @@ import { ErrorState } from "@/components/jenius/ErrorState";
 import { EmptyState } from "@/components/jenius/EmptyState";
 import { OfflineBanner } from "@/components/jenius/OfflineBanner";
 import { LoadingState } from "@/components/jenius/LoadingState";
-import { MOCK_CONCEPTS } from "@/lib/jenius/mockConcepts";
+import { BASE_CONCEPTS } from "@/lib/jenius/concepts";
 import { EXPLAIN_PACKS } from "@/lib/jenius/explainMore";
-import { MOCK_PROGRESS_ACTIVE, MOCK_PROGRESS_NEW } from "@/lib/jenius/progress";
-import { MOCK_SAVED_ITEMS } from "@/lib/jenius/savedCollections";
+import { PREVIEW_PROGRESS_ACTIVE, PREVIEW_PROGRESS_NEW } from "@/lib/jenius/progress";
+import { PREVIEW_SAVED_ITEMS } from "@/lib/jenius/savedCollections";
 import { SAMPLE_BLACK_HOLES_PACK } from "@/lib/jenius/generatedPack";
 
 import { useOffline } from "@/lib/jenius/offline";
@@ -42,13 +42,13 @@ function DevPreview() {
       id: "feed-text",
       group: "Feed",
       label: "Text-only concept",
-      render: () => <DiscoverFeed concepts={MOCK_CONCEPTS.filter((c) => !c.media)} />,
+      render: () => <DiscoverFeed concepts={BASE_CONCEPTS.filter((c) => !c.media)} />,
     },
     {
       id: "feed-media",
       group: "Feed",
       label: "Media (video-ready) concept",
-      render: () => <DiscoverFeed concepts={MOCK_CONCEPTS.filter((c) => c.media)} />,
+      render: () => <DiscoverFeed concepts={BASE_CONCEPTS.filter((c) => c.media)} />,
     },
     {
       id: "feed-loading",
@@ -140,20 +140,20 @@ function DevPreview() {
       id: "saved-populated",
       group: "Saved",
       label: "Populated",
-      render: () => <SavedScreen items={MOCK_SAVED_ITEMS} />,
+      render: () => <SavedScreen items={PREVIEW_SAVED_ITEMS} />,
     },
 
     {
       id: "me-new",
       group: "Me",
       label: "New user",
-      render: () => <MeScreen stats={MOCK_PROGRESS_NEW} />,
+      render: () => <MeScreen stats={PREVIEW_PROGRESS_NEW} />,
     },
     {
       id: "me-active",
       group: "Me",
       label: "Active learner",
-      render: () => <MeScreen stats={MOCK_PROGRESS_ACTIVE} />,
+      render: () => <MeScreen stats={PREVIEW_PROGRESS_ACTIVE} />,
     },
 
     {
@@ -220,7 +220,7 @@ function DevPreview() {
       label: "Video poster",
       render: () => (
         <MediaFrame>
-          <MediaSlot media={MOCK_CONCEPTS.find((c) => c.id === "seasons")!.media} />
+          <MediaSlot media={BASE_CONCEPTS.find((c) => c.id === "seasons")!.media} />
         </MediaFrame>
       ),
     },
@@ -231,7 +231,7 @@ function DevPreview() {
       render: () => (
         <MediaFrame>
           <MediaSlot
-            media={MOCK_CONCEPTS.find((c) => c.id === "seasons")!.media}
+            media={BASE_CONCEPTS.find((c) => c.id === "seasons")!.media}
             playbackState="playing"
             muted={false}
             captionsOn
@@ -246,7 +246,7 @@ function DevPreview() {
       render: () => (
         <MediaFrame>
           <MediaSlot
-            media={MOCK_CONCEPTS.find((c) => c.id === "seasons")!.media}
+            media={BASE_CONCEPTS.find((c) => c.id === "seasons")!.media}
             playbackState="loading"
           />
         </MediaFrame>
@@ -258,7 +258,7 @@ function DevPreview() {
       label: "Media unavailable",
       render: () => (
         <MediaFrame>
-          <MediaSlot media={MOCK_CONCEPTS.find((c) => c.id === "seasons")!.media} failed />
+          <MediaSlot media={BASE_CONCEPTS.find((c) => c.id === "seasons")!.media} failed />
         </MediaFrame>
       ),
     },
@@ -268,7 +268,7 @@ function DevPreview() {
       label: "Reduced motion",
       render: () => (
         <MediaFrame>
-          <MediaSlot media={MOCK_CONCEPTS.find((c) => c.id === "seasons")!.media} reducedMotion />
+          <MediaSlot media={BASE_CONCEPTS.find((c) => c.id === "seasons")!.media} reducedMotion />
         </MediaFrame>
       ),
     },

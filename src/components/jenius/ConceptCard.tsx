@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ChevronUp, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Concept } from "@/lib/jenius/mockConcepts";
+import type { Concept } from "@/lib/jenius/concepts";
 import type { MediaPlaybackState } from "@/lib/jenius/types";
 import { SubjectChip } from "./SubjectChip";
 import { ConceptActions } from "./ConceptActions";

@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 import { SUBJECTS, type SubjectId } from "@/lib/jenius/types";
 import { JeniusMark } from "./JeniusMark";
 import { SubjectChip } from "./SubjectChip";
-import { MOCK_PROGRESS_ACTIVE, type ProgressStats } from "@/lib/jenius/progress";
+import type { ProgressStats } from "@/lib/jenius/progress";
 import { Flame, Sparkles } from "lucide-react";
 
 export interface MeScreenProps {
-  stats?: ProgressStats;
+  stats: ProgressStats;
   /** Learner display name, defaults to "You". */
   name?: string;
 }
@@ -16,7 +16,7 @@ export interface MeScreenProps {
  * MeScreen — light personal-progress view. Framed around curiosity and
  * discovery, never around accuracy shame. Reuses design tokens throughout.
  */
-export function MeScreen({ stats = MOCK_PROGRESS_ACTIVE, name = "You" }: MeScreenProps) {
+export function MeScreen({ stats, name = "You" }: MeScreenProps) {
   const dailyPct = stats.dailyTarget ? Math.min(1, stats.dailyProgress / stats.dailyTarget) : 0;
   const understandingPct = stats.conceptsExplored
     ? Math.round((stats.conceptsUnderstood / stats.conceptsExplored) * 100)

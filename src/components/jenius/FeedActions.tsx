@@ -40,7 +40,7 @@ function ActionButton({ label, active, activeClass, onClick, children }: ActionB
 
 /**
  * FeedActions — vertical rail of feed reactions (Like, Mind Blown, Save,
- * Share). Callbacks are placeholders; real handlers arrive later.
+ * Share). The host owns action behavior.
  */
 export const FeedActions = React.forwardRef<HTMLDivElement, FeedActionsProps>(
   ({ liked, saved, mindBlown, onLike, onSave, onShare, onMindBlown, className, ...props }, ref) => {

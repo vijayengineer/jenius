@@ -1,4 +1,9 @@
-# Jenius — Lovable → Codex Handoff
+# Jenius — Lovable → Codex Handoff (Historical Import Snapshot)
+
+> [!NOTE]
+> This is the historical import snapshot, retained to document the Lovable component contracts.
+> It does not describe the current data, persistence, or offline implementation. Start with
+> `README.md` and `docs/architecture.md` for the canonical application documentation.
 
 > **Prototype status.** This app is a mobile-first Lovable prototype for
 > _Jenius — Infinite Understanding_. It intentionally ships with no backend
@@ -9,7 +14,7 @@
 
 - **Framework:** TanStack Start 1.x on Vite 7 (React 19).
 - **Styling:** Tailwind v4 via `src/styles.css` + shadcn primitives.
-- **Data layer today:** local mock modules only.
+- **Data layer at import:** local fixture modules only.
 
 | Purpose     | Command              |
 | ----------- | -------------------- |
@@ -67,11 +72,11 @@ re-exported from `src/components/jenius/index.ts`.
 - `PrimaryButton`, `SecondaryButton`
 - `Sheet` (Radix Dialog wrapper)
 
-## 4. Mock data locations
+## 4. Imported fixture locations
 
 | Concern                                          | File                                       | Replace with                                    |
 | ------------------------------------------------ | ------------------------------------------ | ----------------------------------------------- |
-| Concepts (10)                                    | `src/lib/jenius/mockConcepts.ts`           | Real feed fetch.                                |
+| Concepts (10)                                    | `src/lib/jenius/concepts.ts`               | Validated local catalogue.                      |
 | Challenges + feedback (30 wrong-option branches) | `src/lib/jenius/challenges.ts`             | Server-resolved answer + misconception payload. |
 | Explain-more packs + statuses                    | `src/lib/jenius/explainMore.ts`            | Live "explain" API + cache.                     |
 | Saved collections                                | `src/lib/jenius/savedCollections.ts`       | Persistent user library.                        |
@@ -190,7 +195,7 @@ generating/success, explain-more statuses, media states, offline, empty,
 error). The left sidebar includes a **Simulate offline** toggle backed by
 the same context as the real app.
 
-## 10. Known limitations (Stage 1)
+## 10. Historical limitations at import
 
 - No service worker; offline is a mocked toggle.
 - No real videos — MediaSlot shows placeholder shapes + poster/play UI.
@@ -211,7 +216,7 @@ the same context as the real app.
 - Copy tone: curious, encouraging, calm, never patronising.
 - Component library public API (`src/components/jenius/index.ts`).
 
-## 12. What Codex must replace
+## 12. Historical replacement checklist
 
 | Temporary                                  | Real thing                                           |
 | ------------------------------------------ | ---------------------------------------------------- |
@@ -239,8 +244,8 @@ the same context as the real app.
 
 1. `src/components/jenius/index.ts` — public surface.
 2. `src/lib/jenius/types.ts` — canonical shapes.
-3. `src/lib/jenius/mockConcepts.ts` + `challenges.ts` + `explainMore.ts`
-   — data contracts to replace.
+3. `src/lib/jenius/concepts.ts` + `src/content/catalog.ts` + `challenges.ts` +
+   `explainMore.ts` — bundled content and presenter contracts.
 4. `src/components/jenius/DiscoverFeed.tsx` — demo controller to split.
 5. `src/components/jenius/MediaSlot.tsx` — media contract.
 6. `src/routes/dev.tsx` — exhaustive UI catalogue.

@@ -37,8 +37,7 @@ See [docs/architecture.md](docs/architecture.md) and
 
 ## Local development
 
-Requirements: Node.js 22.12+ is recommended. Bun can also be used because `bun.lock` is the
-canonical lockfile.
+Requirements: Node.js 22.12+ and npm. `package-lock.json` is the canonical dependency lockfile.
 
 ```bash
 npm install

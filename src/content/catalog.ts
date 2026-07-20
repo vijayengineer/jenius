@@ -1,5 +1,5 @@
 import { CHALLENGES, CHALLENGE_FEEDBACK } from "@/lib/jenius/challenges";
-import { MOCK_CONCEPTS } from "@/lib/jenius/mockConcepts";
+import { BASE_CONCEPTS } from "@/lib/jenius/concepts";
 import type { MediaSlotData, SubjectId } from "@/lib/jenius/types";
 import { type FeedConcept, type Subject } from "./schema";
 import { validateContent } from "./validation";
@@ -53,7 +53,7 @@ const legacyMediaToContent = (media: MediaSlotData | undefined, animationReady?:
   };
 };
 
-const rawConcepts = MOCK_CONCEPTS.map((concept) => {
+const rawConcepts = BASE_CONCEPTS.map((concept) => {
   const question = CHALLENGES[concept.id];
   const feedback = CHALLENGE_FEEDBACK[concept.id];
   if (!question || !feedback) {

@@ -37,7 +37,6 @@ function CreateRoute() {
     <TabShell active={active}>
       <CreateScreen
         online={online}
-        generationStatus={online ? undefined : "offline"}
         localOnly
         requestStored={requestStored}
         onGenerate={(values) => {

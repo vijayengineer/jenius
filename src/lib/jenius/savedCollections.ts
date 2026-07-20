@@ -32,7 +32,8 @@ export interface SavedItem {
   collection: SavedCollectionId;
 }
 
-export const MOCK_SAVED_ITEMS: SavedItem[] = [
+/** Populated fixture for the no-index /dev state catalogue. */
+export const PREVIEW_SAVED_ITEMS: SavedItem[] = [
   {
     conceptId: "seasons",
     subject: "science",

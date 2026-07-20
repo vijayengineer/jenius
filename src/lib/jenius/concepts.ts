@@ -17,16 +17,15 @@ export interface Concept {
   /** True when a Jenius animation slot should render above the copy. */
   animationReady?: boolean;
   /**
-   * Optional resolved media payload — replaces the generic animation slot.
-   * Codex will populate this from the CMS/media store; Stage 1 uses local
-   * placeholders that point at future file paths.
+   * Optional same-origin media metadata. The presenter degrades to the
+   * complete text lesson when an asset has not been bundled yet.
    */
   media?: MediaSlotData;
   /** Default saved state for preview purposes. */
   saved?: boolean;
 }
 
-export const MOCK_CONCEPTS: Concept[] = [
+export const BASE_CONCEPTS: Concept[] = [
   {
     id: "seasons",
     subject: "science",

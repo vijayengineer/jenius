@@ -2,8 +2,7 @@ import type { SubjectId } from "./types";
 
 /**
  * Personal progress stats. Framed as curiosity and discovery, never as
- * accuracy shame or ranking. Consumers should treat these as read-only
- * mock data during Stage 1.
+ * accuracy shame or ranking.
  */
 export interface ProgressStats {
   /** Total locally awarded experience points. */
@@ -37,7 +36,8 @@ export interface ProgressStats {
   }>;
 }
 
-export const MOCK_PROGRESS_ACTIVE: ProgressStats = {
+/** Read-only fixtures for the no-index /dev state catalogue. */
+export const PREVIEW_PROGRESS_ACTIVE: ProgressStats = {
   streakDays: 6,
   conceptsExplored: 47,
   conceptsUnderstood: 34,
@@ -71,7 +71,7 @@ export const MOCK_PROGRESS_ACTIVE: ProgressStats = {
   ],
 };
 
-export const MOCK_PROGRESS_NEW: ProgressStats = {
+export const PREVIEW_PROGRESS_NEW: ProgressStats = {
   streakDays: 0,
   conceptsExplored: 0,
   conceptsUnderstood: 0,
@@ -83,8 +83,8 @@ export const MOCK_PROGRESS_NEW: ProgressStats = {
   recentMisconceptionsFixed: [],
 };
 
-export const MOCK_PROGRESS_SEVEN_DAY: ProgressStats = {
-  ...MOCK_PROGRESS_ACTIVE,
+export const PREVIEW_PROGRESS_SEVEN_DAY: ProgressStats = {
+  ...PREVIEW_PROGRESS_ACTIVE,
   streakDays: 7,
   weekly: [3, 5, 4, 6, 5, 7, 4],
   dailyProgress: 5,

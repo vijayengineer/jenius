@@ -13,7 +13,6 @@ import {
   LENGTH_CHOICES,
   READING_LEVELS,
   SUBJECT_CHOICES,
-  SAMPLE_BLACK_HOLES_PACK,
   isFormReady,
   type CreateFormValues,
   type GeneratedConceptPack,
@@ -21,7 +20,7 @@ import {
 } from "@/lib/jenius/generatedPack";
 
 export interface CreateScreenProps {
-  /** Frontend-only stub. Called when the learner taps "Generate". */
+  /** API-boundary callback called when the learner submits a valid request. */
   onGenerate?: (values: CreateFormValues) => void;
   /** Driven by the caller; the screen renders whichever state you pass. */
   generationStatus?: GenerationStatus;
@@ -40,8 +39,8 @@ export interface CreateScreenProps {
 }
 
 /**
- * CreateScreen — frontend-only Create tab. All async behaviour is stubbed
- * through props so a future Node API can drive real transitions.
+ * CreateScreen — presenter for local topic requests and future API-driven
+ * generation. It never manufactures a successful pack.
  */
 export function CreateScreen({
   onGenerate,
@@ -56,52 +55,22 @@ export function CreateScreen({
   requestStored = false,
 }: CreateScreenProps) {
   const [values, setValues] = React.useState<CreateFormValues>(initialValues ?? EMPTY_CREATE_FORM);
-  const [internalStatus, setInternalStatus] = React.useState<GenerationStatus>(
-    isFormReady(initialValues ?? EMPTY_CREATE_FORM) ? "ready" : "disabled",
-  );
-  const [internalPack, setInternalPack] = React.useState<GeneratedConceptPack | null>(null);
   const [selectedChallengeOption, setSelectedChallengeOption] = React.useState<string | null>(null);
   const [showChallengeResult, setShowChallengeResult] = React.useState(false);
 
-  const status = externalStatus ?? internalStatus;
-  const pack = externalPack !== undefined ? externalPack : internalPack;
-
-  // Keep internal status in sync with form readiness when the caller isn't driving it.
-  React.useEffect(() => {
-    if (externalStatus) return;
-    if (internalStatus === "submitting" || internalStatus === "generating") return;
-    setInternalStatus(isFormReady(values) ? "ready" : "disabled");
-  }, [values, externalStatus, internalStatus]);
+  const status = externalStatus ?? (isFormReady(values) ? "ready" : "disabled");
+  const pack = externalPack ?? null;
 
   const update = <K extends keyof CreateFormValues>(key: K, v: CreateFormValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }));
 
-  const handleGenerate = () => {
-    if (onGenerate) {
-      onGenerate(values);
-      return;
-    }
-    // Local demo path: fake the sequence and land on the sample pack.
-    setInternalStatus("submitting");
-    window.setTimeout(() => {
-      setInternalStatus("generating");
-      window.setTimeout(() => {
-        setInternalPack({
-          ...SAMPLE_BLACK_HOLES_PACK,
-          topic: values.topic || SAMPLE_BLACK_HOLES_PACK.topic,
-        });
-        setInternalStatus("success");
-      }, 2600);
-    }, 400);
-  };
+  const handleGenerate = () => onGenerate?.(values);
 
   const clearDraft = () => {
-    if (externalPack !== undefined && onDelete && pack) {
+    if (onDelete && pack) {
       onDelete(pack);
       return;
     }
-    setInternalPack(null);
-    setInternalStatus(isFormReady(values) ? "ready" : "disabled");
     setSelectedChallengeOption(null);
     setShowChallengeResult(false);
   };
@@ -125,7 +94,9 @@ export function CreateScreen({
       {!online ? (
         <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[12px] text-foreground/75">
           <WifiOff className="size-3.5" aria-hidden />
-          You're offline. Drafts can't be generated until you're back on.
+          {localOnly
+            ? "You're offline. Topic requests can still be saved on this device."
+            : "You're offline. Drafts can't be generated until you're back on."}
         </div>
       ) : null}
 
@@ -163,7 +134,12 @@ export function CreateScreen({
             <ErrorNotice status={status} message={error} />
           )}
 
-          <GenerateButton status={status} onClick={handleGenerate} localOnly={localOnly} />
+          <GenerateButton
+            status={status}
+            onClick={handleGenerate}
+            localOnly={localOnly}
+            available={!!onGenerate}
+          />
         </>
       )}
     </div>
@@ -368,16 +344,19 @@ function GenerateButton({
   status,
   onClick,
   localOnly,
+  available,
 }: {
   status: GenerationStatus;
   onClick: () => void;
   localOnly: boolean;
+  available: boolean;
 }) {
   const disabled =
+    !available ||
     status === "disabled" ||
     status === "submitting" ||
     status === "generating" ||
-    status === "offline";
+    (status === "offline" && !localOnly);
   const label =
     status === "submitting"
       ? "Sending…"

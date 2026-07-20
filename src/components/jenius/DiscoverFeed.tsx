@@ -12,7 +12,7 @@ import { LoadingState } from "./LoadingState";
 import { EmptyState } from "./EmptyState";
 import { ChallengeSheet, type ChallengeStage } from "./ChallengeSheet";
 import { ExplainMoreSheet } from "./ExplainMoreSheet";
-import type { Concept } from "@/lib/jenius/mockConcepts";
+import type { Concept } from "@/lib/jenius/concepts";
 import {
   getOptionLabel,
   resolveChallenge,
@@ -28,7 +28,7 @@ import { selectProgressStats } from "@/state/selectors";
 import type { SavedCollection } from "@/storage/learner-state";
 import {
   EXPLAIN_PACKS,
-  mockFreshExplainPack,
+  createLocalExplainPack,
   type ExplainPack,
   type ExplainStatus,
 } from "@/lib/jenius/explainMore";
@@ -71,7 +71,7 @@ export interface DiscoverFeedProps {
  * challenge → feedback → retry → mind-blown sheet flow.
  *
  * The sheet flow is a small state machine driven by `stage`. All
- * correctness decisions happen here (via the mock `resolve*` helpers) and
+ * correctness decisions happen here (via deterministic `resolve*` helpers) and
  * are passed into the sheet as resolved data — the sheet stays a pure
  * presenter.
  */
@@ -92,7 +92,7 @@ export function DiscoverFeed({
   const progress = selectProgressStats(learningStore.state);
   const [learning, dispatchLearning] = React.useReducer(learningReducer, initialLearningState);
   // Prop wins when explicitly passed (state-preview harness); otherwise fall
-  // back to the app-wide mock offline context.
+  // back to the app-wide connectivity context.
   const isOffline = offline ?? !ctx.online;
   const [mode, setMode] = React.useState<FeedMode>("discover");
   const [muted, setMuted] = React.useState(true);
@@ -318,12 +318,31 @@ export function DiscoverFeed({
     if (!explainConcept) return;
     setExplainStatus("loading");
     window.setTimeout(() => {
-      setExplainPack(mockFreshExplainPack(explainConcept.id, explainConcept.hook));
+      setExplainPack(createLocalExplainPack(explainConcept.id, explainConcept.hook));
       setExplainStatus("success");
     }, 700);
   };
 
   const closeExplain = () => setExplainConceptId(null);
+
+  const shareConcept = async (concept: Concept) => {
+    const text = `${concept.hook}\n\n${concept.takeaway}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `${concept.hook} — Jenius`,
+          text,
+          url: window.location.href,
+        });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      // Sharing is an enhancement; learning remains uninterrupted if the
+      // platform share sheet or clipboard is unavailable.
+    }
+  };
 
   const advanceToNextConcept = () => {
     const currentIdx = activeChallengeConcept
@@ -509,9 +528,7 @@ export function DiscoverFeed({
             activeChallengeConcept &&
             toggleSave(activeChallengeConcept.id, retrySelectedId ? "finally-get-it" : "mind-blown")
           }
-          onShare={() => {
-            // Real sharing wired up in a later prompt.
-          }}
+          onShare={() => void shareConcept(activeChallengeConcept)}
           onContinue={() => {
             if (stage === "mind-blown") advanceToNextConcept();
             else {

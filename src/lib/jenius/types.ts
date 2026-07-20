@@ -1,6 +1,5 @@
 /**
- * Jenius — shared types for the mock design-system layer.
- * A separate Codex workflow will replace mock data with real feed/API types.
+ * Jenius shared media and subject types.
  */
 
 export type SubjectId =
