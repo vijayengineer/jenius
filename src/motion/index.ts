@@ -10,7 +10,21 @@ export {
   getMotionConceptForLesson,
 } from "./manifest";
 export { getLearningMotionCues, type LearningMotionCue } from "./timeline";
-export { getMotionStartTime, hasReachedMotionEnd, hasReachedMotionLoop } from "./playback";
+export {
+  getMotionReveal,
+  getMotionRevealForState,
+  shouldRevealAfterMotion,
+  type MotionReveal,
+} from "./presentation";
+export {
+  getMotionStartTime,
+  hasReachedMotionEnd,
+  hasReachedMotionLoop,
+  reconcileMotionLayers,
+  retainVisibleMotionLayers,
+  revealMotionLayer,
+  type MotionLayerState,
+} from "./playback";
 export { MotionController } from "./controller";
 export type {
   MotionAsset,
