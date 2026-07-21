@@ -61,6 +61,35 @@ Automated tests cover the five requested viewport heights at the CSS-geometry le
 sheet structure, long copy remaining represented, reduced-motion rules, and all learning states.
 They do not replace the physical-device pass below.
 
+## Motion pass
+
+Use the five motion-enabled bundled concepts: DNA, seasons, volcanoes, planes, and falling
+objects. Test in a browser tab and installed standalone mode.
+
+1. Confirm only the visible feed card animates. Scroll forward and backward rapidly; the previous
+   card must stop and be disposed, while the new card starts without overlapping audio or a blank
+   media surface.
+2. Leave a concept visible through at least two loops. Confirm the loop crossfades at its configured
+   boundary instead of flashing, seeking to zero, or showing an end frame.
+3. Open a question and verify the Curiosity Spark remains decorative and never delays reading or
+   tapping `Check answer`.
+4. On a wrong answer, verify Misunderstanding precedes the matching concept cinematic. Close the
+   lesson or change concepts during either clip and confirm stale motion does not continue the old
+   sequence.
+5. On correct primary and retry answers, verify the Success Pulse appears once. Continue through
+   Mind Blown and Completion, then confirm `Next curiosity` advances predictably after its spark.
+6. Background the tab during a clip and return. Playback should pause while hidden and resume from
+   its existing position, not restart unnecessarily.
+7. Enable the OS reduced-motion setting before loading. Concept cinematics must become still
+   posters, transition clips must be skipped, and all content/actions must remain present. Next
+   curiosity scrolling must be immediate.
+8. With VoiceOver or TalkBack, confirm decorative videos are not announced. With a hardware
+   keyboard, confirm motion never receives focus and does not intercept lesson controls.
+
+Network tools should show one active concept video player and prefetches limited to the current
+card and immediate neighbours. The runtime cache may fetch a visited video, but a missing video or
+poster must never prevent the bundled text lesson from completing.
+
 ## Offline pass
 
 1. Load the app once online and complete/save at least one bundled concept.
@@ -74,7 +103,8 @@ They do not replace the physical-device pass below.
    failures without blocking lessons.
 5. Put the phone in airplane mode, reload the previously visited URL, and confirm the shell,
    bundled catalogue, saved progress, and generated lessons already stored in IndexedDB remain
-   available.
+   available. Revisit one motion concept loaded online; its cached cinematic may play, but all
+   lessons must remain complete even when a lazy motion asset has not been cached.
 6. Submit a Create request while offline. Confirm it is retained with a retry message and no fake
    generated lesson appears. Reconnect, use the visible Retry action, and confirm the retained
    request is reused rather than duplicated.

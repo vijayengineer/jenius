@@ -69,6 +69,21 @@ This log is factual and should be updated only after a capability is working and
 - [x] Add regression coverage for long content, viewport heights, progress, close/reopen,
       completion, navigation, optional coaching, and accessible labels.
 
+### Production motion engine
+
+- [x] Preserve immutable motion masters and generate verified same-origin runtime assets,
+      metadata, and concept posters.
+- [x] Centralise trims, loop bounds, fades, and preload priorities in one manifest.
+- [x] Add one semantic engine for Curiosity, Transition, Misunderstanding, Success, Completion, and
+      concept playback.
+- [x] Synchronise decorative cues to real learning-reducer transitions without changing learning
+      or backend behavior.
+- [x] Limit decoding to the active concept, prefetch nearby concepts, pause hidden playback, and
+      dispose outgoing players.
+- [x] Use still posters and skipped transition videos for reduced motion.
+- [x] Cover manifest bounds, trims, loops, interruptions, rapid changes, visibility, reduced
+      motion, and reducer timeline mapping.
+
 ## Implemented
 
 - Zod validates the ten-concept catalogue and rejects duplicate IDs, malformed questions, missing
@@ -157,11 +172,28 @@ This log is factual and should be updated only after a capability is working and
   completed concept shows stored understanding without a second award, and Next curiosity moves
   to the following feed card or the end card.
 - No backend contract, learning reducer transition, mock state, video asset, or new motion system
-  was added. Physical Safari, Android Chrome, installed-PWA, and software-keyboard verification
-  remain release-device checks rather than claims from the local test environment.
+  was added during that session. Physical Safari, Android Chrome, installed-PWA, and
+  software-keyboard verification remain release-device checks rather than claims from the local
+  test environment.
 - The complete verification command passed with 69 frontend/domain tests and 33 server tests,
   clean frontend/server typechecks and builds, and the same 11 pre-existing Fast Refresh lint
   warnings (zero lint errors).
+
+## Production motion engine implemented
+
+- The ten supplied MP4 masters remain immutable under `assets/source/`. A dependency-free pipeline
+  validates MP4 duration metadata and manifest timing, copies runtime media, generates or verifies
+  posters, records SHA-256 metadata, and detects source/runtime drift.
+- `MotionProvider` owns transient players, crossfades, preload hints, visibility pauses, and the OS
+  reduced-motion preference. Presenters request semantic cues and never manipulate shared video
+  elements.
+- Five mapped feed concepts use lazy, muted, inline cinematics with configured loop crossfades.
+  Only the active card creates a video element; inactive and reduced-motion cards use committed
+  still posters.
+- A separate timeline maps real reducer transitions to Curiosity, Misunderstanding, concept,
+  Success, Mind Blown, and Completion cues. It does not add events or modify reducer behavior.
+- Runtime generation, manifest design, lifecycle, testing, and the process for adding a concept
+  are documented in `docs/motion.md`.
 
 ## Direct Firestore client correction
 

@@ -23,7 +23,8 @@ Prettier drift plus two substantive rules; no tests or test script existed.
   visual primitives.
 - Keep at least 44px touch targets, semantic controls, keyboard answer navigation, `aria-live`
   feedback, and non-swipe navigation.
-- Media is optional, same-origin only, muted by default, and never required to finish a lesson.
+- Media is optional, bundled and same-origin only, muted by default, and never required to finish
+  a lesson.
 - Tone is curious, specific, calm, and non-punitive.
 
 ## Target layers
@@ -33,7 +34,9 @@ Prettier drift plus two substantive rules; no tests or test script existed.
 3. **Local data** — one versioned repository interface with IndexedDB and safe in-memory fallback.
 4. **Application state** — one React provider coordinates hydration and repository writes.
 5. **Lovable UI** — existing feed, sheets, and secondary screens consume resolved state and data.
-6. **Offline shell** — manifest and service worker cache only bundled, same-origin application
+6. **Motion presentation** — a manifest-driven controller maps reducer transitions to optional,
+   same-origin cinematics without owning learning decisions.
+7. **Offline shell** — manifest and service worker cache only bundled, same-origin application
    assets and navigation fallback.
 
 ## Backend boundary
@@ -69,6 +72,12 @@ remain isolated.
 
 The production-only service-worker registration caches same-origin shell/static requests and
 navigation fallbacks. `/api/` and cross-origin requests are deliberately excluded.
+
+`MotionProvider` is the only shared motion coordinator. It reads generated metadata for bundled
+runtime assets, observes reduced-motion and page visibility, and exposes semantic playback calls.
+The learning reducer remains motion-agnostic; a separate timeline maps completed state transitions
+to decorative cues. Concept players are lazy, muted, poster-backed, and limited to the active feed
+card. See `docs/motion.md` for the asset pipeline and lifecycle.
 
 ## Persistence decisions
 
