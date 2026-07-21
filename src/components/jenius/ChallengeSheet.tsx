@@ -8,6 +8,8 @@ import { CorrectFeedback } from "./CorrectFeedback";
 import { IncorrectFeedback } from "./IncorrectFeedback";
 import { RetryQuestion } from "./RetryQuestion";
 import { MindBlownCard } from "./MindBlownCard";
+import { LessonProgress } from "./LessonProgress";
+import type { LearningPhase } from "@/learning/engine";
 import type { SubjectId } from "@/lib/jenius/types";
 import type {
   Challenge,
@@ -35,6 +37,8 @@ export interface ChallengeSheetProps {
 
   /** Which stage of the flow to render. */
   stage: ChallengeStage;
+  learningPhase: LearningPhase;
+  retryRequired?: boolean;
 
   // ---- question stage ----
   question: Challenge;
@@ -91,7 +95,7 @@ const MARKERS = ["A", "B", "C", "D"];
  * All copy and correctness resolution arrives through props.
  */
 export function ChallengeSheet(props: ChallengeSheetProps) {
-  const { open, onOpenChange, subject, stage } = props;
+  const { open, onOpenChange, subject, stage, learningPhase, retryRequired } = props;
   const currentQuestion =
     stage === "retry" && props.retryChallenge ? props.retryChallenge.prompt : props.question.prompt;
   const questionId = stage === "retry" ? "retry-prompt" : "challenge-question";
@@ -103,7 +107,9 @@ export function ChallengeSheet(props: ChallengeSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent title="Lesson" hideHeader>
-        <div className="flex items-center gap-2">
+        <LessonProgress phase={learningPhase} retryRequired={retryRequired} />
+
+        <div className="mt-4 flex items-center gap-2">
           <SubjectChip subject={subject} size="sm" />
           <span className="text-xs uppercase tracking-[0.18em] text-foreground/60">
             {stageLabel(stage)}

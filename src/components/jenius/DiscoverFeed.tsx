@@ -22,7 +22,12 @@ import {
 } from "@/lib/jenius/challenges";
 import { FEED_CONCEPTS, getVerifiedConcept } from "@/content/catalog";
 import { CONTENT_CHALLENGES, CONTENT_FEEDBACK } from "@/content/presenter";
-import { initialLearningState, learningReducer, toLearningOutcome } from "@/learning/engine";
+import {
+  initialLearningState,
+  learningReducer,
+  toLearningOutcome,
+  type LearningPhase,
+} from "@/learning/engine";
 import { useLearning } from "@/state/LearningProvider";
 import { selectProgressStats } from "@/state/selectors";
 import type { SavedCollection } from "@/storage/learner-state";
@@ -442,6 +447,14 @@ export function DiscoverFeed({
       ? activeFeedback.incorrect[selectedOptionId]
       : undefined;
 
+  const displayedLearningPhase: LearningPhase = stageOverride
+    ? previewLearningPhase(stageOverride, retrySubmission)
+    : learning.phase;
+  const retryRequired =
+    learning.primaryCorrect === false ||
+    stageOverride === "feedback-incorrect" ||
+    stageOverride === "retry";
+
   return (
     <AppShell
       contained
@@ -532,6 +545,8 @@ export function DiscoverFeed({
           subject={activeChallengeConcept.subject}
           conceptReminder={activeChallengeConcept.hook}
           stage={stage}
+          learningPhase={displayedLearningPhase}
+          retryRequired={retryRequired}
           question={activeChallenge}
           selectedOptionId={selectedOptionId}
           submissionState={effectiveSubmissionState}
@@ -620,6 +635,24 @@ export function DiscoverFeed({
       ) : null}
     </AppShell>
   );
+}
+
+function previewLearningPhase(
+  stage: ChallengeStage,
+  retrySubmission: SubmissionState,
+): LearningPhase {
+  switch (stage) {
+    case "question":
+      return "answering";
+    case "feedback-correct":
+      return "teacher-feedback";
+    case "feedback-incorrect":
+      return "misconception";
+    case "retry":
+      return retrySubmission === "submitted" ? "retry-feedback" : "retry";
+    case "mind-blown":
+      return "mind-blown";
+  }
 }
 
 interface FeedDotsProps {
