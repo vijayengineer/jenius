@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { OfflineProvider } from "@/lib/jenius/offline";
 import { LearningProvider } from "@/state/LearningProvider";
 import { ServiceWorkerRegistration } from "@/components/jenius/ServiceWorkerRegistration";
+import { MotionProvider } from "@/motion";
 
 function NotFoundComponent() {
   return (
@@ -141,11 +142,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LearningProvider>
-        <OfflineProvider>
-          <ServiceWorkerRegistration />
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-        </OfflineProvider>
+        <MotionProvider>
+          <OfflineProvider>
+            <ServiceWorkerRegistration />
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </OfflineProvider>
+        </MotionProvider>
       </LearningProvider>
     </QueryClientProvider>
   );
