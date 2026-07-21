@@ -64,6 +64,8 @@ describe("production motion presentation", () => {
     );
     expect(conceptCardSource).toContain('className="-mx-5 mb-3"');
     expect(conceptCardSource).toContain("min-h-[100dvh]");
+    expect(conceptCardSource).toContain("Takeaway");
+    expect(conceptCardSource).not.toContain("Swipe to discover");
     expect(conceptCardSource).not.toContain(
       "h-[100dvh] w-full snap-start snap-always flex-col overflow-hidden",
     );

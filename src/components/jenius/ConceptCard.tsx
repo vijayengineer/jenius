@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ChevronUp, Clock } from "lucide-react";
+import { Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Concept } from "@/lib/jenius/concepts";
 import type { MediaPlaybackState } from "@/lib/jenius/types";
@@ -24,8 +24,6 @@ export interface ConceptCardProps extends React.HTMLAttributes<HTMLElement> {
   reducedMotion?: boolean;
   /** True when the muted-sound indicator is on. */
   muted?: boolean;
-  /** Show the "Swipe to discover" cue at the bottom. */
-  showSwipeCue?: boolean;
   /** Only the intersecting feed concept owns a decoded video player. */
   motionActive?: boolean;
   /** Pause without resetting while a sheet or completion card covers the active concept. */
@@ -43,7 +41,6 @@ export interface ConceptCardProps extends React.HTMLAttributes<HTMLElement> {
  *  - Explanation (~40–70 words).
  *  - Takeaway pill.
  *  - Vertical action rail (Save / Got it? / Explain).
- *  - Optional swipe cue.
  */
 export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
   (
@@ -58,7 +55,6 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
       playbackState = "poster",
       reducedMotion = false,
       muted = true,
-      showSwipeCue,
       motionActive = false,
       motionVisible = motionActive,
       className,
@@ -156,16 +152,6 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
             />
           </div>
         </div>
-
-        {showSwipeCue ? (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+104px)] flex flex-col items-center gap-1 text-foreground/55"
-          >
-            <ChevronUp className="size-4 animate-bounce" />
-            <span className="text-[11px] uppercase tracking-[0.18em]">Swipe to discover</span>
-          </div>
-        ) : null}
       </article>
     );
   },

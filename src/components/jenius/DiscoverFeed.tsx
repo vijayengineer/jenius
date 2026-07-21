@@ -596,7 +596,6 @@ export function DiscoverFeed({
                 motionVisible={
                   i === activeIndex && !challengeConceptId && !completionView && !explainConceptId
                 }
-                showSwipeCue={i === 0}
               />
             );
           })}
