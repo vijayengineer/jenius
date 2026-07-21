@@ -15,7 +15,7 @@ export interface AnswerOptionProps extends Omit<
 }
 
 const stateClass: Record<AnswerState, string> = {
-  idle: "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20",
+  idle: "bg-white/5 border-white/12 hover:bg-white/10 hover:border-white/20",
   selected: "bg-white/10 border-brand-blue/60 shadow-glow",
   correct: "bg-success/15 border-success/50 text-foreground",
   incorrect: "bg-misconception/15 border-misconception/50 text-foreground",
@@ -42,7 +42,7 @@ export const AnswerOption = React.forwardRef<HTMLButtonElement, AnswerOptionProp
         data-state={effectiveState}
         className={cn(
           "group relative flex w-full items-center gap-3 rounded-2xl border",
-          "px-4 py-4 text-left text-[15px] font-medium text-foreground",
+          "px-4 py-4 text-left text-[15px] font-medium leading-snug text-foreground/95",
           "min-h-[3.25rem] transition-swift active:scale-[0.99]",
           stateClass[effectiveState],
           className,

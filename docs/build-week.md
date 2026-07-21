@@ -54,6 +54,36 @@ This log is factual and should be updated only after a capability is working and
 - [x] Re-run every required gate, inspect bundles and secrets, commit fixes, and leave the branch
       clean without pushing.
 
+### Mobile learning polish
+
+- [x] Keep the current question represented throughout challenge, feedback, retry, and Mind Blown.
+- [x] Add quiet reducer-state lesson progress without showing Retry on correct paths.
+- [x] Separate `Show me why`, `Try again`, `Finish concept`, and `Next curiosity` transitions.
+- [x] Place Explain another way below deterministic feedback and restore the same lesson state when
+      it closes.
+- [x] Replace the timed completion toast with a persistent card backed by stored completion, XP,
+      understanding, Save, and Share data.
+- [x] Reopen completed concepts without duplicating XP and advance Next curiosity through the feed
+      to its end card.
+- [x] Keep the close control outside one dynamic-viewport, safe-area-aware sheet scroll region.
+- [x] Add regression coverage for long content, viewport heights, progress, close/reopen,
+      completion, navigation, optional coaching, and accessible labels.
+
+### Production motion engine
+
+- [x] Preserve immutable motion masters and generate verified same-origin runtime assets,
+      metadata, and concept posters.
+- [x] Centralise trims, loop bounds, fades, and preload priorities in one manifest.
+- [x] Add one semantic engine for Curiosity, Transition, Misunderstanding, Success, Completion, and
+      concept playback.
+- [x] Synchronise decorative cues to real learning-reducer transitions without changing learning
+      or backend behavior.
+- [x] Limit decoding to the active concept, prefetch nearby concepts, pause hidden playback, and
+      dispose outgoing players.
+- [x] Use still posters and skipped transition videos for reduced motion.
+- [x] Cover manifest bounds, trims, loops, interruptions, rapid changes, visibility, reduced
+      motion, and reducer timeline mapping.
+
 ## Implemented
 
 - Zod validates the ten-concept catalogue and rejects duplicate IDs, malformed questions, missing
@@ -126,6 +156,44 @@ This log is factual and should be updated only after a capability is working and
 - The local production preview returned HTTP 200 for `/`, `/saved`, `/create`, `/me`, the manifest,
   service worker, and offline fallback. Physical iPhone Safari and Android Chrome verification is
   intentionally left as a deployment-time device check.
+
+## Mobile learning polish implemented
+
+- Challenge sheets now put compact progress and subject metadata ahead of the full current
+  question. The question is retained in every presenter state, including submission, feedback,
+  retry, and Mind Blown; long answer and misconception copy uses the same single scroll surface.
+- The shared sheet keeps a labelled 44px close control in fixed sheet chrome. Its one content
+  scroller is capped with dynamic viewport units, respects both safe-area insets, prevents
+  horizontal overflow, and retains the existing global reduced-motion behavior. Programmatic feed
+  advancement uses immediate rather than smooth scrolling under reduced motion.
+- Correct paths omit Retry. Incorrect paths reveal deterministic correction before retry, while
+  Explain another way remains optional and restores the learner's prior stage when dismissed.
+- Completion now uses persisted outcome data. XP is displayed only for a new award, reopening a
+  completed concept shows stored understanding without a second award, and Next curiosity moves
+  to the following feed card or the end card.
+- No backend contract, learning reducer transition, mock state, video asset, or new motion system
+  was added during that session. Physical Safari, Android Chrome, installed-PWA, and
+  software-keyboard verification remain release-device checks rather than claims from the local
+  test environment.
+- The complete verification command passed with 69 frontend/domain tests and 33 server tests,
+  clean frontend/server typechecks and builds, and the same 11 pre-existing Fast Refresh lint
+  warnings (zero lint errors).
+
+## Production motion engine implemented
+
+- The ten supplied MP4 masters remain immutable under `assets/source/`. A dependency-free pipeline
+  validates MP4 duration metadata and manifest timing, copies runtime media, generates or verifies
+  posters, records SHA-256 metadata, and detects source/runtime drift.
+- `MotionProvider` owns transient players, crossfades, preload hints, visibility pauses, and the OS
+  reduced-motion preference. Presenters request semantic cues and never manipulate shared video
+  elements.
+- Five mapped feed concepts use lazy, muted, inline cinematics with configured loop crossfades.
+  Only the active card creates a video element; inactive and reduced-motion cards use committed
+  still posters.
+- A separate timeline maps real reducer transitions to Curiosity, Misunderstanding, concept,
+  Success, Mind Blown, and Completion cues. It does not add events or modify reducer behavior.
+- Runtime generation, manifest design, lifecycle, testing, and the process for adding a concept
+  are documented in `docs/motion.md`.
 
 ## Direct Firestore client correction
 

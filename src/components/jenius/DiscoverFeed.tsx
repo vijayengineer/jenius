@@ -22,7 +22,17 @@ import {
 } from "@/lib/jenius/challenges";
 import { FEED_CONCEPTS, getVerifiedConcept } from "@/content/catalog";
 import { CONTENT_CHALLENGES, CONTENT_FEEDBACK } from "@/content/presenter";
-import { initialLearningState, learningReducer, toLearningOutcome } from "@/learning/engine";
+import {
+  initialLearningState,
+  learningReducer,
+  toLearningOutcome,
+  type LearningPhase,
+} from "@/learning/engine";
+import {
+  getFeedScrollBehavior,
+  getNextCuriosityIndex,
+  getReopenedCompletion,
+} from "@/learning/completion";
 import { useLearning } from "@/state/LearningProvider";
 import { selectProgressStats } from "@/state/selectors";
 import type { SavedCollection } from "@/storage/learner-state";
@@ -32,6 +42,7 @@ import { shareOrCopy } from "@/lib/jenius/share";
 import { createJeniusApiClient, JeniusApiError } from "@/api/client";
 import type { ExplanationStyle } from "../../../shared/contracts";
 import { Bookmark, Home, Plus, User } from "lucide-react";
+import { getMotionConceptForLesson, useLearningMotionTimeline, useMotion } from "@/motion";
 
 const FEED_NAV_ITEMS: BottomNavItem[] = [
   { key: "feed", label: "Feed", icon: Home },
@@ -64,6 +75,14 @@ export interface DiscoverFeedProps {
   previewConceptId?: string;
 }
 
+interface CompletionView {
+  conceptId: string;
+  xpAwarded: number;
+  understandingLevel: number;
+  reopened: boolean;
+  collection: SavedCollection;
+}
+
 /**
  * DiscoverFeed — mobile-first vertical snap feed with an attached
  * challenge → feedback → retry → mind-blown sheet flow.
@@ -87,8 +106,11 @@ export function DiscoverFeed({
 }: DiscoverFeedProps) {
   const ctx = useOffline();
   const learningStore = useLearning();
+  const motion = useMotion();
   const progress = selectProgressStats(learningStore.state);
   const [learning, dispatchLearning] = React.useReducer(learningReducer, initialLearningState);
+  const learningMotionConcept = getMotionConceptForLesson(learning.conceptId);
+  useLearningMotionTimeline(learning, learningMotionConcept);
   // Prop wins when explicitly passed (state-preview harness); otherwise fall
   // back to the app-wide connectivity context.
   const isOffline = offline ?? !ctx.online;
@@ -102,7 +124,7 @@ export function DiscoverFeed({
     setSaved(new Set(Object.keys(learningStore.state.savedConcepts)));
   }, [initialSaved, learningStore.hydrated, learningStore.state.savedConcepts]);
   const [activeIndex, setActiveIndex] = React.useState(0);
-  const [completionConceptId, setCompletionConceptId] = React.useState<string | null>(null);
+  const [completionView, setCompletionView] = React.useState<CompletionView | null>(null);
 
   const navigate = useNavigate();
   const handleTabChange = (key: BottomNavKey) => {
@@ -134,6 +156,17 @@ export function DiscoverFeed({
     return () => observer.disconnect();
   }, [concepts.length, empty, loading]);
 
+  React.useEffect(() => {
+    const nearby = concepts
+      .slice(Math.max(0, activeIndex - 1), Math.min(concepts.length, activeIndex + 2))
+      .flatMap((concept) => {
+        const motionId = getMotionConceptForLesson(concept.id);
+        return motionId ? [motionId] : [];
+      });
+    motion.preloadConcepts(nearby);
+    return () => motion.preloadConcepts([]);
+  }, [activeIndex, concepts, motion]);
+
   const toggleSave = (id: string, collection: SavedCollection = "mind-blown") => {
     setSaved((prev) => {
       const next = new Set(prev);
@@ -147,13 +180,19 @@ export function DiscoverFeed({
   const scrollToIndex = (idx: number) => {
     const el = cardRefs.current[idx];
     if (el && scrollerRef.current) {
-      scrollerRef.current.scrollTo({ top: el.offsetTop, behavior: "smooth" });
+      const reducedMotion =
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      scrollerRef.current.scrollTo({
+        top: el.offsetTop,
+        behavior: getFeedScrollBehavior(reducedMotion),
+      });
     }
   };
 
   // ---------------- Challenge sheet state machine ----------------
   const [challengeConceptId, setChallengeConceptId] = React.useState<string | null>(null);
   const [stage, setStage] = React.useState<ChallengeStage>("question");
+  const [incorrectExplanationVisible, setIncorrectExplanationVisible] = React.useState(false);
 
   // Initial question state
   const [selectedOptionId, setSelectedOptionId] = React.useState<string | null>(null);
@@ -180,6 +219,7 @@ export function DiscoverFeed({
     if (!challenge) return;
     setChallengeConceptId(conceptId);
     setStage(stageOverride);
+    setIncorrectExplanationVisible(stageOverride !== "feedback-incorrect");
     if (stageOverride === "feedback-correct" || stageOverride === "mind-blown") {
       setSelectedOptionId(challenge.correctOptionId);
       setResolvedOptionStates(resolveChallenge(challenge, challenge.correctOptionId));
@@ -209,8 +249,26 @@ export function DiscoverFeed({
     : null;
   const activeChallenge = challengeConceptId ? CONTENT_CHALLENGES[challengeConceptId] : undefined;
   const activeFeedback = challengeConceptId ? CONTENT_FEEDBACK[challengeConceptId] : undefined;
+  const completionConcept = completionView
+    ? (concepts.find((concept) => concept.id === completionView.conceptId) ?? null)
+    : null;
 
   const openChallenge = (conceptId: string) => {
+    const completed = getReopenedCompletion(learningStore.state, conceptId);
+    if (completed) {
+      setChallengeConceptId(null);
+      dispatchLearning({ type: "CLOSE_PANEL" });
+      setCompletionView({
+        conceptId,
+        xpAwarded: 0,
+        understandingLevel: completed.understandingLevel,
+        reopened: completed.reopened,
+        collection: "mind-blown",
+      });
+      return;
+    }
+
+    setCompletionView(null);
     if (
       learning.conceptId === conceptId &&
       learning.phase !== "viewing" &&
@@ -229,6 +287,7 @@ export function DiscoverFeed({
     setRetrySelectedId(null);
     setRetrySubmission("idle");
     setRetryResolved(undefined);
+    setIncorrectExplanationVisible(false);
   };
 
   const closeChallenge = () => {
@@ -247,6 +306,7 @@ export function DiscoverFeed({
       // Advance stage based on correctness.
       const fb = resolveFeedback(activeChallenge, activeFeedback, selectedOptionId);
       setStage(fb.kind === "correct" ? "feedback-correct" : "feedback-incorrect");
+      setIncorrectExplanationVisible(false);
       const concept = getVerifiedConcept(activeChallenge.conceptId);
       if (concept) {
         dispatchLearning({ type: "SUBMIT_ANSWER", concept });
@@ -288,6 +348,7 @@ export function DiscoverFeed({
 
   // ---------------- Explain more sheet state ----------------
   const [explainConceptId, setExplainConceptId] = React.useState<string | null>(null);
+  const [returnToChallengeId, setReturnToChallengeId] = React.useState<string | null>(null);
   const [explainStatus, setExplainStatus] = React.useState<ExplainStatus>("available");
   const [explainPack, setExplainPack] = React.useState<ExplainPack | undefined>();
   const [explanationStyle, setExplanationStyle] = React.useState<ExplanationStyle>("simpler");
@@ -298,6 +359,11 @@ export function DiscoverFeed({
     : null;
 
   const openExplain = (conceptId: string) => {
+    setReturnToChallengeId(null);
+    prepareExplain(conceptId);
+  };
+
+  const prepareExplain = (conceptId: string) => {
     const cached = EXPLAIN_PACKS[conceptId];
     setExplainConceptId(conceptId);
     if (isOffline) {
@@ -312,6 +378,15 @@ export function DiscoverFeed({
     }
     setExplainStatus("available");
     setExplainPack(undefined);
+  };
+
+  const openChallengeExplain = () => {
+    if (!challengeConceptId) return;
+    const conceptId = challengeConceptId;
+    setReturnToChallengeId(conceptId);
+    setChallengeConceptId(null);
+    dispatchLearning({ type: "CLOSE_PANEL" });
+    prepareExplain(conceptId);
   };
 
   const fetchExplain = async () => {
@@ -349,7 +424,14 @@ export function DiscoverFeed({
     }
   };
 
-  const closeExplain = () => setExplainConceptId(null);
+  const closeExplain = () => {
+    setExplainConceptId(null);
+    if (returnToChallengeId) {
+      setChallengeConceptId(returnToChallengeId);
+      dispatchLearning({ type: "REOPEN_PANEL" });
+      setReturnToChallengeId(null);
+    }
+  };
 
   const shareConcept = async (concept: Concept) => {
     const text = `${concept.hook}\n\n${concept.takeaway}`;
@@ -360,10 +442,7 @@ export function DiscoverFeed({
     });
   };
 
-  const advanceToNextConcept = () => {
-    const currentIdx = activeChallengeConcept
-      ? concepts.findIndex((c) => c.id === activeChallengeConcept.id)
-      : -1;
+  const finishConcept = () => {
     const completedId = activeChallengeConcept?.id ?? null;
     if (completedId) {
       const concept = getVerifiedConcept(completedId);
@@ -390,19 +469,33 @@ export function DiscoverFeed({
           { type: "COMPLETE" },
         );
         const outcome = toLearningOutcome(completionState);
-        if (outcome) learningStore.complete(outcome);
+        const alreadyCompleted = learningStore.state.completedConcepts[completedId];
+        if (outcome) {
+          learningStore.complete(outcome);
+          setCompletionView({
+            conceptId: completedId,
+            xpAwarded: alreadyCompleted ? 0 : outcome.xpAwarded,
+            understandingLevel: alreadyCompleted?.understandingLevel ?? outcome.understandingLevel,
+            reopened: !!alreadyCompleted,
+            collection: retrySelectedId ? "finally-get-it" : "mind-blown",
+          });
+        }
         dispatchLearning({ type: "COMPLETE" });
       }
     }
     closeChallenge();
-    if (completedId) {
-      setCompletionConceptId(completedId);
-      window.setTimeout(() => {
-        setCompletionConceptId((cur) => (cur === completedId ? null : cur));
-      }, 4200);
-    }
-    if (currentIdx >= 0 && currentIdx < concepts.length - 1) {
-      window.setTimeout(() => scrollToIndex(currentIdx + 1), 220);
+  };
+
+  const advanceFromCompletion = () => {
+    if (!completionView) return;
+    const nextIndex = getNextCuriosityIndex(
+      concepts.map((concept) => concept.id),
+      completionView.conceptId,
+    );
+    setCompletionView(null);
+    motion.playCuriosity();
+    if (nextIndex !== null && nextIndex <= concepts.length) {
+      window.setTimeout(() => scrollToIndex(nextIndex), motion.reducedMotion ? 0 : 220);
     }
   };
 
@@ -415,6 +508,14 @@ export function DiscoverFeed({
     activeChallenge && activeFeedback && selectedOptionId
       ? activeFeedback.incorrect[selectedOptionId]
       : undefined;
+
+  const displayedLearningPhase: LearningPhase = stageOverride
+    ? previewLearningPhase(stageOverride, retrySubmission)
+    : learning.phase;
+  const retryRequired =
+    learning.primaryCorrect === false ||
+    stageOverride === "feedback-incorrect" ||
+    stageOverride === "retry";
 
   return (
     <AppShell
@@ -472,6 +573,10 @@ export function DiscoverFeed({
                 explainDisabled={explainDisabled}
                 explainHint={explainDisabled ? "Not saved for offline yet." : undefined}
                 muted={muted}
+                motionActive={i === activeIndex}
+                motionVisible={
+                  i === activeIndex && !challengeConceptId && !completionView && !explainConceptId
+                }
                 showSwipeCue={i === 0}
               />
             );
@@ -506,6 +611,8 @@ export function DiscoverFeed({
           subject={activeChallengeConcept.subject}
           conceptReminder={activeChallengeConcept.hook}
           stage={stage}
+          learningPhase={displayedLearningPhase}
+          retryRequired={retryRequired}
           question={activeChallenge}
           selectedOptionId={selectedOptionId}
           submissionState={effectiveSubmissionState}
@@ -518,6 +625,8 @@ export function DiscoverFeed({
           correctFeedback={activeFeedback.correct}
           incorrectFeedback={incorrectFeedbackForSelection}
           selectedOptionLabel={selectedOptionLabel}
+          incorrectExplanationVisible={incorrectExplanationVisible}
+          onShowIncorrectExplanation={() => setIncorrectExplanationVisible(true)}
           onRetry={() => {
             setStage("retry");
             dispatchLearning({ type: "START_RETRY" });
@@ -546,30 +655,34 @@ export function DiscoverFeed({
           }
           onShare={() => void shareConcept(activeChallengeConcept)}
           onContinue={() => {
-            if (stage === "mind-blown") advanceToNextConcept();
+            if (stage === "mind-blown") finishConcept();
             else {
               setStage("mind-blown");
               dispatchLearning({ type: "CONTINUE" });
             }
           }}
+          onExplainAnotherWay={openChallengeExplain}
+          explainAnotherWayDisabled={isOffline && !EXPLAIN_PACKS[activeChallengeConcept.id]}
+          explainAnotherWayHint="Come back online to ask the coach. Your lesson still works offline."
           onClose={closeChallenge}
           onErrorRetry={submitChallenge}
         />
       ) : null}
 
-      <CompletionOverlay
-        open={!!completionConceptId}
-        message="Another idea understood."
-        saved={completionConceptId ? saved.has(completionConceptId) : false}
-        onKeepSwiping={() => setCompletionConceptId(null)}
-        onSave={
-          completionConceptId
-            ? () =>
-                toggleSave(completionConceptId, retrySelectedId ? "finally-get-it" : "mind-blown")
-            : undefined
-        }
-        onDismiss={() => setCompletionConceptId(null)}
-      />
+      {completionView && completionConcept ? (
+        <CompletionOverlay
+          open
+          conceptTitle={completionConcept.hook}
+          xpAwarded={completionView.xpAwarded}
+          understandingLevel={completionView.understandingLevel}
+          reopened={completionView.reopened}
+          saved={saved.has(completionView.conceptId)}
+          onNextCuriosity={advanceFromCompletion}
+          onSave={() => toggleSave(completionView.conceptId, completionView.collection)}
+          onShare={() => void shareConcept(completionConcept)}
+          onDismiss={() => setCompletionView(null)}
+        />
+      ) : null}
 
       {explainConcept ? (
         <ExplainMoreSheet
@@ -589,6 +702,24 @@ export function DiscoverFeed({
       ) : null}
     </AppShell>
   );
+}
+
+function previewLearningPhase(
+  stage: ChallengeStage,
+  retrySubmission: SubmissionState,
+): LearningPhase {
+  switch (stage) {
+    case "question":
+      return "answering";
+    case "feedback-correct":
+      return "teacher-feedback";
+    case "feedback-incorrect":
+      return "misconception";
+    case "retry":
+      return retrySubmission === "submitted" ? "retry-feedback" : "retry";
+    case "mind-blown":
+      return "mind-blown";
+  }
 }
 
 interface FeedDotsProps {

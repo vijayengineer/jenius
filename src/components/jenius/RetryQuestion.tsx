@@ -22,6 +22,8 @@ export interface RetryQuestionProps {
   onSelect: (optionId: string) => void;
   onSubmit: () => void;
   onContinue: () => void;
+  /** The parent may render the prompt as the sheet's primary heading. */
+  showPrompt?: boolean;
   className?: string;
 }
 
@@ -43,6 +45,7 @@ export function RetryQuestion({
   onSelect,
   onSubmit,
   onContinue,
+  showPrompt = true,
   className,
 }: RetryQuestionProps) {
   const isSubmitted = submissionState === "submitted";
@@ -69,12 +72,14 @@ export function RetryQuestion({
 
       <p className="text-[13px] leading-relaxed text-foreground/70">{supportiveIntro}</p>
 
-      <h3
-        id="retry-prompt"
-        className="font-display text-[20px] font-semibold leading-snug tracking-tight text-foreground"
-      >
-        {prompt}
-      </h3>
+      {showPrompt ? (
+        <h3
+          id="retry-prompt"
+          className="font-display text-[20px] font-semibold leading-snug tracking-tight text-foreground"
+        >
+          {prompt}
+        </h3>
+      ) : null}
 
       <div role="radiogroup" aria-labelledby="retry-prompt" className="flex flex-col gap-2.5">
         {options.map((opt, i) => {
@@ -129,9 +134,9 @@ export function RetryQuestion({
             <span>Checking…</span>
           </>
         ) : isSubmitted ? (
-          <span>Continue</span>
+          <span>See the big idea</span>
         ) : (
-          <span>Check answer</span>
+          <span>Try again</span>
         )}
       </button>
     </div>

@@ -16,13 +16,15 @@
     "test": "vitest run",
     "validate-content": "vite-node scripts/content.ts validate",
     "report-content": "vite-node scripts/content.ts report",
+    "motion:generate": "vite-node scripts/motion-assets.ts generate",
+    "motion:verify": "vite-node scripts/motion-assets.ts verify",
     "format": "prettier --write .",
     "server:typecheck": "npm --prefix server run typecheck",
     "server:test": "npm --prefix server run test",
     "server:build": "npm --prefix server run build",
     "server:dev": "npm --prefix server run dev",
     "server:start": "npm --prefix server run start",
-    "verify": "npm run validate-content && npm run report-content && npm run test && npm run typecheck && npm run lint && npm run build && npm run server:test && npm run server:typecheck && npm run server:build"
+    "verify": "npm run validate-content && npm run report-content && npm run motion:verify && npm run test && npm run typecheck && npm run lint && npm run build && npm run server:test && npm run server:typecheck && npm run server:build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

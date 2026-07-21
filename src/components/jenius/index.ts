@@ -22,6 +22,13 @@ export { MemoryHook, type MemoryHookProps } from "./MemoryHook";
 export { MindBlownCard, type MindBlownCardProps } from "./MindBlownCard";
 export { OfflineBanner, type OfflineBannerProps } from "./OfflineBanner";
 export { LoadingState, type LoadingStateProps } from "./LoadingState";
+export { LessonProgress, type LessonProgressProps } from "./LessonProgress";
+export {
+  getLessonProgress,
+  type LessonProgressModel,
+  type LessonProgressStep,
+  type LessonProgressStepId,
+} from "@/learning/progress";
 export { EmptyState, type EmptyStateProps } from "./EmptyState";
 export { ErrorState, type ErrorStateProps } from "./ErrorState";
 export { FeedTopBar, type FeedTopBarProps, type FeedMode } from "./FeedTopBar";

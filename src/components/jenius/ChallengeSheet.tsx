@@ -1,5 +1,5 @@
 import * as React from "react";
-import { AlertCircle, Bookmark, Loader2, Share2 } from "lucide-react";
+import { AlertCircle, Loader2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "./Sheet";
 import { SubjectChip } from "./SubjectChip";
@@ -8,6 +8,8 @@ import { CorrectFeedback } from "./CorrectFeedback";
 import { IncorrectFeedback } from "./IncorrectFeedback";
 import { RetryQuestion } from "./RetryQuestion";
 import { MindBlownCard } from "./MindBlownCard";
+import { LessonProgress } from "./LessonProgress";
+import type { LearningPhase } from "@/learning/engine";
 import type { SubjectId } from "@/lib/jenius/types";
 import type {
   Challenge,
@@ -35,6 +37,8 @@ export interface ChallengeSheetProps {
 
   /** Which stage of the flow to render. */
   stage: ChallengeStage;
+  learningPhase: LearningPhase;
+  retryRequired?: boolean;
 
   // ---- question stage ----
   question: Challenge;
@@ -51,6 +55,8 @@ export interface ChallengeSheetProps {
   incorrectFeedback?: OptionFeedback;
   /** Label of the option the learner picked (resolved by caller). */
   selectedOptionLabel?: string;
+  incorrectExplanationVisible?: boolean;
+  onShowIncorrectExplanation?: () => void;
   onRetry?: () => void;
   onSkipRetry?: () => void;
 
@@ -69,6 +75,11 @@ export interface ChallengeSheetProps {
   onShare?: () => void;
   onContinue?: () => void;
 
+  // ---- optional AI coach ----
+  onExplainAnotherWay?: () => void;
+  explainAnotherWayDisabled?: boolean;
+  explainAnotherWayHint?: string;
+
   // ---- shared ----
   onClose: () => void;
   /** Retry the network call after a submission error. */
@@ -84,47 +95,80 @@ const MARKERS = ["A", "B", "C", "D"];
  * All copy and correctness resolution arrives through props.
  */
 export function ChallengeSheet(props: ChallengeSheetProps) {
-  const { open, onOpenChange, subject, conceptReminder, stage, onClose } = props;
+  const { open, onOpenChange } = props;
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={(next) => {
-        onOpenChange(next);
-        if (!next) onClose();
-      }}
-    >
-      <SheetContent title="Quick check" hideHeader>
-        <div className="flex items-center gap-2">
-          <SubjectChip subject={subject} size="sm" />
-          <span className="text-xs uppercase tracking-[0.18em] text-foreground/60">
-            {stageLabel(stage)}
-          </span>
-        </div>
-
-        {conceptReminder && stage === "question" ? (
-          <p className="mt-3 text-[13px] text-foreground/65">
-            About: <span className="text-foreground/85">{conceptReminder}</span>
-          </p>
-        ) : null}
-
-        <div className="mt-5 max-h-[70dvh] overflow-y-auto no-scrollbar pr-1">
-          {stage === "question" ? <QuestionStage {...props} /> : null}
-          {stage === "feedback-correct" && props.correctFeedback ? (
-            <FeedbackCorrectStage {...props} data={props.correctFeedback} />
-          ) : null}
-          {stage === "feedback-incorrect" && props.incorrectFeedback ? (
-            <FeedbackIncorrectStage {...props} data={props.incorrectFeedback} />
-          ) : null}
-          {stage === "retry" && props.retryChallenge ? (
-            <RetryStage {...props} retry={props.retryChallenge} />
-          ) : null}
-          {stage === "mind-blown" && props.mindBlown ? (
-            <MindBlownStage {...props} fact={props.mindBlown} />
-          ) : null}
-        </div>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent title="Lesson" hideHeader closeLabel="Close lesson">
+        <ChallengeLessonContent {...props} />
       </SheetContent>
     </Sheet>
+  );
+}
+
+/** Exported without the Radix portal so presenter states can be tested during SSR. */
+export function ChallengeLessonContent(props: ChallengeSheetProps) {
+  const { subject, stage, learningPhase, retryRequired } = props;
+  const currentQuestion =
+    stage === "retry" && props.retryChallenge ? props.retryChallenge.prompt : props.question.prompt;
+  const questionId = stage === "retry" ? "retry-prompt" : "challenge-question";
+  const showCoach =
+    stage === "feedback-correct" ||
+    (stage === "feedback-incorrect" && props.incorrectExplanationVisible) ||
+    (stage === "retry" && props.retrySubmissionState === "submitted");
+
+  return (
+    <>
+      <LessonProgress phase={learningPhase} retryRequired={retryRequired} />
+
+      <div className="mt-4 flex items-center gap-2">
+        <SubjectChip subject={subject} size="sm" />
+        <span className="text-xs uppercase tracking-[0.18em] text-foreground/60">
+          {stageLabel(stage)}
+        </span>
+      </div>
+
+      <div data-question-context className="mt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/60">
+          {stage === "retry" ? "Try this question" : "Question"}
+        </p>
+        <h2
+          id={questionId}
+          className="mt-1 font-display text-[24px] font-semibold leading-snug tracking-tight text-foreground"
+        >
+          {currentQuestion}
+        </h2>
+        {stage === "retry" ? (
+          <span className="sr-only" data-original-question>
+            Original question: {props.question.prompt}
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-5">
+        {stage === "question" ? <QuestionStage {...props} /> : null}
+        {stage === "feedback-correct" && props.correctFeedback ? (
+          <FeedbackCorrectStage {...props} data={props.correctFeedback} />
+        ) : null}
+        {stage === "feedback-incorrect" && props.incorrectFeedback ? (
+          <FeedbackIncorrectStage {...props} data={props.incorrectFeedback} />
+        ) : null}
+        {stage === "retry" && props.retryChallenge ? (
+          <RetryStage {...props} retry={props.retryChallenge} />
+        ) : null}
+        {stage === "mind-blown" && props.mindBlown ? (
+          <MindBlownStage {...props} fact={props.mindBlown} />
+        ) : null}
+
+        {showCoach && props.onExplainAnotherWay ? (
+          <CoachAction
+            onClick={props.onExplainAnotherWay}
+            disabled={props.explainAnotherWayDisabled}
+            hint={props.explainAnotherWayHint}
+          />
+        ) : null}
+      </div>
+    </>
   );
 }
 
@@ -137,7 +181,7 @@ function stageLabel(stage: ChallengeStage) {
     case "feedback-incorrect":
       return "Let's unpack it";
     case "retry":
-      return "Try another way";
+      return "Retry";
     case "mind-blown":
       return "Mind blown";
   }
@@ -152,8 +196,6 @@ function QuestionStage({
   resolvedOptionStates,
   onSelect,
   onSubmit,
-  onClose,
-  onOpenChange,
   onErrorRetry,
 }: ChallengeSheetProps) {
   const isSubmitted = submissionState === "submitted";
@@ -174,18 +216,7 @@ function QuestionStage({
 
   return (
     <>
-      <h3
-        id="challenge-question"
-        className="font-display text-[22px] font-semibold leading-snug tracking-tight text-foreground"
-      >
-        {question.prompt}
-      </h3>
-
-      <div
-        role="radiogroup"
-        aria-labelledby="challenge-question"
-        className="mt-5 flex flex-col gap-2.5"
-      >
+      <div role="radiogroup" aria-labelledby="challenge-question" className="flex flex-col gap-2.5">
         {question.options.map((opt, i) => {
           const isChecked = selectedOptionId === opt.id;
           const disabled = isSubmitted || isSubmitting;
@@ -240,7 +271,7 @@ function QuestionStage({
         </div>
       ) : null}
 
-      <div className="mt-6 flex flex-col gap-2">
+      <div className="mt-6">
         <button
           type="button"
           onClick={onSubmit}
@@ -263,16 +294,6 @@ function QuestionStage({
             <span>Check answer</span>
           )}
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            onOpenChange(false);
-            onClose();
-          }}
-          className="h-11 rounded-2xl text-sm font-medium text-foreground/70 transition-swift hover:text-foreground"
-        >
-          Close
-        </button>
       </div>
     </>
   );
@@ -288,7 +309,6 @@ function FeedbackCorrectStage({
         acknowledgement={data.acknowledgement}
         explanation={data.explanation}
         memoryHook={data.memoryHook}
-        progressGain="+1 concept understood"
       />
       <button
         type="button"
@@ -298,7 +318,7 @@ function FeedbackCorrectStage({
           "gradient-brand font-medium text-primary-foreground shadow-glow transition-swift active:scale-[0.99]",
         )}
       >
-        Keep going
+        See the big idea
       </button>
     </>
   );
@@ -307,6 +327,8 @@ function FeedbackCorrectStage({
 function FeedbackIncorrectStage({
   data,
   selectedOptionLabel,
+  incorrectExplanationVisible,
+  onShowIncorrectExplanation,
   onRetry,
   onSkipRetry,
 }: ChallengeSheetProps & { data: OptionFeedback }) {
@@ -319,8 +341,11 @@ function FeedbackIncorrectStage({
       whyIncorrect={data.whyIncorrect}
       correctStatement={data.correctiveStatement}
       memoryHook={data.memoryHook}
+      explanationVisible={incorrectExplanationVisible}
+      onShowExplanation={onShowIncorrectExplanation}
       onRetry={onRetry ?? (() => {})}
       onSkipRetry={onSkipRetry}
+      retryLabel="Try again"
     />
   );
 }
@@ -346,17 +371,12 @@ function RetryStage({
       onSelect={onRetrySelect ?? (() => {})}
       onSubmit={onRetrySubmit ?? (() => {})}
       onContinue={onContinue ?? (() => {})}
+      showPrompt={false}
     />
   );
 }
 
-function MindBlownStage({
-  fact,
-  saved,
-  onToggleSave,
-  onShare,
-  onContinue,
-}: ChallengeSheetProps & { fact: MindBlownFact }) {
+function MindBlownStage({ fact, onContinue }: ChallengeSheetProps & { fact: MindBlownFact }) {
   return (
     <div className="flex flex-col gap-5">
       <MindBlownCard>
@@ -370,31 +390,6 @@ function MindBlownStage({
         </div>
       </MindBlownCard>
 
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={onToggleSave}
-          aria-pressed={!!saved}
-          className={cn(
-            "flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl border text-sm font-medium transition-swift",
-            saved
-              ? "border-mind-blown/40 bg-mind-blown/15 text-mind-blown"
-              : "border-white/10 bg-white/[0.04] text-foreground/85 hover:bg-white/[0.08]",
-          )}
-        >
-          <Bookmark className={cn("size-4", saved && "fill-current")} aria-hidden />
-          {saved ? "Saved" : "Save"}
-        </button>
-        <button
-          type="button"
-          onClick={onShare}
-          className="flex h-11 flex-1 items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.04] text-sm font-medium text-foreground/85 transition-swift hover:bg-white/[0.08]"
-        >
-          <Share2 className="size-4" aria-hidden />
-          Share
-        </button>
-      </div>
-
       <button
         type="button"
         onClick={onContinue}
@@ -403,8 +398,43 @@ function MindBlownStage({
           "gradient-brand font-medium text-primary-foreground shadow-glow transition-swift active:scale-[0.99]",
         )}
       >
-        Next concept
+        Finish concept
       </button>
+    </div>
+  );
+}
+
+function CoachAction({
+  onClick,
+  disabled,
+  hint,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  hint?: string;
+}) {
+  const hintId = React.useId();
+  return (
+    <div className="mt-4 border-t border-white/8 pt-4">
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        aria-describedby={disabled && hint ? hintId : undefined}
+        className={cn(
+          "flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/10",
+          "bg-white/[0.03] px-4 text-sm font-medium text-foreground/75 transition-swift",
+          "hover:bg-white/[0.07] hover:text-foreground disabled:cursor-not-allowed disabled:opacity-45",
+        )}
+      >
+        <Sparkles className="size-4 text-brand-violet" aria-hidden />
+        Explain another way
+      </button>
+      {disabled && hint ? (
+        <p id={hintId} className="mt-2 text-center text-xs leading-relaxed text-foreground/60">
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

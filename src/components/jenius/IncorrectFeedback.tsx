@@ -20,6 +20,9 @@ export interface IncorrectFeedbackProps {
   memoryHook: string;
   /** Stage 5 — retry action. */
   onRetry: () => void;
+  /** Keeps the corrective detail behind one clear learner-controlled transition. */
+  explanationVisible?: boolean;
+  onShowExplanation?: () => void;
   /** Optional secondary "skip retry" action. */
   onSkipRetry?: () => void;
   retryLabel?: string;
@@ -40,10 +43,50 @@ export function IncorrectFeedback({
   correctStatement,
   memoryHook,
   onRetry,
+  explanationVisible = true,
+  onShowExplanation,
   onSkipRetry,
   retryLabel = "Try the idea another way",
   className,
 }: IncorrectFeedbackProps) {
+  if (!explanationVisible) {
+    return (
+      <div role="status" aria-live="polite" className={cn("flex flex-col gap-5", className)}>
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-brand-blue">
+            Let's look at this together
+          </div>
+          <p className="mt-1 font-display text-[20px] font-semibold leading-snug tracking-tight text-foreground">
+            {acknowledgement}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-misconception/25 bg-misconception/8 p-4">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-misconception">
+            A common misconception
+          </p>
+          <p className="mt-2 text-[15px] font-medium leading-relaxed text-foreground/90">
+            {misconceptionLabel}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={onShowExplanation}
+          aria-label="Show me why this answer is incorrect"
+          className={cn(
+            "inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl",
+            "gradient-brand text-primary-foreground shadow-glow",
+            "font-medium transition-swift active:scale-[0.99]",
+          )}
+        >
+          <span>Show me why</span>
+          <ArrowRight className="size-4" aria-hidden />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div role="status" aria-live="polite" className={cn("flex flex-col gap-5", className)}>
       {/* Stage 1 — Acknowledge */}
