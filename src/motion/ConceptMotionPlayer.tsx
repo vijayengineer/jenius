@@ -85,12 +85,12 @@ export function ConceptMotionPlayer({
   const showPoster = reducedMotion || !active || failed;
 
   return (
-    <figure className={cn("flex flex-col gap-2", className)}>
+    <figure className={cn("flex flex-col gap-1.5", className)}>
       <div
         role="img"
         aria-label={alt}
         data-concept-motion-canvas
-        className="relative h-[clamp(220px,34dvh,340px)] w-full overflow-hidden rounded-xl"
+        className="relative h-[clamp(224px,35dvh,348px)] w-full overflow-hidden rounded-xl"
       >
         {showPoster && asset.posterUrl ? (
           <img
