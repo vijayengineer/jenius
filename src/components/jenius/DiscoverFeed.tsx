@@ -42,6 +42,7 @@ import { shareOrCopy } from "@/lib/jenius/share";
 import { createJeniusApiClient, JeniusApiError } from "@/api/client";
 import type { ExplanationStyle } from "../../../shared/contracts";
 import { Bookmark, Home, Plus, User } from "lucide-react";
+import { getMotionConceptForLesson, useLearningMotionTimeline, useMotion } from "@/motion";
 
 const FEED_NAV_ITEMS: BottomNavItem[] = [
   { key: "feed", label: "Feed", icon: Home },
@@ -105,8 +106,11 @@ export function DiscoverFeed({
 }: DiscoverFeedProps) {
   const ctx = useOffline();
   const learningStore = useLearning();
+  const motion = useMotion();
   const progress = selectProgressStats(learningStore.state);
   const [learning, dispatchLearning] = React.useReducer(learningReducer, initialLearningState);
+  const learningMotionConcept = getMotionConceptForLesson(learning.conceptId);
+  useLearningMotionTimeline(learning, learningMotionConcept);
   // Prop wins when explicitly passed (state-preview harness); otherwise fall
   // back to the app-wide connectivity context.
   const isOffline = offline ?? !ctx.online;
@@ -151,6 +155,17 @@ export function DiscoverFeed({
     cardRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
   }, [concepts.length, empty, loading]);
+
+  React.useEffect(() => {
+    const nearby = concepts
+      .slice(Math.max(0, activeIndex - 1), Math.min(concepts.length, activeIndex + 2))
+      .flatMap((concept) => {
+        const motionId = getMotionConceptForLesson(concept.id);
+        return motionId ? [motionId] : [];
+      });
+    motion.preloadConcepts(nearby);
+    return () => motion.preloadConcepts([]);
+  }, [activeIndex, concepts, motion]);
 
   const toggleSave = (id: string, collection: SavedCollection = "mind-blown") => {
     setSaved((prev) => {
@@ -478,8 +493,9 @@ export function DiscoverFeed({
       completionView.conceptId,
     );
     setCompletionView(null);
+    motion.playCuriosity();
     if (nextIndex !== null && nextIndex <= concepts.length) {
-      window.setTimeout(() => scrollToIndex(nextIndex), 220);
+      window.setTimeout(() => scrollToIndex(nextIndex), motion.reducedMotion ? 0 : 220);
     }
   };
 
@@ -557,6 +573,10 @@ export function DiscoverFeed({
                 explainDisabled={explainDisabled}
                 explainHint={explainDisabled ? "Not saved for offline yet." : undefined}
                 muted={muted}
+                motionActive={i === activeIndex}
+                motionVisible={
+                  i === activeIndex && !challengeConceptId && !completionView && !explainConceptId
+                }
                 showSwipeCue={i === 0}
               />
             );

@@ -6,6 +6,7 @@ import type { MediaPlaybackState } from "@/lib/jenius/types";
 import { SubjectChip } from "./SubjectChip";
 import { ConceptActions } from "./ConceptActions";
 import { MediaSlot } from "./MediaSlot";
+import { ConceptMotionPlayer, getMotionConceptForLesson } from "@/motion";
 
 export interface ConceptCardProps extends React.HTMLAttributes<HTMLElement> {
   concept: Concept;
@@ -25,6 +26,10 @@ export interface ConceptCardProps extends React.HTMLAttributes<HTMLElement> {
   muted?: boolean;
   /** Show the "Swipe to discover" cue at the bottom. */
   showSwipeCue?: boolean;
+  /** Only the intersecting feed concept owns a decoded video player. */
+  motionActive?: boolean;
+  /** Pause without resetting while a sheet or completion card covers the active concept. */
+  motionVisible?: boolean;
 }
 
 /**
@@ -54,12 +59,15 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
       reducedMotion = false,
       muted = true,
       showSwipeCue,
+      motionActive = false,
+      motionVisible = motionActive,
       className,
       ...props
     },
     ref,
   ) => {
     const readingLabel = `${Math.max(1, Math.round(concept.readingSeconds / 5) * 5)}s read`;
+    const motionConceptId = getMotionConceptForLesson(concept.id);
 
     return (
       <article
@@ -82,7 +90,17 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
           style={{ background: "var(--gradient-brand-soft)" }}
         />
 
-        {concept.media ? (
+        {concept.media && motionConceptId ? (
+          <div className="mb-5">
+            <ConceptMotionPlayer
+              conceptId={motionConceptId}
+              active={motionActive}
+              visible={motionVisible}
+              alt={concept.media.alt ?? concept.hook}
+              caption={concept.media.caption}
+            />
+          </div>
+        ) : concept.media ? (
           <div className="mb-5">
             <MediaSlot
               media={concept.media}
