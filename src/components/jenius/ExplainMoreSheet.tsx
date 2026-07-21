@@ -57,7 +57,11 @@ export function ExplainMoreSheet({
 }: ExplainMoreSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent title="Explain another way" description={conceptHook}>
+      <SheetContent
+        title="Explain another way"
+        description={conceptHook}
+        closeLabel="Close explanation"
+      >
         <div className="mb-4 flex items-center gap-2">
           <SubjectChip subject={subject} size="sm" />
           <span className="text-xs uppercase tracking-wider text-foreground/60">

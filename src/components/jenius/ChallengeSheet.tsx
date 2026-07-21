@@ -106,7 +106,7 @@ export function ChallengeSheet(props: ChallengeSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent title="Lesson" hideHeader>
+      <SheetContent title="Lesson" hideHeader closeLabel="Close lesson">
         <LessonProgress phase={learningPhase} retryRequired={retryRequired} />
 
         <div className="mt-4 flex items-center gap-2">

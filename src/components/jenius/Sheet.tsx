@@ -40,55 +40,79 @@ export interface SheetContentProps extends React.ComponentPropsWithoutRef<
   description?: string;
   hideHeader?: boolean;
   showClose?: boolean;
+  closeLabel?: string;
 }
 
 export const SheetContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   SheetContentProps
->(({ className, title, description, hideHeader, showClose = true, children, ...props }, ref) => (
-  <SheetPortal>
-    <SheetOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[460px]",
-        "glass-strong rounded-t-3xl border-t border-white/10 p-6 pt-4",
-        "pb-[max(env(safe-area-inset-bottom),1.5rem)]",
-        "max-h-[100dvh] overflow-y-auto overscroll-contain",
-        "data-[state=open]:animate-in data-[state=closed]:animate-out",
-        "data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom",
-        "duration-300",
-        className,
-      )}
-      {...props}
-    >
-      <div aria-hidden className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-white/25" />
+>(
+  (
+    {
+      className,
+      title,
+      description,
+      hideHeader,
+      showClose = true,
+      closeLabel = "Close",
+      children,
+      ...props
+    },
+    ref,
+  ) => (
+    <SheetPortal>
+      <SheetOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "jenius-sheet-surface fixed inset-x-0 bottom-0 z-50 mx-auto flex w-full max-w-[460px] flex-col",
+          "glass-strong overflow-hidden rounded-t-3xl border-t border-white/10",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=open]:slide-in-from-bottom data-[state=closed]:slide-out-to-bottom",
+          "duration-300",
+          className,
+        )}
+        {...props}
+      >
+        <div
+          aria-hidden
+          className="mx-auto mb-2 mt-3 h-1.5 w-10 shrink-0 rounded-full bg-white/25"
+        />
 
-      <div className={cn("flex items-start justify-between gap-4", hideHeader && "sr-only")}>
-        <div>
-          <DialogPrimitive.Title className="font-display text-xl font-semibold tracking-tight">
-            {title}
-          </DialogPrimitive.Title>
-          {description ? (
-            <DialogPrimitive.Description className="mt-1 text-sm text-muted-foreground">
-              {description}
-            </DialogPrimitive.Description>
-          ) : (
-            <DialogPrimitive.Description className="sr-only">{title}</DialogPrimitive.Description>
-          )}
+        <div className="flex shrink-0 items-start justify-between gap-4 px-4 pb-2">
+          <div className={cn("min-w-0 pl-2 pt-1", hideHeader && "sr-only")}>
+            <DialogPrimitive.Title className="font-display text-xl font-semibold tracking-tight">
+              {title}
+            </DialogPrimitive.Title>
+            {description ? (
+              <DialogPrimitive.Description className="mt-1 text-sm text-muted-foreground">
+                {description}
+              </DialogPrimitive.Description>
+            ) : (
+              <DialogPrimitive.Description className="sr-only">{title}</DialogPrimitive.Description>
+            )}
+          </div>
+          {showClose ? (
+            <DialogPrimitive.Close
+              aria-label={closeLabel}
+              className="ml-auto grid size-11 shrink-0 place-items-center rounded-full bg-white/8 text-foreground transition-swift hover:bg-white/12"
+            >
+              <X className="size-4" />
+            </DialogPrimitive.Close>
+          ) : null}
         </div>
-        {showClose ? (
-          <DialogPrimitive.Close
-            aria-label="Close"
-            className="grid size-11 place-items-center rounded-full bg-white/8 text-foreground transition-swift hover:bg-white/12"
-          >
-            <X className="size-4" />
-          </DialogPrimitive.Close>
-        ) : null}
-      </div>
 
-      <div className={cn(hideHeader ? "" : "mt-5")}>{children}</div>
-    </DialogPrimitive.Content>
-  </SheetPortal>
-));
+        <div
+          className={cn(
+            "no-scrollbar min-h-0 flex-1 touch-pan-y overflow-x-hidden overflow-y-auto overscroll-contain px-6",
+            "pb-[max(env(safe-area-inset-bottom),1.5rem)]",
+            hideHeader ? "pt-1" : "pt-3",
+          )}
+        >
+          {children}
+        </div>
+      </DialogPrimitive.Content>
+    </SheetPortal>
+  ),
+);
 SheetContent.displayName = "SheetContent";
