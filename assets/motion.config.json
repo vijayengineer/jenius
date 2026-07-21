@@ -127,6 +127,76 @@
       "loopEnd": 5.45,
       "fadeDuration": 0.25,
       "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-deserts",
+      "kind": "concept",
+      "conceptId": "deserts",
+      "sourceFilename": "desert_master.mp4",
+      "filename": "deserts.mp4",
+      "posterFilename": "deserts-poster.jpg",
+      "startTrim": 0.1,
+      "endTrim": 5.85,
+      "loopStart": 0.25,
+      "loopEnd": 5.5,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-sky-blue",
+      "kind": "concept",
+      "conceptId": "sky-blue",
+      "sourceFilename": "sky_blue_master.mp4",
+      "filename": "sky-blue.mp4",
+      "posterFilename": "sky-blue-poster.jpg",
+      "startTrim": 0.1,
+      "endTrim": 5.85,
+      "loopStart": 0.3,
+      "loopEnd": 5.55,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-leaves",
+      "kind": "concept",
+      "conceptId": "leaves",
+      "sourceFilename": "leaves_master.mp4",
+      "filename": "leaves.mp4",
+      "posterFilename": "leaves-poster.jpg",
+      "startTrim": 0.1,
+      "endTrim": 5.15,
+      "loopStart": 0.35,
+      "loopEnd": 5,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-vaccines",
+      "kind": "concept",
+      "conceptId": "vaccines",
+      "sourceFilename": "vaccine_master.mp4",
+      "filename": "vaccines.mp4",
+      "posterFilename": "vaccines-poster.jpg",
+      "startTrim": 0.1,
+      "endTrim": 5.9,
+      "loopStart": 0.35,
+      "loopEnd": 5.65,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-yawning",
+      "kind": "concept",
+      "conceptId": "yawning",
+      "sourceFilename": "yawn_master.mp4",
+      "filename": "yawning.mp4",
+      "posterFilename": "yawning-poster.jpg",
+      "startTrim": 0.1,
+      "endTrim": 5.9,
+      "loopStart": 0.35,
+      "loopEnd": 5.7,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
     }
   ]
 }
