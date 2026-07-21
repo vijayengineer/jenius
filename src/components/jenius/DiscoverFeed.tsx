@@ -783,21 +783,19 @@ const EndOfFeedCard = React.forwardRef<HTMLElement, EndOfFeedCardProps>(({ onLoo
         className="pointer-events-none absolute inset-0 -z-10 opacity-70"
         style={{ background: "var(--gradient-brand-soft)" }}
       />
-      <span className="text-xs uppercase tracking-[0.22em] text-foreground/60">
-        You're all caught up
-      </span>
       <h2 className="gradient-text font-display text-[30px] font-semibold leading-tight">
-        End of the sample feed
+        You’re all caught up
       </h2>
       <p className="max-w-[28ch] text-[15px] text-foreground/75">
-        In the full app, new concepts arrive here forever. For now, loop back to the start.
+        You’ve explored every curiosity available today. Loop back and discover something you
+        missed.
       </p>
       <button
         type="button"
         onClick={onLoop}
         className="mt-2 min-h-11 rounded-full bg-white/10 px-5 text-sm font-medium text-foreground transition-swift hover:bg-white/15 active:scale-[0.98]"
       >
-        Restart feed
+        Explore again
       </button>
     </section>
   );
