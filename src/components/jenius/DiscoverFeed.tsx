@@ -119,7 +119,6 @@ export function DiscoverFeed({
   // back to the app-wide connectivity context.
   const isOffline = offline ?? !ctx.online;
   const [mode, setMode] = React.useState<FeedMode>("discover");
-  const [muted, setMuted] = React.useState(true);
   const [saved, setSaved] = React.useState<Set<string>>(
     () => new Set(initialSaved ?? concepts.filter((c) => c.saved).map((c) => c.id)),
   );
@@ -539,17 +538,19 @@ export function DiscoverFeed({
   return (
     <AppShell
       contained
+      overlayChrome
       header={
         <div className="relative">
           <FeedTopBar
             mode={mode}
             onModeChange={setMode}
-            muted={muted}
-            onToggleMuted={() => setMuted((m) => !m)}
+            status={
+              <DailyDiscoveryBadge
+                progress={progress.dailyProgress}
+                target={progress.dailyTarget}
+              />
+            }
           />
-          <div className="pointer-events-none absolute right-4 top-3 z-10">
-            <DailyDiscoveryBadge progress={progress.dailyProgress} target={progress.dailyTarget} />
-          </div>
           {isOffline ? <OfflineBanner /> : null}
           {totalStops > 1 ? <FeedDots total={totalStops} active={activeIndex} /> : null}
         </div>
@@ -571,7 +572,6 @@ export function DiscoverFeed({
           className={cn(
             "h-[100dvh] w-full snap-y snap-mandatory overflow-y-auto overflow-x-hidden",
             "scroll-smooth no-scrollbar overscroll-y-contain",
-            "-mt-[calc(env(safe-area-inset-top)+0px)]",
           )}
           style={{ scrollSnapType: "y mandatory" }}
         >
@@ -584,6 +584,7 @@ export function DiscoverFeed({
                 ref={(el) => {
                   cardRefs.current[i] = el;
                 }}
+                className={isOffline ? "pt-[calc(env(safe-area-inset-top)+132px)]" : undefined}
                 concept={concept}
                 saved={saved.has(concept.id)}
                 onSave={() => toggleSave(concept.id)}
@@ -591,7 +592,6 @@ export function DiscoverFeed({
                 onExplainMore={() => openExplain(concept.id)}
                 explainDisabled={explainDisabled}
                 explainHint={explainDisabled ? "Not saved for offline yet." : undefined}
-                muted={muted}
                 motionActive={i === activeIndex}
                 motionVisible={
                   i === activeIndex && !challengeConceptId && !completionView && !explainConceptId

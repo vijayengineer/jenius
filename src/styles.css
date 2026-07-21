@@ -166,8 +166,6 @@
   /* Motion */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
-  --transition-smooth: 400ms var(--ease-out-expo);
-  --transition-swift: 220ms var(--ease-out-expo);
 
   --sidebar: oklch(0.2 0.025 275);
   --sidebar-foreground: oklch(0.98 0.005 275);
@@ -247,11 +245,19 @@
 }
 
 @utility transition-smooth {
-  transition: all var(--transition-smooth);
+  transition-property:
+    color, background-color, border-color, opacity, box-shadow, transform, filter, backdrop-filter,
+    width, height;
+  transition-duration: 400ms;
+  transition-timing-function: var(--ease-out-expo);
 }
 
 @utility transition-swift {
-  transition: all var(--transition-swift);
+  transition-property:
+    color, background-color, border-color, opacity, box-shadow, transform, filter, backdrop-filter,
+    width, height;
+  transition-duration: 220ms;
+  transition-timing-function: var(--ease-out-expo);
 }
 
 @utility safe-top {

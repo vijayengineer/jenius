@@ -171,6 +171,15 @@ async function buildExpectedManifest(config: MotionConfig) {
   if (new Set(assets.map(({ filename }) => filename)).size !== assets.length) {
     throw new Error("Motion runtime filenames must be unique");
   }
+  const conceptAssets = assets.filter(({ kind }) => kind === "concept");
+  if (new Set(conceptAssets.map(({ conceptId }) => conceptId)).size !== conceptAssets.length) {
+    throw new Error("Motion concept ids must be unique");
+  }
+  if (
+    new Set(conceptAssets.map(({ posterFilename }) => posterFilename)).size !== conceptAssets.length
+  ) {
+    throw new Error("Motion poster filenames must be unique");
+  }
   return { manifest: { version: config.version, assets }, sourceHashes };
 }
 

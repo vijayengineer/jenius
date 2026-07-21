@@ -75,9 +75,9 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
         aria-roledescription="concept card"
         aria-label={concept.hook}
         className={cn(
-          "relative flex h-[100dvh] w-full snap-start snap-always flex-col overflow-hidden",
+          "relative flex min-h-[100dvh] w-full snap-start snap-always flex-col overflow-x-hidden",
           "px-5",
-          "pt-[calc(env(safe-area-inset-top)+64px)]",
+          "pt-[calc(env(safe-area-inset-top)+72px)]",
           "pb-[calc(env(safe-area-inset-bottom)+96px)]",
           className,
         )}
@@ -91,7 +91,7 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
         />
 
         {concept.media && motionConceptId ? (
-          <div className="-mx-5 mb-4">
+          <div className="-mx-5 mb-3">
             <ConceptMotionPlayer
               conceptId={motionConceptId}
               active={motionActive}
@@ -101,7 +101,7 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
             />
           </div>
         ) : concept.media ? (
-          <div className="mb-5">
+          <div className="mb-4">
             <MediaSlot
               media={concept.media}
               playbackState={playbackState}
@@ -110,12 +110,12 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
             />
           </div>
         ) : concept.animationReady ? (
-          <div className="mb-5">
+          <div className="mb-4">
             <AnimationSlot />
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 pr-16">
           <SubjectChip subject={concept.subject} size="sm" />
           <span className="text-xs uppercase tracking-wider text-foreground/60">
             {concept.category}
@@ -126,16 +126,16 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
           </span>
         </div>
 
-        <div className="mt-5 flex flex-1 flex-col justify-center pr-16">
+        <div className="mt-4 flex flex-1 flex-col justify-center pr-16">
           <h2 className="gradient-text font-display text-[34px] font-semibold leading-[1.05] tracking-tight sm:text-[38px]">
             {concept.hook}
           </h2>
 
-          <p className="mt-5 text-[17px] leading-relaxed text-foreground/85">
+          <p className="mt-4 text-[17px] leading-relaxed text-foreground/85">
             {concept.explanation}
           </p>
 
-          <div className="mt-6 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-[13px] text-foreground/90 backdrop-blur">
+          <div className="mt-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/6 px-4 py-2 text-[13px] text-foreground/90 backdrop-blur">
             <span className="size-1.5 rounded-full bg-brand-blue" aria-hidden />
             <span className="font-medium">Takeaway</span>
             <span className="text-foreground/70">·</span>

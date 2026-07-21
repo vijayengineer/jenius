@@ -8,9 +8,24 @@ export type MotionAssetId =
   | "concept-seasons"
   | "concept-volcano"
   | "concept-flight"
-  | "concept-falling";
+  | "concept-falling"
+  | "concept-deserts"
+  | "concept-sky-blue"
+  | "concept-leaves"
+  | "concept-vaccines"
+  | "concept-yawning";
 
-export type MotionConceptId = "dna" | "seasons" | "volcano" | "flight" | "falling";
+export type MotionConceptId =
+  | "dna"
+  | "seasons"
+  | "volcano"
+  | "flight"
+  | "falling"
+  | "deserts"
+  | "sky-blue"
+  | "leaves"
+  | "vaccines"
+  | "yawning";
 export type MotionPreloadPriority = "critical" | "nearby" | "lazy";
 
 export interface MotionAsset {

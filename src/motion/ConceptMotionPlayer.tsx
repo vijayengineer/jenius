@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useMotionEnvironment } from "./context";
 import { getConceptMotionAsset } from "./manifest";
-import { getMotionStartTime, hasReachedMotionLoop } from "./playback";
+import { getMotionStartTime, hasReachedMotionLoop, shouldShowConceptPoster } from "./playback";
 import type { MotionConceptId } from "./types";
 
 export interface ConceptMotionPlayerProps {
@@ -82,15 +82,15 @@ export function ConceptMotionPlayer({
     return () => video.cancelVideoFrameCallback(frameId);
   }, [asset.endTrim, asset.loopEnd, loop, shouldPlay]);
 
-  const showPoster = reducedMotion || !active || failed;
+  const showPoster = shouldShowConceptPoster(reducedMotion, active, failed);
 
   return (
-    <figure className={cn("flex flex-col gap-2", className)}>
+    <figure className={cn("flex flex-col gap-1.5", className)}>
       <div
         role="img"
         aria-label={alt}
         data-concept-motion-canvas
-        className="relative h-[clamp(220px,34dvh,340px)] w-full overflow-hidden rounded-xl"
+        className="relative h-[clamp(224px,35dvh,348px)] w-full overflow-hidden rounded-xl"
       >
         {showPoster && asset.posterUrl ? (
           <img
