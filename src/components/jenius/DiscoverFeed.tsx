@@ -154,6 +154,7 @@ export function DiscoverFeed({
   // ---------------- Challenge sheet state machine ----------------
   const [challengeConceptId, setChallengeConceptId] = React.useState<string | null>(null);
   const [stage, setStage] = React.useState<ChallengeStage>("question");
+  const [incorrectExplanationVisible, setIncorrectExplanationVisible] = React.useState(false);
 
   // Initial question state
   const [selectedOptionId, setSelectedOptionId] = React.useState<string | null>(null);
@@ -180,6 +181,7 @@ export function DiscoverFeed({
     if (!challenge) return;
     setChallengeConceptId(conceptId);
     setStage(stageOverride);
+    setIncorrectExplanationVisible(stageOverride !== "feedback-incorrect");
     if (stageOverride === "feedback-correct" || stageOverride === "mind-blown") {
       setSelectedOptionId(challenge.correctOptionId);
       setResolvedOptionStates(resolveChallenge(challenge, challenge.correctOptionId));
@@ -229,6 +231,7 @@ export function DiscoverFeed({
     setRetrySelectedId(null);
     setRetrySubmission("idle");
     setRetryResolved(undefined);
+    setIncorrectExplanationVisible(false);
   };
 
   const closeChallenge = () => {
@@ -247,6 +250,7 @@ export function DiscoverFeed({
       // Advance stage based on correctness.
       const fb = resolveFeedback(activeChallenge, activeFeedback, selectedOptionId);
       setStage(fb.kind === "correct" ? "feedback-correct" : "feedback-incorrect");
+      setIncorrectExplanationVisible(false);
       const concept = getVerifiedConcept(activeChallenge.conceptId);
       if (concept) {
         dispatchLearning({ type: "SUBMIT_ANSWER", concept });
@@ -288,6 +292,7 @@ export function DiscoverFeed({
 
   // ---------------- Explain more sheet state ----------------
   const [explainConceptId, setExplainConceptId] = React.useState<string | null>(null);
+  const [returnToChallengeId, setReturnToChallengeId] = React.useState<string | null>(null);
   const [explainStatus, setExplainStatus] = React.useState<ExplainStatus>("available");
   const [explainPack, setExplainPack] = React.useState<ExplainPack | undefined>();
   const [explanationStyle, setExplanationStyle] = React.useState<ExplanationStyle>("simpler");
@@ -298,6 +303,11 @@ export function DiscoverFeed({
     : null;
 
   const openExplain = (conceptId: string) => {
+    setReturnToChallengeId(null);
+    prepareExplain(conceptId);
+  };
+
+  const prepareExplain = (conceptId: string) => {
     const cached = EXPLAIN_PACKS[conceptId];
     setExplainConceptId(conceptId);
     if (isOffline) {
@@ -312,6 +322,15 @@ export function DiscoverFeed({
     }
     setExplainStatus("available");
     setExplainPack(undefined);
+  };
+
+  const openChallengeExplain = () => {
+    if (!challengeConceptId) return;
+    const conceptId = challengeConceptId;
+    setReturnToChallengeId(conceptId);
+    setChallengeConceptId(null);
+    dispatchLearning({ type: "CLOSE_PANEL" });
+    prepareExplain(conceptId);
   };
 
   const fetchExplain = async () => {
@@ -349,7 +368,14 @@ export function DiscoverFeed({
     }
   };
 
-  const closeExplain = () => setExplainConceptId(null);
+  const closeExplain = () => {
+    setExplainConceptId(null);
+    if (returnToChallengeId) {
+      setChallengeConceptId(returnToChallengeId);
+      dispatchLearning({ type: "REOPEN_PANEL" });
+      setReturnToChallengeId(null);
+    }
+  };
 
   const shareConcept = async (concept: Concept) => {
     const text = `${concept.hook}\n\n${concept.takeaway}`;
@@ -518,6 +544,8 @@ export function DiscoverFeed({
           correctFeedback={activeFeedback.correct}
           incorrectFeedback={incorrectFeedbackForSelection}
           selectedOptionLabel={selectedOptionLabel}
+          incorrectExplanationVisible={incorrectExplanationVisible}
+          onShowIncorrectExplanation={() => setIncorrectExplanationVisible(true)}
           onRetry={() => {
             setStage("retry");
             dispatchLearning({ type: "START_RETRY" });
@@ -552,6 +580,9 @@ export function DiscoverFeed({
               dispatchLearning({ type: "CONTINUE" });
             }
           }}
+          onExplainAnotherWay={openChallengeExplain}
+          explainAnotherWayDisabled={isOffline && !EXPLAIN_PACKS[activeChallengeConcept.id]}
+          explainAnotherWayHint="Come back online to ask the coach. Your lesson still works offline."
           onClose={closeChallenge}
           onErrorRetry={submitChallenge}
         />
