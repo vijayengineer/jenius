@@ -53,6 +53,7 @@ describe("production motion presentation", () => {
     expect(canvas).not.toContain("border");
     expect(canvas).not.toContain("shadow");
     expect(canvas).not.toContain("gradient");
+    expect(canvas).toContain("h-[clamp(224px,35dvh,348px)]");
     expect(markup).toContain("object-contain");
     expect(markup).not.toContain("object-cover");
 
@@ -60,6 +61,10 @@ describe("production motion presentation", () => {
       new URL("../components/jenius/ConceptCard.tsx", import.meta.url),
       "utf8",
     );
-    expect(conceptCardSource).toContain('className="-mx-5 mb-4"');
+    expect(conceptCardSource).toContain('className="-mx-5 mb-3"');
+    expect(conceptCardSource).toContain("min-h-[100dvh]");
+    expect(conceptCardSource).not.toContain(
+      "h-[100dvh] w-full snap-start snap-always flex-col overflow-hidden",
+    );
   });
 });
