@@ -29,6 +29,10 @@ export function retainVisibleMotionLayers(current: MotionLayerState[]) {
   return current.filter((layer) => layer.visible);
 }
 
+export function shouldShowConceptPoster(reducedMotion: boolean, active: boolean, failed: boolean) {
+  return reducedMotion || !active || failed;
+}
+
 export function getMotionStartTime(asset: MotionAsset, currentTime: number) {
   if (currentTime < asset.startTrim || currentTime >= asset.endTrim) {
     return asset.startTrim;

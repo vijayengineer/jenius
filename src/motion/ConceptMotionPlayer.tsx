@@ -2,7 +2,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useMotionEnvironment } from "./context";
 import { getConceptMotionAsset } from "./manifest";
-import { getMotionStartTime, hasReachedMotionLoop } from "./playback";
+import { getMotionStartTime, hasReachedMotionLoop, shouldShowConceptPoster } from "./playback";
 import type { MotionConceptId } from "./types";
 
 export interface ConceptMotionPlayerProps {
@@ -12,10 +12,6 @@ export interface ConceptMotionPlayerProps {
   alt: string;
   caption?: string;
   className?: string;
-}
-
-export function shouldShowConceptPoster(reducedMotion: boolean, active: boolean, failed: boolean) {
-  return reducedMotion || !active || failed;
 }
 
 /** Engine-owned concept player. Feed presenters never access its video element. */

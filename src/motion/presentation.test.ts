@@ -2,8 +2,9 @@ import { readFileSync } from "node:fs";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ConceptMotionPlayer, shouldShowConceptPoster } from "./ConceptMotionPlayer";
+import { ConceptMotionPlayer } from "./ConceptMotionPlayer";
 import { MotionProvider } from "./MotionProvider";
+import { shouldShowConceptPoster } from "./playback";
 import { getMotionReveal, shouldRevealAfterMotion } from "./presentation";
 
 describe("production motion presentation", () => {
