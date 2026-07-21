@@ -29,7 +29,10 @@ describe("learner state", () => {
     const duplicate = applyLearningOutcome(first, completion);
     expect(first.xp).toBe(75);
     expect(first.completedConcepts.seasons.understandingLevel).toBe(4);
+    expect(first.recentActivity).toHaveLength(1);
     expect(duplicate).toBe(first);
+    expect(duplicate.xp).toBe(75);
+    expect(duplicate.recentActivity).toHaveLength(1);
   });
 
   it("serializes through the repository", async () => {

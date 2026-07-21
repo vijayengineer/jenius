@@ -28,6 +28,7 @@ import {
   toLearningOutcome,
   type LearningPhase,
 } from "@/learning/engine";
+import { getNextCuriosityIndex, getReopenedCompletion } from "@/learning/completion";
 import { useLearning } from "@/state/LearningProvider";
 import { selectProgressStats } from "@/state/selectors";
 import type { SavedCollection } from "@/storage/learner-state";
@@ -229,7 +230,7 @@ export function DiscoverFeed({
     : null;
 
   const openChallenge = (conceptId: string) => {
-    const completed = learningStore.state.completedConcepts[conceptId];
+    const completed = getReopenedCompletion(learningStore.state, conceptId);
     if (completed) {
       setChallengeConceptId(null);
       dispatchLearning({ type: "CLOSE_PANEL" });
@@ -237,7 +238,7 @@ export function DiscoverFeed({
         conceptId,
         xpAwarded: 0,
         understandingLevel: completed.understandingLevel,
-        reopened: true,
+        reopened: completed.reopened,
         collection: "mind-blown",
       });
       return;
@@ -463,10 +464,13 @@ export function DiscoverFeed({
 
   const advanceFromCompletion = () => {
     if (!completionView) return;
-    const currentIdx = concepts.findIndex((concept) => concept.id === completionView.conceptId);
+    const nextIndex = getNextCuriosityIndex(
+      concepts.map((concept) => concept.id),
+      completionView.conceptId,
+    );
     setCompletionView(null);
-    if (currentIdx >= 0 && currentIdx < concepts.length) {
-      window.setTimeout(() => scrollToIndex(currentIdx + 1), 220);
+    if (nextIndex !== null && nextIndex <= concepts.length) {
+      window.setTimeout(() => scrollToIndex(nextIndex), 220);
     }
   };
 

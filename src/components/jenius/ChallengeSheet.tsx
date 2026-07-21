@@ -95,7 +95,20 @@ const MARKERS = ["A", "B", "C", "D"];
  * All copy and correctness resolution arrives through props.
  */
 export function ChallengeSheet(props: ChallengeSheetProps) {
-  const { open, onOpenChange, subject, stage, learningPhase, retryRequired } = props;
+  const { open, onOpenChange } = props;
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent title="Lesson" hideHeader closeLabel="Close lesson">
+        <ChallengeLessonContent {...props} />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/** Exported without the Radix portal so presenter states can be tested during SSR. */
+export function ChallengeLessonContent(props: ChallengeSheetProps) {
+  const { subject, stage, learningPhase, retryRequired } = props;
   const currentQuestion =
     stage === "retry" && props.retryChallenge ? props.retryChallenge.prompt : props.question.prompt;
   const questionId = stage === "retry" ? "retry-prompt" : "challenge-question";
@@ -105,59 +118,57 @@ export function ChallengeSheet(props: ChallengeSheetProps) {
     (stage === "retry" && props.retrySubmissionState === "submitted");
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent title="Lesson" hideHeader closeLabel="Close lesson">
-        <LessonProgress phase={learningPhase} retryRequired={retryRequired} />
+    <>
+      <LessonProgress phase={learningPhase} retryRequired={retryRequired} />
 
-        <div className="mt-4 flex items-center gap-2">
-          <SubjectChip subject={subject} size="sm" />
-          <span className="text-xs uppercase tracking-[0.18em] text-foreground/60">
-            {stageLabel(stage)}
+      <div className="mt-4 flex items-center gap-2">
+        <SubjectChip subject={subject} size="sm" />
+        <span className="text-xs uppercase tracking-[0.18em] text-foreground/60">
+          {stageLabel(stage)}
+        </span>
+      </div>
+
+      <div data-question-context className="mt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/60">
+          {stage === "retry" ? "Try this question" : "Question"}
+        </p>
+        <h2
+          id={questionId}
+          className="mt-1 font-display text-[24px] font-semibold leading-snug tracking-tight text-foreground"
+        >
+          {currentQuestion}
+        </h2>
+        {stage === "retry" ? (
+          <span className="sr-only" data-original-question>
+            Original question: {props.question.prompt}
           </span>
-        </div>
+        ) : null}
+      </div>
 
-        <div data-question-context className="mt-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground/60">
-            {stage === "retry" ? "Try this question" : "Question"}
-          </p>
-          <h2
-            id={questionId}
-            className="mt-1 font-display text-[24px] font-semibold leading-snug tracking-tight text-foreground"
-          >
-            {currentQuestion}
-          </h2>
-          {stage === "retry" ? (
-            <span className="sr-only" data-original-question>
-              Original question: {props.question.prompt}
-            </span>
-          ) : null}
-        </div>
+      <div className="mt-5">
+        {stage === "question" ? <QuestionStage {...props} /> : null}
+        {stage === "feedback-correct" && props.correctFeedback ? (
+          <FeedbackCorrectStage {...props} data={props.correctFeedback} />
+        ) : null}
+        {stage === "feedback-incorrect" && props.incorrectFeedback ? (
+          <FeedbackIncorrectStage {...props} data={props.incorrectFeedback} />
+        ) : null}
+        {stage === "retry" && props.retryChallenge ? (
+          <RetryStage {...props} retry={props.retryChallenge} />
+        ) : null}
+        {stage === "mind-blown" && props.mindBlown ? (
+          <MindBlownStage {...props} fact={props.mindBlown} />
+        ) : null}
 
-        <div className="mt-5">
-          {stage === "question" ? <QuestionStage {...props} /> : null}
-          {stage === "feedback-correct" && props.correctFeedback ? (
-            <FeedbackCorrectStage {...props} data={props.correctFeedback} />
-          ) : null}
-          {stage === "feedback-incorrect" && props.incorrectFeedback ? (
-            <FeedbackIncorrectStage {...props} data={props.incorrectFeedback} />
-          ) : null}
-          {stage === "retry" && props.retryChallenge ? (
-            <RetryStage {...props} retry={props.retryChallenge} />
-          ) : null}
-          {stage === "mind-blown" && props.mindBlown ? (
-            <MindBlownStage {...props} fact={props.mindBlown} />
-          ) : null}
-
-          {showCoach && props.onExplainAnotherWay ? (
-            <CoachAction
-              onClick={props.onExplainAnotherWay}
-              disabled={props.explainAnotherWayDisabled}
-              hint={props.explainAnotherWayHint}
-            />
-          ) : null}
-        </div>
-      </SheetContent>
-    </Sheet>
+        {showCoach && props.onExplainAnotherWay ? (
+          <CoachAction
+            onClick={props.onExplainAnotherWay}
+            disabled={props.explainAnotherWayDisabled}
+            hint={props.explainAnotherWayHint}
+          />
+        ) : null}
+      </div>
+    </>
   );
 }
 
