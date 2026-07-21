@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { applyLearningOutcome, createInitialLearnerState } from "@/storage/learner-state";
-import { getNextCuriosityIndex, getReopenedCompletion } from "./completion";
+import { getFeedScrollBehavior, getNextCuriosityIndex, getReopenedCompletion } from "./completion";
 
 const outcome = {
   conceptId: "seasons",
@@ -29,5 +29,10 @@ describe("completion presentation", () => {
     expect(getNextCuriosityIndex(ids, "first")).toBe(1);
     expect(getNextCuriosityIndex(ids, "last")).toBe(ids.length);
     expect(getNextCuriosityIndex(ids, "missing")).toBeNull();
+  });
+
+  it("disables smooth feed movement for reduced motion", () => {
+    expect(getFeedScrollBehavior(true)).toBe("auto");
+    expect(getFeedScrollBehavior(false)).toBe("smooth");
   });
 });

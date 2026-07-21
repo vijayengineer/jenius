@@ -27,3 +27,7 @@ export function getNextCuriosityIndex(conceptIds: string[], completedConceptId: 
   const currentIndex = conceptIds.indexOf(completedConceptId);
   return currentIndex < 0 ? null : currentIndex + 1;
 }
+
+export function getFeedScrollBehavior(reducedMotion: boolean): ScrollBehavior {
+  return reducedMotion ? "auto" : "smooth";
+}

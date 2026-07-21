@@ -28,7 +28,11 @@ import {
   toLearningOutcome,
   type LearningPhase,
 } from "@/learning/engine";
-import { getNextCuriosityIndex, getReopenedCompletion } from "@/learning/completion";
+import {
+  getFeedScrollBehavior,
+  getNextCuriosityIndex,
+  getReopenedCompletion,
+} from "@/learning/completion";
 import { useLearning } from "@/state/LearningProvider";
 import { selectProgressStats } from "@/state/selectors";
 import type { SavedCollection } from "@/storage/learner-state";
@@ -161,7 +165,12 @@ export function DiscoverFeed({
   const scrollToIndex = (idx: number) => {
     const el = cardRefs.current[idx];
     if (el && scrollerRef.current) {
-      scrollerRef.current.scrollTo({ top: el.offsetTop, behavior: "smooth" });
+      const reducedMotion =
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+      scrollerRef.current.scrollTo({
+        top: el.offsetTop,
+        behavior: getFeedScrollBehavior(reducedMotion),
+      });
     }
   };
 
