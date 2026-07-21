@@ -1,6 +1,25 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { MOTION_ASSET_IDS, MOTION_MANIFEST, getConceptMotionAsset } from "./manifest";
+import {
+  MOTION_ASSET_IDS,
+  MOTION_MANIFEST,
+  getConceptMotionAsset,
+  getMotionConceptForLesson,
+} from "./manifest";
+import type { MotionConceptId } from "./types";
+
+const productionLessonIds = [
+  "seasons",
+  "volcanoes",
+  "deserts",
+  "planes",
+  "falling",
+  "sky-blue",
+  "dna",
+  "leaves",
+  "vaccines",
+  "yawning",
+] as const;
 
 const transitionDurationBounds = {
   curiosity: [0.45, 0.75],
@@ -59,6 +78,60 @@ describe("motion manifest", () => {
       const source = readFileSync(new URL(filename, import.meta.url), "utf8");
       expect(source).not.toMatch(/(?:startTrim|endTrim|loopStart|loopEnd)\s*[:=]\s*\d/);
     }
+  });
+
+  it.each(productionLessonIds)(
+    "resolves production lesson %s to a concept cinematic",
+    (lessonId) => {
+      const conceptId = getMotionConceptForLesson(lessonId);
+      expect(conceptId).not.toBeNull();
+      expect(getConceptMotionAsset(conceptId!)).toMatchObject({
+        kind: "concept",
+        conceptId,
+        posterUrl: expect.any(String),
+      });
+    },
+  );
+
+  it("keeps source, runtime, and poster files present for every concept cinematic", () => {
+    const config = JSON.parse(
+      readFileSync(new URL("../../assets/motion.config.json", import.meta.url), "utf8"),
+    ) as {
+      assets: Array<{
+        id: string;
+        kind: "transition" | "concept";
+        conceptId?: MotionConceptId;
+        sourceFilename: string;
+        filename: string;
+        posterFilename?: string;
+      }>;
+    };
+    const concepts = config.assets.filter(({ kind }) => kind === "concept");
+    expect(concepts).toHaveLength(10);
+    for (const asset of concepts) {
+      expect(
+        existsSync(new URL(`../../assets/source/${asset.sourceFilename}`, import.meta.url)),
+      ).toBe(true);
+      expect(existsSync(new URL(`../../assets/runtime/${asset.filename}`, import.meta.url))).toBe(
+        true,
+      );
+      expect(asset.posterFilename).toBeTruthy();
+      expect(
+        existsSync(new URL(`../../assets/runtime/${asset.posterFilename}`, import.meta.url)),
+      ).toBe(true);
+    }
+  });
+
+  it("has no duplicate manifest keys, runtime files, concept ids, or posters", () => {
+    const assets = Object.values(MOTION_MANIFEST);
+    const uniqueCount = (values: Array<string | undefined>) =>
+      new Set(values.filter((value): value is string => Boolean(value))).size;
+    const concepts = assets.filter(({ kind }) => kind === "concept");
+
+    expect(new Set(MOTION_ASSET_IDS).size).toBe(MOTION_ASSET_IDS.length);
+    expect(uniqueCount(assets.map(({ filename }) => filename))).toBe(assets.length);
+    expect(uniqueCount(concepts.map(({ conceptId }) => conceptId))).toBe(concepts.length);
+    expect(uniqueCount(concepts.map(({ posterFilename }) => posterFilename))).toBe(concepts.length);
   });
 
   it.each(MOTION_ASSET_IDS)("keeps %s playback bounds within the source duration", (assetId) => {

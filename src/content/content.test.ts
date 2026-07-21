@@ -14,10 +14,17 @@ describe("verified content", () => {
     expect(report.animationReadyConcepts).toEqual([
       "seasons",
       "volcanoes",
+      "deserts",
       "planes",
       "falling",
+      "sky-blue",
       "dna",
+      "leaves",
+      "vaccines",
+      "yawning",
     ]);
+    expect(concepts.every((concept) => concept.media?.mode === "video")).toBe(true);
+    expect(new Set(concepts.map(({ id }) => id)).size).toBe(10);
   });
 
   it("rejects a remote media URL", () => {

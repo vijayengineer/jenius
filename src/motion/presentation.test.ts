@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { ConceptMotionPlayer } from "./ConceptMotionPlayer";
+import { ConceptMotionPlayer, shouldShowConceptPoster } from "./ConceptMotionPlayer";
 import { MotionProvider } from "./MotionProvider";
 import { getMotionReveal, shouldRevealAfterMotion } from "./presentation";
 
@@ -66,5 +66,10 @@ describe("production motion presentation", () => {
     expect(conceptCardSource).not.toContain(
       "h-[100dvh] w-full snap-start snap-always flex-col overflow-hidden",
     );
+  });
+
+  it("resolves a poster instead of video playback under reduced motion", () => {
+    expect(shouldShowConceptPoster(true, true, false)).toBe(true);
+    expect(shouldShowConceptPoster(false, true, false)).toBe(false);
   });
 });
