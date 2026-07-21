@@ -20,6 +20,11 @@ interface MotionConfigAsset {
   loopEnd?: number;
   fadeDuration: number;
   preloadPriority: PreloadPriority;
+  excludedRanges?: Array<{
+    label: string;
+    start: number;
+    end: number;
+  }>;
 }
 
 interface MotionConfig {
@@ -94,6 +99,15 @@ function assertConfig(asset: MotionConfigAsset, duration: number) {
   }
   if (asset.kind === "concept" && (!asset.conceptId || !asset.posterFilename)) {
     throw new Error(`${asset.id}: concept assets require conceptId and posterFilename`);
+  }
+  for (const excluded of asset.excludedRanges ?? []) {
+    if (excluded.start < 0 || excluded.end <= excluded.start || excluded.end > duration) {
+      throw new Error(`${asset.id}: invalid excluded range ${excluded.start}-${excluded.end}`);
+    }
+    const overlapsPlayback = asset.startTrim < excluded.end && asset.endTrim > excluded.start;
+    if (overlapsPlayback) {
+      throw new Error(`${asset.id}: playback overlaps excluded content '${excluded.label}'`);
+    }
   }
 }
 

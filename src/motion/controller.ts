@@ -82,6 +82,13 @@ export class MotionController {
   setDocumentHidden(documentHidden: boolean) {
     if (this.documentHidden === documentHidden) return;
     this.documentHidden = documentHidden;
+    if (!documentHidden && this.active?.request.paused) {
+      const stale = this.active;
+      this.active = null;
+      stale.resolve("skipped");
+      this.emit();
+      return;
+    }
     if (this.active) {
       this.active = {
         ...this.active,

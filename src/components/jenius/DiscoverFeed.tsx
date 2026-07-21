@@ -42,7 +42,12 @@ import { shareOrCopy } from "@/lib/jenius/share";
 import { createJeniusApiClient, JeniusApiError } from "@/api/client";
 import type { ExplanationStyle } from "../../../shared/contracts";
 import { Bookmark, Home, Plus, User } from "lucide-react";
-import { getMotionConceptForLesson, useLearningMotionTimeline, useMotion } from "@/motion";
+import {
+  getMotionConceptForLesson,
+  getMotionRevealForState,
+  useLearningMotionTimeline,
+  useMotion,
+} from "@/motion";
 
 const FEED_NAV_ITEMS: BottomNavItem[] = [
   { key: "feed", label: "Feed", icon: Home },
@@ -110,7 +115,6 @@ export function DiscoverFeed({
   const progress = selectProgressStats(learningStore.state);
   const [learning, dispatchLearning] = React.useReducer(learningReducer, initialLearningState);
   const learningMotionConcept = getMotionConceptForLesson(learning.conceptId);
-  useLearningMotionTimeline(learning, learningMotionConcept);
   // Prop wins when explicitly passed (state-preview harness); otherwise fall
   // back to the app-wide connectivity context.
   const isOffline = offline ?? !ctx.online;
@@ -125,6 +129,25 @@ export function DiscoverFeed({
   }, [initialSaved, learningStore.hydrated, learningStore.state.savedConcepts]);
   const [activeIndex, setActiveIndex] = React.useState(0);
   const [completionView, setCompletionView] = React.useState<CompletionView | null>(null);
+  const pendingCompletionRef = React.useRef<CompletionView | null>(null);
+
+  // Keep resolved answer feedback behind its short motion beat. This only delays presentation;
+  // the learning reducer remains the source of truth and transitions immediately.
+  const [challengeConceptId, setChallengeConceptId] = React.useState<string | null>(null);
+  const [stage, setStage] = React.useState<ChallengeStage>("question");
+  const [incorrectExplanationVisible, setIncorrectExplanationVisible] = React.useState(false);
+
+  useLearningMotionTimeline(learning, learningMotionConcept, {
+    onInterfaceMotionSettled: (cue, current) => {
+      const reveal = getMotionRevealForState(cue, current);
+      if (reveal === "feedback-correct") setStage(reveal);
+      else if (reveal === "feedback-incorrect") setStage(reveal);
+      else if (reveal === "completion" && pendingCompletionRef.current) {
+        setCompletionView(pendingCompletionRef.current);
+        pendingCompletionRef.current = null;
+      }
+    },
+  });
 
   const navigate = useNavigate();
   const handleTabChange = (key: BottomNavKey) => {
@@ -190,10 +213,6 @@ export function DiscoverFeed({
   };
 
   // ---------------- Challenge sheet state machine ----------------
-  const [challengeConceptId, setChallengeConceptId] = React.useState<string | null>(null);
-  const [stage, setStage] = React.useState<ChallengeStage>("question");
-  const [incorrectExplanationVisible, setIncorrectExplanationVisible] = React.useState(false);
-
   // Initial question state
   const [selectedOptionId, setSelectedOptionId] = React.useState<string | null>(null);
   const [submissionState, setSubmissionState] = React.useState<SubmissionState>("idle");
@@ -292,6 +311,8 @@ export function DiscoverFeed({
 
   const closeChallenge = () => {
     if (stageOverride) return; // stay pinned in preview mode
+    if (learning.phase === "teacher-feedback") setStage("feedback-correct");
+    if (learning.phase === "misconception") setStage("feedback-incorrect");
     setChallengeConceptId(null);
     dispatchLearning({ type: "CLOSE_PANEL" });
   };
@@ -303,9 +324,7 @@ export function DiscoverFeed({
       const resolved = resolveChallenge(activeChallenge, selectedOptionId);
       setResolvedOptionStates(resolved);
       setSubmissionState("submitted");
-      // Advance stage based on correctness.
       const fb = resolveFeedback(activeChallenge, activeFeedback, selectedOptionId);
-      setStage(fb.kind === "correct" ? "feedback-correct" : "feedback-incorrect");
       setIncorrectExplanationVisible(false);
       const concept = getVerifiedConcept(activeChallenge.conceptId);
       if (concept) {
@@ -472,13 +491,13 @@ export function DiscoverFeed({
         const alreadyCompleted = learningStore.state.completedConcepts[completedId];
         if (outcome) {
           learningStore.complete(outcome);
-          setCompletionView({
+          pendingCompletionRef.current = {
             conceptId: completedId,
             xpAwarded: alreadyCompleted ? 0 : outcome.xpAwarded,
             understandingLevel: alreadyCompleted?.understandingLevel ?? outcome.understandingLevel,
             reopened: !!alreadyCompleted,
             collection: retrySelectedId ? "finally-get-it" : "mind-blown",
-          });
+          };
         }
         dispatchLearning({ type: "COMPLETE" });
       }

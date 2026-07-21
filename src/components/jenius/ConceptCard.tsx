@@ -91,7 +91,7 @@ export const ConceptCard = React.forwardRef<HTMLElement, ConceptCardProps>(
         />
 
         {concept.media && motionConceptId ? (
-          <div className="mb-5">
+          <div className="-mx-5 mb-4">
             <ConceptMotionPlayer
               conceptId={motionConceptId}
               active={motionActive}

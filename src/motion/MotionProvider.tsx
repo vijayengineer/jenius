@@ -2,7 +2,14 @@ import * as React from "react";
 import { getConceptMotionAsset, getMotionAsset, MOTION_ASSET_IDS } from "./manifest";
 import { MotionController } from "./controller";
 import { MotionContext } from "./context";
-import { getMotionStartTime, hasReachedMotionEnd } from "./playback";
+import {
+  getMotionStartTime,
+  hasReachedMotionEnd,
+  reconcileMotionLayers,
+  retainVisibleMotionLayers,
+  revealMotionLayer,
+  type MotionLayerState,
+} from "./playback";
 import type { MotionConceptId, MotionEngine, MotionRequest } from "./types";
 
 export function MotionProvider({ children }: { children: React.ReactNode }) {
@@ -102,11 +109,6 @@ export function MotionProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-interface MotionLayer {
-  request: MotionRequest;
-  visible: boolean;
-}
-
 function TransientMotionSurface({
   request,
   controller,
@@ -114,36 +116,25 @@ function TransientMotionSurface({
   request: MotionRequest | null;
   controller: MotionController;
 }) {
-  const [layers, setLayers] = React.useState<MotionLayer[]>([]);
+  const [layers, setLayers] = React.useState<MotionLayerState[]>([]);
   const timersRef = React.useRef<number[]>([]);
-  const layersRef = React.useRef<MotionLayer[]>([]);
+  const layersRef = React.useRef<MotionLayerState[]>([]);
   layersRef.current = layers;
 
   React.useEffect(() => {
-    const existing = request
-      ? layersRef.current.find((layer) => layer.request.requestId === request.requestId)
-      : undefined;
+    const existing = request?.requestId
+      ? layersRef.current.some((layer) => layer.request.requestId === request.requestId)
+      : false;
     if (existing) {
-      setLayers((current) =>
-        current.map((layer) =>
-          layer.request.requestId === request?.requestId ? { ...layer, request } : layer,
-        ),
-      );
+      setLayers((current) => reconcileMotionLayers(current, request));
       return;
     }
 
-    setLayers((current) => {
-      const outgoing = current.slice(-1).map((layer) => ({ ...layer, visible: false }));
-      return request ? [...outgoing, { request, visible: false }] : outgoing;
-    });
+    setLayers((current) => reconcileMotionLayers(current, request));
 
     if (request) {
       const frame = window.requestAnimationFrame(() => {
-        setLayers((current) =>
-          current.map((layer) =>
-            layer.request.requestId === request.requestId ? { ...layer, visible: true } : layer,
-          ),
-        );
+        setLayers((current) => revealMotionLayer(current, request.requestId));
       });
       timersRef.current.push(frame);
     }
@@ -155,7 +146,7 @@ function TransientMotionSurface({
       ),
     );
     const timer = window.setTimeout(() => {
-      setLayers((current) => current.filter((layer) => layer.visible));
+      setLayers(retainVisibleMotionLayers);
     }, longestFade + 40);
     timersRef.current.push(timer);
   }, [request]);
@@ -171,15 +162,24 @@ function TransientMotionSurface({
   );
 
   if (layers.length === 0) return null;
+  const visiblePlayers = layers.filter((layer) => layer.visible).length;
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-[55] overflow-hidden">
-      {layers.map((layer) => (
-        <TransientMotionClip
-          key={layer.request.requestId}
-          layer={layer}
-          onComplete={() => controller.complete(layer.request.requestId)}
-        />
-      ))}
+    <div
+      aria-hidden
+      data-motion-stage
+      data-visible-players={visiblePlayers}
+      className="pointer-events-none fixed inset-0 z-[55] min-h-[100dvh] overflow-hidden"
+    >
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-[2px]" />
+      <div className="absolute inset-x-0 top-[env(safe-area-inset-top)] bottom-[env(safe-area-inset-bottom)] overflow-hidden">
+        {layers.map((layer) => (
+          <TransientMotionClip
+            key={layer.request.requestId}
+            layer={layer}
+            onComplete={() => controller.complete(layer.request.requestId)}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -188,25 +188,51 @@ function TransientMotionClip({
   layer,
   onComplete,
 }: {
-  layer: MotionLayer;
+  layer: MotionLayerState;
   onComplete: () => void;
 }) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const preparedRef = React.useRef(false);
   const asset = getMotionAsset(layer.request.assetId);
 
-  const start = React.useCallback(() => {
+  const prepare = React.useCallback(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || video.readyState < HTMLMediaElement.HAVE_METADATA) return;
     video.currentTime = getMotionStartTime(asset, video.currentTime);
-    if (!layer.request.paused) void video.play().catch(onComplete);
-  }, [asset, layer.request.paused, onComplete]);
+    preparedRef.current = true;
+  }, [asset]);
+
+  const playWhenReady = React.useCallback(() => {
+    const video = videoRef.current;
+    if (!video || layer.request.paused) return;
+    if (!preparedRef.current) prepare();
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+      void video.play().catch(onComplete);
+    }
+  }, [layer.request.paused, onComplete, prepare]);
 
   React.useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     if (layer.request.paused) video.pause();
-    else start();
-  }, [layer.request.paused, start]);
+    else playWhenReady();
+  }, [layer.request.paused, playWhenReady]);
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !("requestVideoFrameCallback" in video)) return;
+    let frameId = 0;
+    const watchFrame: VideoFrameRequestCallback = (_now, metadata) => {
+      if (metadata.mediaTime >= asset.endTrim - 1 / 60) {
+        video.pause();
+        onComplete();
+        return;
+      }
+      frameId = video.requestVideoFrameCallback(watchFrame);
+    };
+    frameId = video.requestVideoFrameCallback(watchFrame);
+    return () => video.cancelVideoFrameCallback(frameId);
+  }, [asset.endTrim, onComplete]);
 
   return (
     <video
@@ -214,20 +240,26 @@ function TransientMotionClip({
       src={asset.url}
       muted
       playsInline
-      autoPlay={!layer.request.paused}
       preload={asset.preloadPriority === "critical" ? "auto" : "metadata"}
       tabIndex={-1}
-      onLoadedMetadata={start}
+      data-motion-player
+      data-motion-asset={asset.id}
+      data-motion-visible={layer.visible}
+      onLoadedMetadata={prepare}
+      onCanPlay={playWhenReady}
       onTimeUpdate={(event) => {
         if (hasReachedMotionEnd(asset, event.currentTarget.currentTime)) onComplete();
       }}
       onEnded={onComplete}
       onError={onComplete}
-      className="absolute inset-0 size-full object-cover mix-blend-screen"
+      className="absolute left-1/2 top-1/2 h-[min(68dvh,640px)] w-[min(100vw,520px)] -translate-x-1/2 -translate-y-1/2 object-cover"
       style={{
-        opacity: layer.visible ? 0.38 : 0,
+        opacity: layer.visible ? 0.92 : 0,
         transition: `opacity ${asset.fadeDuration}s ease`,
-        maskImage: "radial-gradient(ellipse at center, black 20%, transparent 72%)",
+        maskImage:
+          asset.id === "success"
+            ? "linear-gradient(to bottom, transparent 3%, black 18%, black 54%, transparent 70%)"
+            : "radial-gradient(ellipse at 50% 46%, black 18%, transparent 70%)",
       }}
     />
   );

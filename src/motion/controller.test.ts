@@ -28,6 +28,18 @@ describe("motion controller", () => {
     await expect(seasons.finished).resolves.toBe("interrupted");
   });
 
+  it("does not stack rapid repeated answer feedback", async () => {
+    const controller = new MotionController();
+    const first = controller.play("success");
+    const second = controller.play("success");
+    const third = controller.play("success");
+
+    await expect(first.finished).resolves.toBe("interrupted");
+    await expect(second.finished).resolves.toBe("interrupted");
+    expect(controller.getSnapshot().request?.requestId).toBe(third.requestId);
+    third.cancel();
+  });
+
   it("skips videos under reduced motion and interrupts a running clip", async () => {
     const controller = new MotionController();
     const running = controller.play("transition");
@@ -52,16 +64,17 @@ describe("motion controller", () => {
     });
   });
 
-  it("pauses and resumes the active request with page visibility", () => {
+  it("pauses while hidden and skips stale transition playback on foreground", async () => {
     const controller = new MotionController();
     const listener = vi.fn();
     controller.subscribe(listener);
-    controller.play("success");
+    const active = controller.play("success");
 
     controller.setDocumentHidden(true);
     expect(controller.getSnapshot().request?.paused).toBe(true);
     controller.setDocumentHidden(false);
-    expect(controller.getSnapshot().request?.paused).toBe(false);
+    expect(controller.getSnapshot().request).toBeNull();
     expect(listener).toHaveBeenCalledTimes(3);
+    await expect(active.finished).resolves.toBe("skipped");
   });
 });

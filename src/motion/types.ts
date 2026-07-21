@@ -30,6 +30,11 @@ export interface MotionAsset {
   duration: number;
   bytes: number;
   sha256: string;
+  excludedRanges?: Array<{
+    label: string;
+    start: number;
+    end: number;
+  }>;
 }
 
 export type MotionPlaybackResult = "completed" | "interrupted" | "skipped";
