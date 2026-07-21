@@ -1,132 +1,424 @@
 # Jenius
 
-Jenius is an offline-first, mobile-first learning app described as “TikTok for
-understanding.” A mixed-subject vertical feed turns curiosity into a compact learning loop:
-hook, explanation, four-option challenge, misconception-aware feedback, retry, a memorable
-Mind Blown fact, and progression to the next idea.
+> **An AI teacher that turns endless scrolling into endless learning.**
 
-The application preserves the original Lovable design system: a calm dark palette, Space
-Grotesk and Manrope typography, blue-to-violet gradients, glass surfaces, large radii,
-mobile-safe spacing, and accessible bottom-sheet interactions.
+Jenius is an offline-first, mobile-first learning app built around a simple idea: learning should begin with curiosity, not a course.
 
-## Initial content
+Instead of asking learners to create a profile, choose a subject, or commit to a curriculum, Jenius starts teaching immediately through a vertical feed of short visual lessons. It gradually learns from what each learner explores, understands, misunderstands, saves, and asks about, then uses those signals to personalise what comes next.
 
-The bundled release contains exactly ten locally verified concepts across Geography, Earth
-Science, Physics, and Biology. Seasons, volcanoes, planes, falling objects, and DNA are marked
-animation-ready; media remains optional and no remote media is loaded.
+- **Live app:** [jns.fun](https://jns.fun)
+- **Demo video:** Add YouTube link
+- **Built for:** OpenAI Build Week
 
-## User flow
+---
 
-1. Browse a mixed-subject feed by swiping, scrolling, keyboard, or explicit controls.
-2. Open a concept challenge and select one of four answers.
-3. Receive a concise explanation or feedback matched to the selected misconception.
-4. Try a different question, reveal the Mind Blown fact, and complete the concept.
-5. Save useful ideas and review real on-device progress in Saved and Me.
-6. Optionally ask the server-side coach for another explanation without replacing the verified
-   lesson.
-7. Generate a personal lesson in Create, validate it, save it on-device, and keep failed requests
-   available for retry.
+## What Jenius does
+
+Every lesson follows a compact learning loop:
+
+```text
+Curiosity
+→ Cinematic explanation
+→ Four-option challenge
+→ Misconception-aware feedback
+→ Retry and understanding
+→ Mind Blown fact
+→ Next idea
+```
+
+Jenius includes:
+
+- a mixed-subject **Discover** feed
+- an adaptive **For You** experience
+- concise visual explanations
+- interactive knowledge checks
+- feedback matched to specific misconceptions
+- alternative AI-generated explanations
+- locally persisted progress and saved lessons
+- a **Teach me anything** lesson generator
+- offline access through an installable Progressive Web App
+
+No account is required. Learner progress and understanding are stored locally using IndexedDB.
+
+---
+
+## Production learning catalogue
+
+The current release contains ten fully produced concepts across Biology, Physics, Geography, Health, and Earth Science:
+
+1. Why do volcanoes erupt?
+2. Why do seasons exist?
+3. What is DNA?
+4. Why do planes fly?
+5. Do heavier objects fall faster?
+6. Why do deserts form?
+7. Why is the sky blue?
+8. Why do leaves change colour?
+9. How do vaccines train the immune system?
+10. Why do humans yawn?
+
+The catalogue includes:
+
+- **10** production concept cinematics
+- **20** knowledge-check questions
+- **30** misconception branches
+- **5** reusable interface-motion assets
+- video and poster fallbacks for every production lesson
+
+---
+
+## How learning works
+
+Jenius deliberately separates deterministic learning logic from generative AI.
+
+The application controls:
+
+- progression
+- questions and answers
+- attempts
+- scoring
+- misconception selection
+- completion
+- experience points
+- saved lessons
+- review history
+- understanding signals
+
+OpenAI is used where flexibility adds value:
+
+- alternative explanations
+- personalised coaching
+- generating new lessons from a learner’s curiosity
+
+This keeps the core learning journey reliable while allowing explanations and new content to remain adaptive.
+
+---
+
+## Misconception-aware feedback
+
+A wrong answer should reveal more than whether the learner was correct.
+
+Every plausible incorrect answer references a named misconception. Jenius can then respond with:
+
+```text
+Why that answer feels reasonable
+→ where the reasoning breaks
+→ what is actually happening
+→ another opportunity to try
+```
+
+This lets the application respond to the learner’s reasoning rather than simply displaying the correct answer.
+
+---
 
 ## Architecture
 
-TanStack Start and React render the existing Lovable interface. Zod validates bundled content and
-all optional API responses. A pure reducer owns the verified learning flow. A small versioned
-IndexedDB repository owns progress, saves, attempts, topic requests, generated concepts, and
-review scheduling; React components access it through one application provider. The bundled
-catalogue and app shell are available offline through a narrowly scoped service worker.
+The frontend is built with **TanStack Start, React, TypeScript, and Zod**.
 
-The standalone Fastify service under `server/` owns OpenAI and the official
-`@google-cloud/firestore` Node client. It exposes only
-`GET /health`, `POST /api/explain`, and `POST /api/generate`. Firestore caches validated
-explanations, stores validated generated concepts, and applies lightweight salted daily usage
-limits. No Firestore or OpenAI SDK is shipped to the browser.
+A pure reducer owns the verified learning flow, while a versioned IndexedDB repository stores:
 
-See [docs/architecture.md](docs/architecture.md) and
-[docs/content-model.md](docs/content-model.md) for the detailed contracts.
+- learner progress
+- saved lessons
+- attempts
+- generated concepts
+- topic requests
+- understanding signals
+- review scheduling
+
+The standalone Fastify service under `server/` exposes:
+
+```text
+GET  /health
+POST /api/explain
+POST /api/generate
+```
+
+The server owns all OpenAI and Firestore access. No OpenAI or Firestore SDK is shipped to the browser.
+
+Firestore is used for:
+
+- validated explanation caching
+- generated concept storage
+- lightweight daily usage limits
+
+The frontend is deployed on Vercel. The API runs on Google Cloud behind Nginx and HTTPS.
+
+More detail is available in:
+
+- [Architecture](docs/architecture.md)
+- [Backend](docs/backend.md)
+- [Content model](docs/content-model.md)
+- [Motion system](docs/motion.md)
+- [Mobile testing](docs/mobile-testing.md)
+
+---
+
+## Motion system
+
+Jenius uses a custom motion engine rather than placing unrelated videos throughout the interface.
+
+A central manifest controls:
+
+- trim and loop windows
+- transition timing
+- crossfades
+- lazy loading
+- poster generation
+- visibility-aware playback
+- player disposal
+- reduced-motion behaviour
+
+Concept cinematics act as educational content, while curiosity, misunderstanding, success, and completion animations act as short interface transitions.
+
+Immutable source videos are processed into runtime assets and poster frames using FFmpeg.
+
+---
+
+## Built with GPT-5.6 and OpenAI Codex
+
+GPT-5.6 in OpenAI Codex was used as the primary engineering collaborator throughout development.
+
+Focused Codex sessions helped implement:
+
+- the content schema and initial lesson catalogue
+- the deterministic learning reducer
+- misconception-aware feedback
+- IndexedDB persistence
+- the Fastify and Firestore backend
+- OpenAI explanation and generation routes
+- mobile and PWA refinements
+- the production motion engine
+- media trimming and verification with FFmpeg
+- automated tests and release validation
+- architecture and deployment documentation
+
+Codex enabled rapid iteration across the full stack while preserving typed contracts, deterministic behaviour, logical commits, and comprehensive verification.
+
+The product was not produced through a single prompt. It was developed through focused implementation, testing, inspection, correction, and release-verification sessions.
+
+---
+
+## Built with
+
+### Frontend
+
+- TanStack Start
+- React
+- TypeScript
+- Vite
+- Zod
+- IndexedDB
+- Progressive Web App APIs
+- HTML5 Video
+- CSS
+
+### Backend
+
+- Node.js
+- Fastify
+- OpenAI API
+- Google Cloud Firestore
+
+### Media and motion
+
+- FFmpeg
+- HTML5 Video
+- custom motion controller
+- generated poster fallbacks
+
+### Testing and quality
+
+- Vitest
+- TypeScript
+- ESLint
+- content-schema validation
+- motion-asset validation
+- frontend and server production builds
+
+### Deployment
+
+- Vercel
+- Google Cloud
+- Nginx
+- Let’s Encrypt
+- GitHub
+
+---
 
 ## Local development
 
-Requirements: Node.js 22.12+ and npm. The root and `server/` each have a canonical lockfile.
+### Requirements
+
+- Node.js 22.12 or later
+- npm
+- FFmpeg when regenerating motion assets
+- optional OpenAI and Google Cloud credentials for AI features
+
+### Frontend
 
 ```bash
+git clone https://github.com/vijayengineer/jenius.git
+cd jenius
+
 npm install
 cp .env.example .env.local
 npm run dev
 ```
 
-`VITE_API_BASE_URL` is optional. If it is missing or unreachable, all ten bundled lessons and
-previously persisted progress remain usable.
+`VITE_API_BASE_URL` is optional. If it is missing or unavailable, bundled lessons and previously stored learner progress remain usable.
 
-Run the optional backend in a second terminal:
+### Backend
+
+Open a second terminal:
 
 ```bash
-cd server
+cd jenius/server
+
 npm install
 cp .env.example .env
 npm run dev
 ```
 
-In development and test, the backend can start without usable model credentials so `/health` can
-report degraded readiness and AI routes can fail closed. Production startup rejects missing
-`FRONTEND_ORIGINS`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `GOOGLE_CLOUD_PROJECT`, or
-`USAGE_HASH_SALT`; the usage salt must be at least 32 characters. Never commit the copied
-environment files.
+Never commit:
 
-## Quality scripts
+- API keys
+- service-account credentials
+- usage salts
+- copied environment files
+
+Production requires valid values for the environment variables documented in the checked-in `.env.example` files.
+
+---
+
+## Verification
+
+Run the complete release suite:
+
+```bash
+npm run verify
+```
+
+Individual checks include:
 
 ```bash
 npm run validate-content
 npm run report-content
+npm run motion:verify
+npm run test
 npm run typecheck
 npm run lint
-npm run test
 npm run build
-npm run preview
 npm run server:test
 npm run server:typecheck
 npm run server:build
-npm run verify
 ```
 
-## Offline-first approach
+The production release passed:
 
-Verified lessons ship in the client bundle. The service worker caches the shell and same-origin
-static assets while IndexedDB stores learner-owned state behind a repository abstraction.
-Personalised API responses are validated and persisted deliberately; they are excluded from the
-general service-worker runtime cache.
+- **124 frontend tests**
+- **33 server tests**
+- validation for all 10 concepts
+- complete motion-asset verification
+- frontend and server typechecks
+- lint with zero errors
+- frontend and server production builds
+- full release verification
 
-## Misconception-aware learning
+---
 
-Every plausible wrong primary answer references a named misconception with a respectful
-acknowledgement, an explanation of why the choice feels reasonable, a correction, and a memory
-hook. The application does not shame, rank, or punish learners.
+## Offline-first behaviour
 
-## Deployment
+The application shell and verified lesson catalogue remain available offline after the initial load.
 
-The frontend is pinned to Nitro's Vercel preset; `npm run build` produces Vercel Build Output API
-artifacts in `.vercel/output`. Configure `VITE_API_BASE_URL` at build time. The backend compiles to
-`server/dist/server/src/index.js`, binds to `127.0.0.1:301`, and is intended to sit behind Nginx
-and HTTPS on Ubuntu.
+IndexedDB preserves:
 
-See [docs/backend.md](docs/backend.md), [docs/deployment.md](docs/deployment.md), and
-[docs/mobile-testing.md](docs/mobile-testing.md).
+- progress
+- saved lessons
+- attempts
+- understanding
+- reviews
+- generated lessons
+- topic requests
 
-## Build Week and Codex
+Internet access is required for:
 
-Codex, powered by GPT-5.6, was used as the engineering collaborator. At runtime, a configurable
-OpenAI model can provide optional alternative explanations and personal AI-generated lessons.
-Strict structured output, Zod validation, server-owned prompts, one repair attempt, and Firestore
-storage sit between model output and the browser. Bundled educational copy remains deterministic,
-verified, and independent of the model.
+- uncached AI explanations
+- generating new lessons
+- other uncached server interactions
 
-## Current limitations and next steps
+---
 
-- There are no accounts or cross-device sync.
-- Media entries are metadata/placeholders; no production clips are bundled.
-- AI-generated lessons are drafts, not verified content, and do not enter verified XP progression.
-- Salted request fingerprints are lightweight abuse protection, not identity-grade enforcement.
-- Model and Firestore behavior has automated mock coverage; no live credential test or production
-  deployment is claimed by this repository.
+## Installing the PWA
 
-The factual implementation log and demo notes live in
-[docs/build-week.md](docs/build-week.md).
+### iPhone
+
+1. Open [jns.fun](https://jns.fun) in Safari.
+2. Tap **Share**.
+3. Select **Add to Home Screen**.
+4. Tap **Add**.
+
+### Android
+
+1. Open [jns.fun](https://jns.fun) in Chrome.
+2. Open the Chrome menu.
+3. Select **Install app** or **Add to Home screen**.
+
+---
+
+## Privacy and accounts
+
+Jenius does not require an account for the current experience.
+
+Learner progress and inferred understanding are stored locally in the browser using IndexedDB.
+
+This means:
+
+- learners can begin immediately
+- no onboarding profile is required
+- progress remains private to the current device
+- clearing browser storage removes local progress
+- progress does not yet synchronise between devices
+
+---
+
+## Current limitations
+
+- Learning state is local to the current device.
+- There is no account-based cross-device synchronisation yet.
+- The production catalogue currently contains ten curated lessons.
+- AI-generated lessons are treated as personal drafts rather than verified catalogue content.
+- The **For You** experience will become richer as more content and interaction signals are added.
+
+---
+
+## What’s next
+
+The next stage is to make Jenius truly infinite and increasingly personal through:
+
+- richer long-term understanding graphs
+- personalised review and spaced repetition
+- multilingual lessons
+- voice-led learning
+- broader scientific, historical, mathematical, and cultural subjects
+- account-based cross-device synchronisation
+- teacher and classroom tools
+- partnerships with schools, universities, and coaching organisations
+
+> **The long-term vision is an AI teacher that learns how you learn—and always has something meaningful to teach next.**
+
+---
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [Backend](docs/backend.md)
+- [Content model](docs/content-model.md)
+- [Motion system](docs/motion.md)
+- [Mobile testing](docs/mobile-testing.md)
+- [Build Week notes](docs/build-week.md)
+
+---
+
+## Author
+
+Built by [Vijay](https://github.com/vijayengineer) for OpenAI Build Week.
