@@ -14,6 +14,10 @@ export interface ConceptMotionPlayerProps {
   className?: string;
 }
 
+export function shouldShowConceptPoster(reducedMotion: boolean, active: boolean, failed: boolean) {
+  return reducedMotion || !active || failed;
+}
+
 /** Engine-owned concept player. Feed presenters never access its video element. */
 export function ConceptMotionPlayer({
   conceptId,
@@ -82,7 +86,7 @@ export function ConceptMotionPlayer({
     return () => video.cancelVideoFrameCallback(frameId);
   }, [asset.endTrim, asset.loopEnd, loop, shouldPlay]);
 
-  const showPoster = reducedMotion || !active || failed;
+  const showPoster = shouldShowConceptPoster(reducedMotion, active, failed);
 
   return (
     <figure className={cn("flex flex-col gap-1.5", className)}>
