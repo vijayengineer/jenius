@@ -1,0 +1,125 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "id": "curiosity",
+      "kind": "transition",
+      "sourceFilename": "curiosity_master.mp4",
+      "filename": "curiosity.mp4",
+      "startTrim": 0.15,
+      "endTrim": 0.95,
+      "fadeDuration": 0.12,
+      "preloadPriority": "critical"
+    },
+    {
+      "id": "transition",
+      "kind": "transition",
+      "sourceFilename": "transition_master.mp4",
+      "filename": "transition.mp4",
+      "startTrim": 0.15,
+      "endTrim": 2.65,
+      "fadeDuration": 0.18,
+      "preloadPriority": "nearby"
+    },
+    {
+      "id": "misunderstanding",
+      "kind": "transition",
+      "sourceFilename": "misunderstanding_master.mp4",
+      "filename": "misunderstanding.mp4",
+      "startTrim": 0.2,
+      "endTrim": 2.8,
+      "fadeDuration": 0.18,
+      "preloadPriority": "nearby"
+    },
+    {
+      "id": "success",
+      "kind": "transition",
+      "sourceFilename": "success_master.mp4",
+      "filename": "success.mp4",
+      "startTrim": 0.6,
+      "endTrim": 1.45,
+      "fadeDuration": 0.12,
+      "preloadPriority": "nearby"
+    },
+    {
+      "id": "completion",
+      "kind": "transition",
+      "sourceFilename": "completion_master.mp4",
+      "filename": "completion.mp4",
+      "startTrim": 0.2,
+      "endTrim": 5.8,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-dna",
+      "kind": "concept",
+      "conceptId": "dna",
+      "sourceFilename": "dna_master.mp4",
+      "filename": "dna.mp4",
+      "posterFilename": "dna-poster.jpg",
+      "startTrim": 0.2,
+      "endTrim": 5.8,
+      "loopStart": 0.7,
+      "loopEnd": 5.45,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-seasons",
+      "kind": "concept",
+      "conceptId": "seasons",
+      "sourceFilename": "seasons_master.mp4",
+      "filename": "seasons.mp4",
+      "posterFilename": "seasons-poster.jpg",
+      "startTrim": 0.15,
+      "endTrim": 5.85,
+      "loopStart": 0.5,
+      "loopEnd": 5.5,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-volcano",
+      "kind": "concept",
+      "conceptId": "volcano",
+      "sourceFilename": "volcano_master.mp4",
+      "filename": "volcano.mp4",
+      "posterFilename": "volcano-poster.jpg",
+      "startTrim": 0.1,
+      "endTrim": 5.8,
+      "loopStart": 0.7,
+      "loopEnd": 5.2,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-flight",
+      "kind": "concept",
+      "conceptId": "flight",
+      "sourceFilename": "flight_master.mp4",
+      "filename": "flight.mp4",
+      "posterFilename": "flight-poster.jpg",
+      "startTrim": 0.15,
+      "endTrim": 5.8,
+      "loopStart": 0.55,
+      "loopEnd": 5.45,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    },
+    {
+      "id": "concept-falling",
+      "kind": "concept",
+      "conceptId": "falling",
+      "sourceFilename": "fallingobjects_master.mp4",
+      "filename": "falling.mp4",
+      "posterFilename": "falling-poster.jpg",
+      "startTrim": 0.15,
+      "endTrim": 5.8,
+      "loopStart": 0.55,
+      "loopEnd": 5.45,
+      "fadeDuration": 0.25,
+      "preloadPriority": "lazy"
+    }
+  ]
+}
