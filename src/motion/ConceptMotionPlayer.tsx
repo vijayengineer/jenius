@@ -52,9 +52,10 @@ export function ConceptMotionPlayer({
     [],
   );
 
-  const loop = () => {
+  const loop = React.useCallback(() => {
     const video = videoRef.current;
     if (!video || loopTimerRef.current !== null) return;
+    video.pause();
     setLoopVisible(false);
     loopTimerRef.current = window.setTimeout(() => {
       video.currentTime = asset.loopStart ?? asset.startTrim;
@@ -62,7 +63,24 @@ export function ConceptMotionPlayer({
       if (shouldPlay) void video.play().catch(() => setFailed(true));
       window.requestAnimationFrame(() => setLoopVisible(true));
     }, asset.fadeDuration * 1000);
-  };
+  }, [asset.fadeDuration, asset.loopStart, asset.startTrim, shouldPlay]);
+
+  React.useEffect(() => {
+    const video = videoRef.current;
+    const loopEnd = asset.loopEnd ?? asset.endTrim;
+    if (!video || !shouldPlay || !("requestVideoFrameCallback" in video)) return;
+    let frameId = 0;
+    const watchFrame: VideoFrameRequestCallback = (_now, metadata) => {
+      if (metadata.mediaTime >= loopEnd - 1 / 60) {
+        loop();
+        frameId = video.requestVideoFrameCallback(watchFrame);
+        return;
+      }
+      frameId = video.requestVideoFrameCallback(watchFrame);
+    };
+    frameId = video.requestVideoFrameCallback(watchFrame);
+    return () => video.cancelVideoFrameCallback(frameId);
+  }, [asset.endTrim, asset.loopEnd, loop, shouldPlay]);
 
   const showPoster = reducedMotion || !active || failed;
 
@@ -71,14 +89,15 @@ export function ConceptMotionPlayer({
       <div
         role="img"
         aria-label={alt}
-        className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-white/10 gradient-brand-soft"
+        data-concept-motion-canvas
+        className="relative h-[clamp(220px,34dvh,340px)] w-full overflow-hidden rounded-xl"
       >
         {showPoster && asset.posterUrl ? (
           <img
             src={asset.posterUrl}
             alt=""
             aria-hidden
-            className="absolute inset-0 size-full object-cover"
+            className="absolute inset-0 size-full object-contain"
           />
         ) : null}
         {active && !reducedMotion && !failed ? (
@@ -98,19 +117,17 @@ export function ConceptMotionPlayer({
             }}
             onEnded={loop}
             onError={() => setFailed(true)}
-            className="absolute inset-0 size-full object-cover"
+            className="absolute inset-0 size-full object-contain"
             style={{
               opacity: loopVisible ? 1 : 0,
               transition: `opacity ${asset.fadeDuration}s ease`,
             }}
           />
         ) : null}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10"
-        />
       </div>
-      {caption ? <figcaption className="text-xs text-foreground/70">{caption}</figcaption> : null}
+      {caption ? (
+        <figcaption className="px-5 text-xs text-foreground/70">{caption}</figcaption>
+      ) : null}
     </figure>
   );
 }
