@@ -69,6 +69,14 @@ export interface DiscoverFeedProps {
   previewConceptId?: string;
 }
 
+interface CompletionView {
+  conceptId: string;
+  xpAwarded: number;
+  understandingLevel: number;
+  reopened: boolean;
+  collection: SavedCollection;
+}
+
 /**
  * DiscoverFeed — mobile-first vertical snap feed with an attached
  * challenge → feedback → retry → mind-blown sheet flow.
@@ -107,7 +115,7 @@ export function DiscoverFeed({
     setSaved(new Set(Object.keys(learningStore.state.savedConcepts)));
   }, [initialSaved, learningStore.hydrated, learningStore.state.savedConcepts]);
   const [activeIndex, setActiveIndex] = React.useState(0);
-  const [completionConceptId, setCompletionConceptId] = React.useState<string | null>(null);
+  const [completionView, setCompletionView] = React.useState<CompletionView | null>(null);
 
   const navigate = useNavigate();
   const handleTabChange = (key: BottomNavKey) => {
@@ -216,8 +224,26 @@ export function DiscoverFeed({
     : null;
   const activeChallenge = challengeConceptId ? CONTENT_CHALLENGES[challengeConceptId] : undefined;
   const activeFeedback = challengeConceptId ? CONTENT_FEEDBACK[challengeConceptId] : undefined;
+  const completionConcept = completionView
+    ? (concepts.find((concept) => concept.id === completionView.conceptId) ?? null)
+    : null;
 
   const openChallenge = (conceptId: string) => {
+    const completed = learningStore.state.completedConcepts[conceptId];
+    if (completed) {
+      setChallengeConceptId(null);
+      dispatchLearning({ type: "CLOSE_PANEL" });
+      setCompletionView({
+        conceptId,
+        xpAwarded: 0,
+        understandingLevel: completed.understandingLevel,
+        reopened: true,
+        collection: "mind-blown",
+      });
+      return;
+    }
+
+    setCompletionView(null);
     if (
       learning.conceptId === conceptId &&
       learning.phase !== "viewing" &&
@@ -391,10 +417,7 @@ export function DiscoverFeed({
     });
   };
 
-  const advanceToNextConcept = () => {
-    const currentIdx = activeChallengeConcept
-      ? concepts.findIndex((c) => c.id === activeChallengeConcept.id)
-      : -1;
+  const finishConcept = () => {
     const completedId = activeChallengeConcept?.id ?? null;
     if (completedId) {
       const concept = getVerifiedConcept(completedId);
@@ -421,18 +444,28 @@ export function DiscoverFeed({
           { type: "COMPLETE" },
         );
         const outcome = toLearningOutcome(completionState);
-        if (outcome) learningStore.complete(outcome);
+        const alreadyCompleted = learningStore.state.completedConcepts[completedId];
+        if (outcome) {
+          learningStore.complete(outcome);
+          setCompletionView({
+            conceptId: completedId,
+            xpAwarded: alreadyCompleted ? 0 : outcome.xpAwarded,
+            understandingLevel: alreadyCompleted?.understandingLevel ?? outcome.understandingLevel,
+            reopened: !!alreadyCompleted,
+            collection: retrySelectedId ? "finally-get-it" : "mind-blown",
+          });
+        }
         dispatchLearning({ type: "COMPLETE" });
       }
     }
     closeChallenge();
-    if (completedId) {
-      setCompletionConceptId(completedId);
-      window.setTimeout(() => {
-        setCompletionConceptId((cur) => (cur === completedId ? null : cur));
-      }, 4200);
-    }
-    if (currentIdx >= 0 && currentIdx < concepts.length - 1) {
+  };
+
+  const advanceFromCompletion = () => {
+    if (!completionView) return;
+    const currentIdx = concepts.findIndex((concept) => concept.id === completionView.conceptId);
+    setCompletionView(null);
+    if (currentIdx >= 0 && currentIdx < concepts.length) {
       window.setTimeout(() => scrollToIndex(currentIdx + 1), 220);
     }
   };
@@ -589,7 +622,7 @@ export function DiscoverFeed({
           }
           onShare={() => void shareConcept(activeChallengeConcept)}
           onContinue={() => {
-            if (stage === "mind-blown") advanceToNextConcept();
+            if (stage === "mind-blown") finishConcept();
             else {
               setStage("mind-blown");
               dispatchLearning({ type: "CONTINUE" });
@@ -603,19 +636,20 @@ export function DiscoverFeed({
         />
       ) : null}
 
-      <CompletionOverlay
-        open={!!completionConceptId}
-        message="Another idea understood."
-        saved={completionConceptId ? saved.has(completionConceptId) : false}
-        onKeepSwiping={() => setCompletionConceptId(null)}
-        onSave={
-          completionConceptId
-            ? () =>
-                toggleSave(completionConceptId, retrySelectedId ? "finally-get-it" : "mind-blown")
-            : undefined
-        }
-        onDismiss={() => setCompletionConceptId(null)}
-      />
+      {completionView && completionConcept ? (
+        <CompletionOverlay
+          open
+          conceptTitle={completionConcept.hook}
+          xpAwarded={completionView.xpAwarded}
+          understandingLevel={completionView.understandingLevel}
+          reopened={completionView.reopened}
+          saved={saved.has(completionView.conceptId)}
+          onNextCuriosity={advanceFromCompletion}
+          onSave={() => toggleSave(completionView.conceptId, completionView.collection)}
+          onShare={() => void shareConcept(completionConcept)}
+          onDismiss={() => setCompletionView(null)}
+        />
+      ) : null}
 
       {explainConcept ? (
         <ExplainMoreSheet
