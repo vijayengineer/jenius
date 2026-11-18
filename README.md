@@ -10,9 +10,9 @@ The current product already implements the learning experience: short-form visua
 
 The next stage is to open the adaptive teacher layer behind Jenius: learner modelling, concept graphs, sequencing, model-neutral inference, and learning evaluation.
 
-- **Live app:** [jns.fun](https://jns.fun)
+- **Live app:** [jns.fun]()
 - **Repository:** [github.com/vijayengineer/jenius](https://github.com/vijayengineer/jenius)
-- **Demo video:** Add Sentient grant demo link
+- **Demo video:** https://youtube.com/shorts/g0PXFOk-vBs
 - **Status:** Working public PWA / open-source project
 
 ---
